@@ -1,0 +1,70 @@
+# Iris — Android release build args (out/Android) -> chrome_public_apk -> ChromePublic.apk
+# Mirrors the LINUX-VALIDATED fixes (2026-09-25). The old version had the exact flags that FAILED
+# the Linux build (use_dawn, v8_jitless w/o tiers, safe_browsing_mode=0, enable_* asserts, no PGO).
+#
+# !!! MUST run `gn gen out/Android` to validate once the Android SDK/NDK is synced. Android's build
+# graph differs from Linux — it may ALLOW some strips Linux rejected, or reject others. Do NOT start
+# the long APK build until `gn gen` passes clean (same drill as Linux).
+
+target_os = "android"
+target_cpu = "arm64"              # modern phones
+is_official_build = true          # CFI + ThinLTO on supported targets
+chrome_pgo_phase = 0              # REQUIRED offline (official defaults to PGO phase 2 -> needs profile)
+is_component_build = false        # required (official) + real installable APK
+is_debug = false
+is_chrome_branded = false
+symbol_level = 1
+dcheck_always_on = true
+
+disable_fieldtrial_testing_config = true
+enable_reporting = false
+enable_rlz = false
+use_on_device_model_service = false
+
+# --- V8: STANDARD build config (NO build-time jitless) — changed 2026-09-26 ---
+# Build-time jitless CANNOT link in this V8 revision (cost two overnight builds):
+#  - v8_enable_webassembly=false + jitless -> Blink hard-refs WASM in ~27 unguarded files -> LINK fails
+#  - webassembly + drumbrake + jitless     -> Liftoff refs compiler::SimdShuffle (turbofan-only) -> LINK fails
+# gn gen passes BOTH; only the link catches them. So V8 builds standard (links by construction) and the
+# JIT is disabled at RUNTIME: patches/apply-jitless-runtime.sh sets the JAVASCRIPT_JIT content setting
+# default to BLOCK -> every web renderer launches with --jitless -> no JIT for web content, AND V8 then
+# does not install the WebAssembly global (v8/src/wasm/wasm-js.cc:3432) -> WASM API absent.
+# Do NOT re-add v8_jitless / tier=false / drumbrake here. See memory/01_GOTCHAS.md.
+v8_enable_sandbox = true          # keep V8 sandbox
+
+enable_vr = false
+enable_openxr = false
+enable_cardboard = false
+enable_arcore = false
+enable_remoting = false
+
+# --- identity: Iris package (declare_args in chrome/android/chrome_public_apk_tmpl.gni) ---
+chrome_public_manifest_package = "io.jegly.iris"   # installs alongside Chrome/Chromium; branded app id
+
+# --- Compiler hardening (STAGED 2026-09-26; approved by jegly) ---
+# Chromium turns stack-variable init OFF for Android official builds (init_stack_vars = !(is_android &&
+# is_official_build)) -> Iris turns it back ON, zero-init (Vanadium 0013).
+init_stack_vars = true
+init_stack_vars_zero = true
+# Shadow call stack: return addresses on a separate protected stack (Vanadium 0015). arm64 Android only.
+enable_shadow_call_stack = true
+
+# --- ccache: installed 2026-09-26 (100G) ---
+cc_wrapper = "ccache"
+
+# --- ANDROID HAS NO LAUNCHER WRAPPER: release Android ignores command-line files, so everything the
+# desktop launcher does MUST be compiled in. These patches do that (all in patches/apply-all.sh):
+#   apply-webgpu-off.sh        -> kWebGPUService default OFF (WebGPU is ON by default on Android)
+#   apply-default-switches.sh  -> --disable-background-networking + the 15 --disable-blink-features,
+#                                 injected in ChromeMainDelegate::BasicStartupComplete (runs on Android)
+#   apply-rebrand-android.sh   -> app name "Iris", launcher/adaptive/themed icons
+
+# ===================================================================
+# REMOVED (tripped Linux build-graph asserts / compile errors). Verify per-Android with gn gen;
+# if Android's graph allows any, re-add ONE at a time + re-validate. Otherwise disable at runtime:
+#   use_dawn = false           -> COMPILE error (Dawn/Skia coupling). WebGPU: kWebGPUService off (apply-webgpu-off.sh).
+#   safe_browsing_mode = 0     -> other targets need SB components.
+#   enable_pdf / enable_plugins / enable_printing / enable_print_preview -> print-preview test assert.
+#   enable_mdns / enable_service_discovery -> local_discovery assert.
+#   enable_extensions          -> already false on Android by default (no need to set).
+# ===================================================================

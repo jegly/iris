@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Iris
+GenericName=Web Browser
+Comment=Hardened, de-Googled, privacy-focused browser
+Exec=/usr/bin/iris %U
+Icon=iris
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=Iris
+StartupNotify=true

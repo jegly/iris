@@ -1,0 +1,4 @@
+// Iris orb tab/toolbar logo — vector .icon (single-colour, themed by UI; gradient not possible in
+// this format — the gradient shows on the raster app icon). Canvas 24.
+CANVAS_DIMENSIONS, 24,
+CIRCLE, 12, 12, 10

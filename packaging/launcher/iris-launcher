@@ -1,0 +1,45 @@
+#!/bin/sh
+# Iris hardened launch wrapper — the single source of default runtime flags.
+# Used by both the .deb (/usr/bin/iris) and the snap (bin/iris-launcher).
+# Adjust IRIS_BIN per package layout (deb: /opt/iris/iris ; snap: $SNAP/usr/lib/iris/iris).
+IRIS_BIN="${IRIS_BIN:-/opt/iris/iris}"
+
+# --- config-integrity tripwire (feature 4): warn if launch flags/policies drifted from the ---
+# signed manifest. Degrades gracefully if the checker/manifest aren't installed. Set
+# IRIS_CONFIG_ENFORCE=1 to REFUSE launch on drift (checker exits 3 -> we abort). See verify/.
+IRIS_LDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+IRIS_MANIFEST="${IRIS_MANIFEST:-$IRIS_LDIR/iris-config.manifest}"
+IRIS_CHECK="${IRIS_CHECK:-$IRIS_LDIR/iris-config-check.sh}"
+if [ -x "$IRIS_CHECK" ] && [ -f "$IRIS_MANIFEST" ]; then
+  if ! "$IRIS_CHECK" "$IRIS_MANIFEST"; then
+    [ "${IRIS_CONFIG_ENFORCE:-0}" = "1" ] && { echo "iris: config integrity check failed; aborting." >&2; exit 3; }
+  fi
+fi
+
+exec "$IRIS_BIN" \
+  --disable-background-networking \
+  --disable-features=WebGPUService \
+  --disable-blink-features=WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet \
+  "$@"
+
+# NOTES:
+# - WebAuthn/FIDO2 is NOT disabled here -> YubiKey Gmail login works.
+# - --disable-background-networking kills GCM/variations/component-updater phone-home.
+# - --disable-features=WebGPUService: WebGPU off. The feature is kWebGPUService (name "WebGPUService"); the old
+#   `--disable-features=WebGPU` matched NO feature and was a silent no-op (found 2026-09-26). WebGPU is ON by
+#   default on Linux here (use_webgpu_on_vulkan_via_gl_interop=true) and on Android. Also compiled-in by
+#   patches/apply-webgpu-off.sh (needed for Android, which has no launcher).
+# - --disable-blink-features: device/legacy web APIs off (WebUSB/WebHID listed because user is
+#   YubiKey-LOGIN-ONLY via native FIDO, no web mgmt tools). Second group added 2026-09-25 from the
+#   hardening triage: Presentation(Cast), DevicePosture, ComputePressure, PushMessaging, WebShare,
+#   WakeLock+SystemWakeLock (SystemWakeLock implies WakeLock -> disable both). All are confirmed
+#   RuntimeEnabledFeatures names consumed by --disable-blink-features (content/child/runtime_features.cc).
+#   Phase A (2026-09-26) added 26 more — reasoning (Fledge, FileSystemAccessLocal, origin-trial limitation) in
+#   patches/apply-default-switches.sh, which holds the canonical list; keep the two identical.
+# - NOT here (different mechanism): IdleDetection + WebMIDI(MIDI_SYSEX) are content-settings ->
+#   default BLOCK via a source patch (planned group-4); Battery Status + full Gamepad removal have
+#   no clean toggle -> blink patch (deferred). Gamepad can be *restricted* via RuntimeEnabledFeature
+#   RestrictGamepadAccess (enable, not disable) if we want the milder option.
+# - When we bake these as compiled-in defaults (a switches patch) instead of a wrapper, this file
+#   becomes the reference for that patch. For now the wrapper is the shipping mechanism.
+# - Sandbox: rely on the setuid chrome-sandbox (deb postinst / snap chmod 4555) -> NO --no-sandbox.

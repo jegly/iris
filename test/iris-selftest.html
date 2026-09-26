@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iris Self-Test</title>
+<style>
+  :root { --base:#1E1E2E; --mantle:#181825; --crust:#11111B; --surface0:#313244; --text:#CDD6F4; --sub:#A6ADC8;
+          --green:#A6E3A1; --red:#F38BA8; --yellow:#F9E2AF; --blue:#89B4FA; --mauve:#CBA6F7; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 20px 48px; background: var(--base); color: var(--text);
+         font: 15px/1.5 ui-sans-serif, system-ui, Ubuntu, sans-serif; }
+  main { max-width: 980px; margin-inline: auto; display: grid; gap: 28px; }
+  h1 { margin: 0; font-size: 1.6rem; } h2 { margin: 0 0 10px; font-size: 1.1rem; color: var(--mauve); }
+  p { margin: 0; color: var(--sub); } code { font-family: ui-monospace, "Ubuntu Mono", monospace; font-size: .92em; }
+  .summary { display: flex; flex-wrap: wrap; gap: 10px 24px; font-family: ui-monospace, monospace; }
+  .summary b { font-variant-numeric: tabular-nums; }
+  .wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--mantle); border: 1px solid var(--surface0); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 7px 12px; border-top: 1px solid var(--surface0); vertical-align: top; }
+  th { color: var(--sub); font-weight: 600; font-size: .85rem; border-top: 0; }
+  td.res { white-space: nowrap; font-weight: 700; font-family: ui-monospace, monospace; }
+  .pass { color: var(--green); } .fail { color: var(--red); } .info { color: var(--blue); } .plan { color: var(--yellow); }
+  button { font: 600 14px ui-sans-serif, system-ui, sans-serif; background: var(--blue); color: var(--crust); border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+  ul.manual { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--text); }
+</style>
+</head>
+<body>
+<main>
+  <header style="display:grid;gap:8px">
+    <h1>Iris self-test</h1>
+    <p>Run it from a local server so the page counts as a real website (the ad filter only runs on http/https pages):
+      <code>cd ~/Documents/iris/test &amp;&amp; python3 -m http.server 8765</code> then open
+      <code>http://localhost:8765/iris-selftest.html</code>. For comparison, open the same URL in a stock Chrome or Chromium.</p>
+    <div class="summary" id="summary"></div>
+    <p id="insecure" hidden style="color:var(--red);font-weight:600">Not a secure context: many APIs are hidden here in any browser, so "absent" results are meaningless. Open it via the localhost URL above.</p>
+  </header>
+
+  <section><h2>Removed web APIs (expect: absent)</h2><div class="wrap"><table id="t-api"><thead><tr><th>Feature</th><th>Check</th><th>Result</th></tr></thead><tbody></tbody></table></div></section>
+  <section><h2>Permissions blocked by default (expect: denied)</h2><div class="wrap"><table id="t-perm"><thead><tr><th>Permission</th><th>Check</th><th>Result</th></tr></thead><tbody></tbody></table></div></section>
+  <section><h2>Network (needs internet)</h2>
+    <p style="margin-bottom:10px">Ad blocking loads a known ad script and a normal control file. "Headers" sends one request to httpbin.org and shows what Iris sent (nothing else leaves this page).</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"><button id="run-net" type="button">Run network checks</button> <a href="?iris-strip-test=1&amp;utm_source=test&amp;fbclid=abc&amp;keep=1" style="color:var(--blue);align-self:center">Test link stripping</a></div>
+    <div class="wrap"><table id="t-net"><thead><tr><th>Check</th><th>Detail</th><th>Result</th></tr></thead><tbody></tbody></table></div></section>
+  <section><h2>Reported values (information)</h2><div class="wrap"><table id="t-info"><thead><tr><th>Value</th><th>Reported</th><th>Note</th></tr></thead><tbody></tbody></table></div></section>
+  <section><h2>Check by hand</h2>
+    <ul class="manual">
+      <li><code>chrome://version</code>: says Iris / jegly; profile path ends in <code>.config/iris</code>.</li>
+      <li><code>chrome://settings/search</code>: DuckDuckGo default. <code>chrome://settings/security</code>: secure DNS on, Quad9, 15 providers in the list; HTTPS-Only on.</li>
+      <li><code>chrome://settings/cookies</code>: third-party cookies blocked. <code>chrome://settings/content/javascriptJit</code>: blocked by default.</li>
+      <li><code>chrome://gpu</code>: pages render; WebGPU disabled; video decode software only.</li>
+      <li>TLS 1.3 minimum: <code>https://tls-v1-2.badssl.com:1012/</code> must FAIL; <code>https://example.com</code> must load.</li>
+      <li>HTTPS-Only: <code>http://neverssl.com</code> shows a warning first.</li>
+      <li>Ads: on a news site, Page Info (padlock) has an "Ads" entry you can switch to Allow.</li>
+      <li>PDF: a web PDF downloads/opens externally instead of inside the browser.</li>
+      <li>Printing: the menu has no Print entry and Ctrl+P does nothing.</li>
+      <li>Cookie encryption (Linux): <code>chrome://version</code> command line has no <code>--password-store=basic</code>; after a restart you stay logged in (the key comes from the desktop keyring / Secret portal).</li>
+      <li>No first-run welcome page on a fresh profile. New tab page is local (no network request in DevTools).</li>
+    </ul>
+  </section>
+</main>
+<script>
+"use strict";
+var counts = { pass: 0, fail: 0, plan: 0 };
+function row(tableId, cells, cls, label) {
+  var tr = document.createElement("tr");
+  cells.forEach(function (c) { var td = document.createElement("td"); td.innerHTML = c; tr.appendChild(td); });
+  var r = document.createElement("td"); r.className = "res " + cls; r.textContent = label; tr.appendChild(r);
+  document.querySelector("#" + tableId + " tbody").appendChild(tr);
+  if (cls in counts) counts[cls]++;
+  summary();
+}
+function summary() {
+  document.getElementById("summary").innerHTML =
+    '<span class="pass">pass <b>' + counts.pass + '</b></span><span class="fail">fail <b>' + counts.fail +
+    '</b></span><span class="plan">planned, not built yet <b>' + counts.plan + '</b></span>' +
+    '<span class="info">secure context: <b>' + window.isSecureContext + '</b></span>';
+}
+function has(expr) { try { var v = (0, eval)(expr); return v !== undefined && v !== null; } catch (e) { return false; } }
+
+// [label, expression that is truthy/defined when the API is PRESENT, planned?]
+var apis = [
+  ["WebAssembly (JIT off)", "window.WebAssembly"],
+  ["WebUSB", "navigator.usb"], ["WebHID", "navigator.hid"], ["Web Serial", "navigator.serial"],
+  ["Web Bluetooth", "navigator.bluetooth"], ["Web NFC", "window.NDEFReader"], ["WebXR", "navigator.xr"],
+  ["File pickers (File System Access)", "window.showOpenFilePicker"], ["Presentation API", "navigator.presentation"],
+  ["Device Posture", "navigator.devicePosture"], ["Compute Pressure", "window.PressureObserver"],
+  ["Push API", "window.PushManager"], ["Web Share", "navigator.share"], ["Screen Wake Lock", "navigator.wakeLock"],
+  ["Protected Audience (runAdAuction)", "navigator.runAdAuction"], ["Protected Audience (joinAdInterestGroup)", "navigator.joinAdInterestGroup"],
+  ["Topics API", "document.browsingTopics"], ["Shared Storage", "window.sharedStorage"],
+  ["Prompt API", "window.LanguageModel"], ["Summarizer", "window.Summarizer"], ["Writer", "window.Writer"],
+  ["Rewriter", "window.Rewriter"], ["Translator", "window.Translator"], ["Language Detector", "window.LanguageDetector"],
+  ["WebNN", "navigator.ml"], ["Local Font Access", "window.queryLocalFonts"], ["Installed related apps", "navigator.getInstalledRelatedApps"],
+  ["EyeDropper", "window.EyeDropper"], ["Storage Buckets", "navigator.storageBuckets"], ["Sub Apps", "window.SubApps"],
+  ["Launch Queue", "window.launchQueue"], ["Background Fetch", "window.BackgroundFetchManager"],
+  ["Remote Playback", "window.RemotePlayback"], ["Speech recognition", "window.SpeechRecognition || window.webkitSpeechRecognition"],
+  ["Digital Credentials", "window.DigitalCredential"], ["WebOTP", "window.OTPCredential"], ["Contacts Picker", "navigator.contacts"],
+  ["Managed Configuration", "navigator.managed"], ["Protocol handlers", "navigator.registerProtocolHandler"],
+  ["Animation Worklet", "window.CSS && CSS.animationWorklet"],
+  ["Screen Details (getScreenDetails)", "window.getScreenDetails"], ["screen.isExtended", "('isExtended' in screen) || undefined"],
+  ["Keyboard (layout map)", "navigator.keyboard"], ["App Badging", "navigator.setAppBadge"], ["Vibration", "navigator.vibrate"],
+  ["Window Controls Overlay", "navigator.windowControlsOverlay"], ["Handwriting ink", "navigator.ink"],
+  ["MediaStreamTrackProcessor", "window.MediaStreamTrackProcessor"], ["MediaStreamTrackGenerator", "window.MediaStreamTrackGenerator"],
+  ["Network Information", "navigator.connection"],
+  ["Battery Status", "navigator.getBattery"], ["Gamepad", "navigator.getGamepads"], ["speechSynthesis", "window.speechSynthesis"],
+  ["fetchLater", "window.fetchLater"], ["sendBeacon", "navigator.sendBeacon"], ["navigator.userAgentData", "navigator.userAgentData"],
+  ["WebRTC (RTCPeerConnection)", "window.RTCPeerConnection"], ["WebRTC (webkitRTCPeerConnection)", "window.webkitRTCPeerConnection"],
+  ["WebGPU", "navigator.gpu"], ["FedCM (IdentityCredential)", "window.IdentityCredential"],
+  ["Text fragments", "document.fragmentDirective"],
+  ["WebGL (off by default)", "document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('webgl2')", true],
+];
+apis.forEach(function (a) {
+  var present = has(a[1]);
+  var cls = present ? (a[2] ? "plan" : "fail") : "pass";
+  row("t-api", [a[0], "<code>" + a[1].replace(/</g, "&lt;") + "</code>"], cls, present ? (a[2] ? "present (planned)" : "PRESENT") : "absent");
+});
+
+var perms = ["camera", "microphone", "geolocation", "notifications", "clipboard-read", "midi", "idle-detection",
+             "accelerometer", "gyroscope", "magnetometer", "ambient-light-sensor", "background-sync"];
+perms.forEach(function (name) {
+  if (!navigator.permissions) { row("t-perm", [name, "navigator.permissions"], "fail", "no API"); return; }
+  navigator.permissions.query({ name: name }).then(function (st) {
+    row("t-perm", [name, "<code>permissions.query</code>"], st.state === "denied" ? "pass" : "fail", st.state);
+  }, function (e) {
+    row("t-perm", [name, "<code>permissions.query</code>"], "info", "n/a (" + (e && e.name) + ")");
+  });
+});
+
+function info(k, v, note) { var tr = document.createElement("tr");
+  [k, "<code>" + String(v).replace(/</g, "&lt;") + "</code>", note].forEach(function (c) { var td = document.createElement("td"); td.innerHTML = c; tr.appendChild(td); });
+  document.querySelector("#t-info tbody").appendChild(tr); }
+info("User-Agent", navigator.userAgent, "classic UA string, unchanged");
+info("navigator.languages", JSON.stringify(navigator.languages), "Accept-Language header is reduced to one value (see network check)");
+// Tracking-parameter stripping (apply-tracking-param-strip.sh): the "Test link stripping" link below reloads this
+// page with utm_source/fbclid added. Iris must arrive without them, with keep=1 intact.
+(function () {
+  var q = new URLSearchParams(location.search);
+  if (q.has("iris-strip-test")) {
+    var stripped = !q.has("utm_source") && !q.has("fbclid");
+    row("t-net", ["Tracking parameters stripped from links", location.search || "(none)"],
+        stripped && q.get("keep") === "1" ? "pass" : "fail", stripped ? "stripped" : "NOT stripped");
+  }
+})();
+// Values fixed by apply-hw-values-fixed.sh / apply-gpc-on.sh (applied after the first dev build).
+row("t-api", ["navigator.hardwareConcurrency = 8", "<code>" + navigator.hardwareConcurrency + "</code>"],
+    navigator.hardwareConcurrency === 8 ? "pass" : "fail", String(navigator.hardwareConcurrency));
+row("t-api", ["navigator.deviceMemory = 8", "<code>" + navigator.deviceMemory + "</code>"],
+    navigator.deviceMemory === 8 ? "pass" : "fail", String(navigator.deviceMemory));
+row("t-api", ["navigator.globalPrivacyControl = true", "<code>" + navigator.globalPrivacyControl + "</code>"],
+    navigator.globalPrivacyControl === true ? "pass" : "fail", String(navigator.globalPrivacyControl));
+
+function load(url, kind) {
+  return new Promise(function (resolve) {
+    var el = document.createElement(kind);
+    var done = false; var t = setTimeout(function () { if (!done) { done = true; el.remove(); resolve("timeout"); } }, 8000);
+    el.onload = function () { if (!done) { done = true; clearTimeout(t); el.remove(); resolve("loaded"); } };
+    el.onerror = function () { if (!done) { done = true; clearTimeout(t); el.remove(); resolve("blocked"); } };
+    el.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now();
+    document.body.appendChild(el);
+  });
+}
+document.getElementById("run-net").addEventListener("click", function () {
+  var b = this; b.disabled = true; b.textContent = "Running…";
+  Promise.all([
+    load("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", "script"),
+    load("https://www.google-analytics.com/analytics.js", "script"),
+    load("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js", "script"),
+  ]).then(function (r) {
+    var ctrl = r[2];
+    row("t-net", ["Control file (cdnjs)", "must load, otherwise the ad checks below mean nothing"], ctrl === "loaded" ? "pass" : "fail", ctrl);
+    row("t-net", ["Ad script (googlesyndication)", "expect blocked"], ctrl !== "loaded" ? "info" : (r[0] === "blocked" ? "pass" : "fail"), r[0]);
+    row("t-net", ["Tracker script (google-analytics)", "expect blocked"], ctrl !== "loaded" ? "info" : (r[1] === "blocked" ? "pass" : "fail"), r[1]);
+    return fetch("https://httpbin.org/headers", { cache: "no-store" }).then(function (x) { return x.json(); });
+  }).then(function (j) {
+    var h = {}; Object.keys(j.headers || {}).forEach(function (k) { h[k.toLowerCase()] = j.headers[k]; });
+    var ch = Object.keys(h).filter(function (k) { return k.indexOf("sec-ch-ua") === 0; });
+    row("t-net", ["Sec-CH-UA headers sent", ch.length ? ch.join(", ") : "none"], ch.length ? "fail" : "pass", ch.length ? "SENT" : "none");
+    var al = h["accept-language"] || "";
+    row("t-net", ["Accept-Language", al || "(missing)"], al.indexOf(",") < 0 ? "pass" : "fail", al.indexOf(",") < 0 ? "one value" : "list");
+    row("t-net", ["Sec-GPC header", h["sec-gpc"] || "(not sent)"], h["sec-gpc"] === "1" ? "pass" : "fail", h["sec-gpc"] === "1" ? "sent" : "missing");
+  }).catch(function (e) {
+    row("t-net", ["httpbin.org header echo", String(e)], "info", "could not run");
+  }).then(function () { b.textContent = "Done"; });
+});
+summary();
+if (!window.isSecureContext) document.getElementById("insecure").hidden = false;
+</script>
+</body>
+</html>

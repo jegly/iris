@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iris Browser</title>
+<meta name="theme-color" content="#1E1E2E">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Iris is a hardened, de-Googled web browser built on Chromium, for Ubuntu and Android.">
+<style>
+  /* No web fonts, no CDNs, no analytics: the site makes zero third-party requests. */
+  /* Catppuccin Mocha (https://catppuccin.com/palette) — dark-only by design. Orb keeps the app icon's own colours. */
+  :root {
+    --ctp-base: #1E1E2E; --ctp-mantle: #181825; --ctp-crust: #11111B;
+    --ctp-surface0: #313244; --ctp-surface1: #45475A; --ctp-overlay2: #9399B2;
+    --ctp-subtext0: #A6ADC8; --ctp-subtext1: #BAC2DE; --ctp-text: #CDD6F4;
+    --ctp-blue: #89B4FA; --ctp-mauve: #CBA6F7; --ctp-red: #F38BA8; --ctp-green: #A6E3A1; --ctp-peach: #FAB387;
+
+    --ground: var(--ctp-base);
+    --surface: var(--ctp-mantle);
+    --ink: var(--ctp-text);
+    --ink-2: var(--ctp-subtext1);
+    --ink-3: var(--ctp-overlay2);
+    --line: var(--ctp-surface0);
+    --accent: var(--ctp-blue);
+    --accent-ink: var(--ctp-crust);
+    --headline-2: var(--ctp-mauve);
+    --removed: var(--ctp-red);
+    --removed-bg: rgba(243, 139, 168, 0.09);
+    --added: var(--ctp-green);
+    --added-bg: rgba(166, 227, 161, 0.07);
+    --code-bg: var(--ctp-crust);
+    --orb-yellow: #F3F06A;
+    --orb-green: #A8FA5E;
+    --orb-coral: #D67563;
+    --orb-blue: #339FFF;
+    --display: ui-sans-serif, system-ui, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", sans-serif;
+    --body: ui-sans-serif, system-ui, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", sans-serif;
+    --mono: ui-monospace, "Ubuntu Mono", "JetBrains Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+
+  /* Official Iris wordmark font: DotGothic16 (SIL OFL 1.1, fonts/OFL.txt). Latin subset, inlined: no font request. */
+  @font-face { font-family: "DotGothic16"; font-style: normal; font-weight: 400; font-display: swap;
+    src: url("data:font/woff2;base64,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") format("woff2"); }
+  .iris { font-family: "DotGothic16", var(--display); font-weight: 400; font-synthesis: none; letter-spacing: 0.02em; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font: 16px/1.6 var(--body);
+    padding-inline: 20px;
+  }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .wrap { max-width: 1040px; margin-inline: auto; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  h2 { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.1rem); letter-spacing: -0.02em; line-height: 1.15; }
+  h3 { font-size: 1.05rem; letter-spacing: -0.01em; }
+  p { margin: 0; }
+  code, pre, .mono { font-family: var(--mono); }
+
+  /* ---------- header ---------- */
+  .top { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding-block: 20px; }
+  .nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.95rem; }
+  .nav a { color: var(--ink-2); text-decoration: none; }
+  .nav a:hover { color: var(--ink); }
+
+  /* ---------- the orb (CSS rendition of the app icon: yellow, green, coral, blue) ---------- */
+  .orb {
+    aspect-ratio: 1; max-width: 100%; border-radius: 50%; overflow: hidden; position: relative; flex: none;
+  }
+  .orb::before {
+    content: ""; position: absolute; inset: -12%;
+    background: conic-gradient(from 0deg,
+      var(--orb-yellow) 0deg, var(--orb-green) 45deg, var(--orb-coral) 105deg, var(--orb-coral) 150deg,
+      var(--orb-blue) 205deg, var(--orb-blue) 250deg, #E9EE9E 305deg, var(--orb-yellow) 360deg);
+  }
+  .hero .orb::before { filter: blur(28px); }
+
+  /* ---------- hero ---------- */
+  .hero { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 48px; align-items: center; padding-block: 48px 64px; }
+  .hero .orb { width: min(320px, 100%); justify-self: center; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  h2 .pill { vertical-align: middle; margin-left: 8px; }
+  .pill { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--ink-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; background: var(--surface); }
+  /* Headline in DotGothic16. The font has one weight; "bold" = each glyph doubled one font-pixel (1/16 em) to the
+     right, so the dots thicken on the pixel grid instead of being smeared by synthetic bold. */
+  .hero h1 { margin-top: 0; font-family: "DotGothic16", var(--display); font-weight: 400; font-synthesis: none;
+    font-size: clamp(1.85rem, 0.5rem + 3.4vw, 3.5rem); line-height: 1.15; letter-spacing: 0.03em; margin-block: 16px 20px;
+    text-shadow: 0.0625em 0 0 currentColor; }
+  .hero h1 .iris { letter-spacing: inherit; }
+  .hero h1 .nw { white-space: nowrap; }
+  .hero h1 .h1-soft { color: var(--headline-2); }
+  .lede { font-size: 1.15rem; color: var(--ink-2); max-width: 36em; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px; font-weight: 600;
+    text-decoration: none; font-size: 1rem; border: 1px solid transparent; cursor: pointer; font-family: var(--body);
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn-ghost:hover { border-color: var(--ink-3); }
+  .cta small { color: var(--ink-3); font-size: 0.85rem; }
+
+  section { padding-block: 56px; border-top: 1px solid var(--line); }
+  .section-head { display: grid; gap: 10px; margin-bottom: 28px; max-width: 42em; }
+  .section-head p { color: var(--ink-2); }
+
+  /* ---------- downloads ---------- */
+  .downloads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .dl { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; grid-template-rows: auto auto 1fr auto; }
+  .dl.is-suggested { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .dl-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .dl-head .tag { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-3); }
+  .dl .meta { font-size: 0.9rem; color: var(--ink-2); }
+  .dl .btn { justify-content: center; }
+  .cmd { position: relative; background: var(--code-bg); border-radius: 8px; padding: 10px 44px 10px 12px; font-size: 0.82rem; overflow-x: auto; white-space: pre; color: var(--ink); }
+  .copy {
+    position: absolute; top: 6px; right: 6px; font: 600 0.72rem var(--body); color: var(--ink-2);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 3px 7px; cursor: pointer;
+  }
+  .copy:hover { color: var(--ink); }
+
+  /* ---------- the diff ---------- */
+  .diff { columns: 2; column-gap: 16px; }
+  .hunk { break-inside: avoid; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .hunk h3 { padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 1rem; font-weight: 600; color: var(--ink); }
+  .hunk ul { list-style: none; margin: 0; padding: 8px 0; }
+  .hunk li { display: grid; grid-template-columns: 1.4em 1fr; gap: 4px; padding: 5px 18px; font-size: 0.92rem; }
+  .hunk li .sign { font-family: var(--mono); font-weight: 700; }
+  .hunk li.rm { background: var(--removed-bg); }
+  .hunk li.rm .sign { color: var(--removed); }
+  .hunk li.add { background: var(--added-bg); }
+  .hunk li.add .sign { color: var(--added); }
+  .hunk li code { font-size: 0.86em; }
+  .hunk li span.why { color: var(--ink-2); }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: -8px 0 28px; font-family: var(--mono); font-size: 0.9rem; color: var(--ink-2); }
+  .stats b { color: var(--ctp-peach); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hunk li .plat { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-3); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 4px; white-space: nowrap; }
+
+  /* ---------- trade-offs ---------- */
+  .tradeoffs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 40px; margin: 0; }
+  .tradeoffs div { padding-block: 12px; border-top: 1px solid var(--line); }
+  .tradeoffs dt { font-weight: 600; }
+  .tradeoffs dd { margin: 4px 0 0; color: var(--ink-2); font-size: 0.95rem; }
+
+
+  footer { border-top: 1px solid var(--line); padding-block: 32px 48px; color: var(--ink-3); font-size: 0.88rem; display: grid; gap: 10px; }
+  footer .row { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 24px 48px; }
+    .hero .orb { width: 160px; order: -1; justify-self: start; }
+    .downloads, .tradeoffs { grid-template-columns: minmax(0, 1fr); }
+    .diff { columns: 1; }
+  }
+  @media (max-width: 520px) { .nav { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <nav class="nav" aria-label="Sections">
+      <a href="#download">Download</a>
+      <a href="#changes">What's changed</a>
+      <a href="https://github.com/jegly/iris">Source</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1><span class="iris">Iris</span>, <span class="nw">built on Chromium.</span><br><span class="h1-soft">Made for security and privacy.</span></h1>
+        <p class="lede"><span class="iris">Iris</span> started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for the modern age, and an open-source alternative if privacy &amp; security matter to you.</p>
+        <div class="cta">
+          <a class="btn btn-ghost" href="https://github.com/jegly/iris">View source</a>
+        </div>
+      </div>
+      <div class="orb" aria-hidden="true"></div>
+    </div>
+
+    <section id="download" aria-labelledby="download-h">
+      <div class="section-head">
+        <h2 id="download-h">Download <span class="pill">pre-release · 156.0.8073.0</span></h2>
+      </div>
+      <div class="downloads">
+        <article class="dl" id="dl-deb">
+          <div class="dl-head"><h3>Ubuntu / Debian</h3><span class="tag">.deb · amd64</span></div>
+          <p class="meta">Includes the setuid sandbox helper and an AppArmor profile, so the full Chromium sandbox works without extra setup.</p>
+          <pre class="cmd"><code>sudo apt install ./iris-browser-stable_*_amd64.deb</code><button class="copy" type="button">Copy</button></pre>
+          <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download .deb</a>
+        </article>
+        <article class="dl" id="dl-apk">
+          <div class="dl-head"><h3>Android</h3><span class="tag">.apk · arm64</span></div>
+          <p class="meta">Package <code>io.jegly.iris</code>. Allow installs from your browser or file manager when Android asks. Runs without Google Play Services; security-key sign-in (like a YubiKey) uses them if they're installed.</p>
+          <pre class="cmd"><code>adb install iris-*.apk</code><button class="copy" type="button">Copy</button></pre>
+          <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download APK</a>
+        </article>
+        <article class="dl" id="dl-snap">
+          <div class="dl-head"><h3>Snap Store</h3><span class="tag">snap · amd64</span></div>
+          <p class="meta">Built from the same .deb, with the full browser sandbox and a minimal set of permissions. Camera and microphone stay disconnected until you connect them. Updates arrive through snapd.</p>
+          <pre class="cmd"><code>sudo snap install iris</code><button class="copy" type="button">Copy</button></pre>
+          <a class="btn btn-ghost" href="https://snapcraft.io/iris">Open in Snap Store</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="changes" aria-labelledby="changes-h">
+      <div class="section-head">
+        <h2 id="changes-h">What <span class="iris">Iris</span> technically changes</h2>
+        <p><span class="iris">Iris</span> starts from upstream Chromium source and applies small, documented patches plus a hardened build configuration. Red lines are removed or switched off; green lines are added or switched on by default. Everything applies to both Ubuntu and Android unless a line is tagged with one of them.</p>
+      </div>
+      <!-- data-status="planned": final-release roadmap items (TASKS.md Phase B), NOT built yet.
+           data-status="pending-apply": patch written + copy-tested, applied after the current dev build.
+           Before publishing: every marked line must be built, or removed. -->
+      <div class="diff">
+        <div class="hunk">
+          <h3>Tracking &amp; ads</h3>
+          <ul>
+            <li class="add"><span class="sign">+</span><span>Ad and tracker blocking on every site <span class="why">(EasyList + EasyPrivacy built in, with a per-site switch)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Topics, Protected Audience and Shared Storage <span class="why">(Privacy Sandbox ad APIs)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Third-party cookies</span></li>
+            <li class="rm"><span class="sign">−</span><span><code>&lt;a ping&gt;</code>, <code>sendBeacon()</code> and <code>fetchLater()</code> <span class="why">(click and exit pings)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Network Error Logging and the Reporting API <span class="why">(sites can't make your browser report back to them)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>HSTS on subresources <span class="why">(used as a supercookie)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span><code>window.name</code> carried from one site to the next</span></li>
+            <li class="rm"><span class="sign">−</span><span>Prefetch, prerender and preconnect of pages you haven't opened</span></li>
+            <li class="rm"><span class="sign">−</span><span>Text-fragment links, signed exchanges and compression dictionaries</span></li>
+            <li class="rm"><span class="sign">−</span><span>FedCM sign-in prompts</span></li>
+            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>Tracking parameters such as <code>utm_</code>, <code>fbclid</code> and <code>gclid</code> in links</span></li>
+            <li class="add"><span class="sign">+</span><span>Data stored by bounce-tracking sites deleted automatically <span class="why">(Chromium default, kept)</span></span></li>
+            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>Global Privacy Control (<code>Sec-GPC</code>) sent to every site</span></li>
+            <li class="add"><span class="sign">+</span><span>Heavy ads unloaded automatically <span class="why">(Chromium default, kept)</span></span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Fingerprinting</h3>
+          <ul>
+            <li class="rm"><span class="sign">−</span><span><code>navigator.userAgentData</code> and every <code>Sec-CH-UA</code> header <span class="why">(sites can't request them either)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Servers asking for extra device details during the connection handshake</span></li>
+            <li class="rm"><span class="sign">−</span><span>Battery status, gamepads, speech voices and speech recognition</span></li>
+            <li class="rm"><span class="sign">−</span><span>Keyboard layout, multi-screen details and <code>navigator.connection</code></span></li>
+            <li class="rm"><span class="sign">−</span><span>Local font access, the eyedropper and the installed-apps list</span></li>
+            <li class="rm"><span class="sign">−</span><span>Origin trials <span class="why">(sites can't switch removed features back on)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>A single <code>Accept-Language</code> value instead of your full list</span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>Canvas, audio and WebGL fingerprints randomised per site and per session</span></li>
+            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>CPU core count and device memory reported as common fixed values</span></li>
+            <li class="rm" data-status="planned"><span class="sign">−</span><span>WebGL until you allow a site <span class="why">(off by default, one click to enable)</span></span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Google services</h3>
+          <ul>
+            <li class="rm"><span class="sign">−</span><span>Google sign-in and sync, cross-device sign-in and shared tab groups</span></li>
+            <li class="rm"><span class="sign">−</span><span>Search suggestions sent as you type, and mistyped addresses sent to Google for suggestions</span></li>
+            <li class="rm"><span class="sign">−</span><span>Translate offers, spellcheck dictionary downloads and autofill server lookups</span></li>
+            <li class="rm"><span class="sign">−</span><span>Built-in AI: Prompt, Summarizer, Writer, Rewriter, Translator and language-detection APIs, the on-device model, AI checkout scanning and the AI settings page</span></li>
+            <li class="rm"><span class="sign">−</span><span>Safe Browsing surveys and file uploads for deep scanning</span></li>
+            <li class="rm"><span class="sign">−</span><span>Remote new tab page, search-engine logo, popular sites and Google's favicon server</span></li>
+            <li class="rm"><span class="sign">−</span><span>Cast device discovery, the Discover feed and Touch to Search</span></li>
+            <li class="rm" data-status="planned"><span class="sign">−</span><span>Google sign-in widgets on other sites, until you allow them</span></li>
+            <li class="rm"><span class="sign">−</span><span>Background networking, field-trial experiments, usage statistics and crash reports</span></li>
+            <li class="add"><span class="sign">+</span><span>DuckDuckGo as the default search engine, and a new tab page that stays local</span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Web APIs</h3>
+          <ul>
+            <li class="rm"><span class="sign">−</span><span>JavaScript JIT and WebAssembly for websites <span class="why">(can be allowed per site)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>WebRTC, WebGPU, WebXR and WebNN</span></li>
+            <li class="rm"><span class="sign">−</span><span>WebUSB, WebHID, Serial, Bluetooth, NFC and Direct Sockets</span></li>
+            <li class="rm"><span class="sign">−</span><span>File System Access pickers and wake lock</span></li>
+            <li class="rm"><span class="sign">−</span><span>Push messaging, background fetch, Web Share, contacts and WebOTP</span></li>
+            <li class="rm"><span class="sign">−</span><span>Presentation, remote playback, app badging and vibration</span></li>
+            <li class="rm"><span class="sign">−</span><span>Device posture, compute pressure, storage buckets and digital credentials</span></li>
+            <li class="rm"><span class="sign">−</span><span>Window-controls overlay, sub-apps, launch queue, managed configuration and protocol handlers</span></li>
+            <li class="rm"><span class="sign">−</span><span>Handwriting ink, raw media-stream processing and Animation Worklet</span></li>
+            <li class="rm"><span class="sign">−</span><span>Declarative partial page updates (experimental)</span></li>
+            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>The Payment Request API and its browser-side interface</span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Your controls</h3>
+          <ul>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>App lock: a passphrase before the browser opens, and it locks again after a period away</span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule</span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>Extension auto-updates off unless you switch them on</span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>Forget a site: its cookies and data deleted when you close the browser</span></li>
+            <li class="add"><span class="sign">+</span><span>A JavaScript on/off switch, globally and per site</span></li>
+            <li class="add"><span class="sign">+</span><span>Per-site controls for JavaScript, cookies and images</span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>A custom user agent for any site</span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>Cookies, saved logins and bookmarks encrypted with your passphrase</span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>Catppuccin Mocha theme and dark mode by default, with 100+ themes to choose from and an optional glass look</span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Network &amp; TLS</h3>
+          <ul>
+            <li class="add"><span class="sign">+</span><span>TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange</span></li>
+            <li class="add"><span class="sign">+</span><span>Encrypted DNS in secure mode: Quad9 by default, 15 resolvers to choose from</span></li>
+            <li class="add"><span class="sign">+</span><span>HTTPS-Only mode: a warning before any <code>http://</code> page</span></li>
+            <li class="add"><span class="sign">+</span><span>Full URLs in the address bar, <code>www.</code> and <code>m.</code> included</span></li>
+            <li class="add"><span class="sign">+</span><span>Websites can't reach your router, printer or <code>localhost</code> <span class="why">(Chromium default, kept)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Cache, connections and storage partitioned per site <span class="why">(Chromium default, kept)</span></span></li>
+            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>Cookies and saved logins encrypted with a key from your desktop keyring, including in the snap <span class="plat">Ubuntu</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Lookalike-domain (IDN homograph) warnings <span class="why">(Chromium default, kept)</span></span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Memory safety &amp; compiler</h3>
+          <ul>
+            <li class="add"><span class="sign">+</span><span>Control-flow integrity (CFI, including indirect calls) with a ThinLTO release build</span></li>
+            <li class="add"><span class="sign">+</span><span>Strong stack protector, stack-clash protection and zero-initialised stack variables</span></li>
+            <li class="add"><span class="sign">+</span><span>Shadow call stack, plus pointer authentication and branch target checks (PAC/BTI) <span class="plat">Android</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Hardened C++ library with bounds checks, and <code>_FORTIFY_SOURCE</code> (level 3 <span class="plat">Ubuntu</span>)</span></li>
+            <li class="add"><span class="sign">+</span><span>Array-bounds traps and defined integer overflow <span class="why">(Chromium default, kept)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Full RELRO, non-executable stack and position-independent executables</span></li>
+            <li class="add"><span class="sign">+</span><span>PartitionAlloc hardening in every process; internal safety checks kept on in release</span></li>
+            <li class="add"><span class="sign">+</span><span>Memory-safe Rust decoders for JPEG, ICO and BMP images</span></li>
+            <li class="rm"><span class="sign">−</span><span>Hardware video decode, SwiftShader, remote desktop, VR/AR, Widevine DRM and the on-device AI model, all left out of the build</span></li>
+            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>Printing and local-network device discovery</span></li>
+            <li class="rm" data-status="planned"><span class="sign">−</span><span>Background mode, Family Link, page previews, on-device speech and translation services, media remoting, the Bluetooth and printing system libraries and the AV1 encoder, left out of the build</span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Process isolation</h3>
+          <ul>
+            <li class="add"><span class="sign">+</span><span>Strict site isolation on desktop and Android: every site in its own process</span></li>
+            <li class="add"><span class="sign">+</span><span>Origin-keyed processes and strict origin isolation, so subdomains are separated too</span></li>
+            <li class="add"><span class="sign">+</span><span>Error pages and sandboxed iframes in isolated processes</span></li>
+            <li class="add"><span class="sign">+</span><span>V8 heap sandbox; web renderers run JIT-less with a tighter sandbox</span></li>
+            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>The network service, which handles everything from the internet, sandboxed too <span class="plat">Ubuntu</span></span></li>
+            <li class="add" data-status="planned"><span class="sign">+</span><span>Other programs running as you can't read the browser's memory <span class="plat">Ubuntu</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Setuid sandbox helper and AppArmor profile in the .deb, so the full sandbox works without user namespaces <span class="plat">Ubuntu</span></span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Defaults &amp; permissions</h3>
+          <ul>
+            <li class="add"><span class="sign">+</span><span>Camera, microphone, location, notifications and clipboard blocked until you allow a site</span></li>
+            <li class="add"><span class="sign">+</span><span>Web MIDI, idle detection, motion and light sensors and background sync blocked until you allow a site</span></li>
+            <li class="add"><span class="sign">+</span><span>Permission prompts only after a click; unused site permissions revoked automatically</span></li>
+            <li class="add"><span class="sign">+</span><span>Popups only from real clicks; downloads never open by themselves</span></li>
+            <li class="add"><span class="sign">+</span><span>PDFs open in your system viewer instead of inside the browser</span></li>
+            <li class="add"><span class="sign">+</span><span>Media licence requests over HTTPS only, with size limits</span></li>
+            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>Admin and MDM policies: nothing outside the browser can reconfigure it</span></li>
+            <li class="rm" data-status="planned"><span class="sign">−</span><span>Kerberos and enterprise management features, left out of the build</span></li>
+            <li class="rm"><span class="sign">−</span><span>Offers to save passwords, addresses and cards <span class="why">(use a dedicated password manager)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>First-run welcome and import prompts <span class="plat">Ubuntu</span></span></li>
+          </ul>
+        </div>
+        <div class="hunk">
+          <h3>Android only</h3>
+          <ul>
+            <li class="add"><span class="sign">+</span><span>Location from Android itself, without Google Play Services</span></li>
+            <li class="add"><span class="sign">+</span><span>Every protection built into the app itself, because Android ignores launch flags</span></li>
+            <li class="add"><span class="sign">+</span><span>Installs alongside Chrome as its own app (<code>io.jegly.iris</code>)</span></li>
+            <li class="rm"><span class="sign">−</span><span>Trust in user-installed CA certificates <span class="why">(blocks TLS interception)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Android and Google cloud backups of browser data</span></li>
+            <li class="rm"><span class="sign">−</span><span>The first-run setup flow and DRM preprovisioning at startup</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="tradeoffs" aria-labelledby="tradeoffs-h">
+      <div class="section-head">
+        <h2 id="tradeoffs-h">What you give up</h2>
+        <p>Hardening has a cost. These are the ones you are most likely to notice.</p>
+      </div>
+      <dl class="tradeoffs">
+        <div><dt>Browser video calls</dt><dd>WebRTC is off, so Meet, Zoom and Discord calls in the browser won't work. Use their desktop or mobile apps.</dd></div>
+        <div><dt>Heavy web apps</dt><dd>Without JIT, WebAssembly and WebGL, some apps (maps, design tools, games, in-browser editors) are slower or need to be allowed per site.</dd></div>
+        <div><dt>Streaming DRM video</dt><dd>Widevine isn't included, so Netflix, Disney+ and Spotify's web player won't play protected content.</dd></div>
+        <div><dt>Old sites and Wi-Fi sign-in pages</dt><dd>Sites that only support TLS 1.2 or plain HTTP show a warning or won't connect. Encrypted DNS never falls back to plain DNS, so some hotel and airport Wi-Fi sign-in pages won't load until you switch secure DNS off.</dd></div>
+        <div><dt>Printing</dt><dd>Printing is switched off, including "Save as PDF". To keep a copy of a page, save it or take a screenshot.</dd></div>
+        <div><dt>Autofill, saved passwords and payment sheets</dt><dd>Iris doesn't offer to save addresses, cards or passwords, and sites can't open the browser's payment sheet, so checkouts use their normal card form. A dedicated password manager is the better place for logins.</dd></div>
+        <div><dt>Extension updates</dt><dd>Extensions work, but they don't update themselves unless you switch that on. Update checks go to the Chrome Web Store, which sees which extensions you have.</dd></div>
+        <div><dt>Company-managed setups</dt><dd>Iris ignores admin and MDM policies and has no Kerberos sign-in, so workplaces can't manage it centrally.</dd></div>
+      </dl>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="row">
+      <span><span class="iris">Iris</span> is made by <a href="https://github.com/jegly">jegly</a>. Based on Chromium; not affiliated with Google.</span>
+      <span><a href="https://github.com/jegly/iris">GitHub</a> · <a href="https://github.com/jegly/iris/issues">Report a problem</a></span>
+    </div>
+  </footer>
+
+</div>
+<script>
+  // Suggest the right download for this device. Nothing is sent anywhere.
+  (function () {
+    var ua = navigator.userAgent || "";
+    var android = /Android/i.test(ua);
+    var linux = /Linux/i.test(ua) && !android;
+    var target = android ? "dl-apk" : (linux ? "dl-deb" : null);
+    if (target) {
+      document.getElementById(target).classList.add("is-suggested");
+    }
+  })();
+
+  // Copy buttons: clipboard API inside the click, text selection as fallback.
+  document.querySelectorAll(".copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var code = b.parentElement.querySelector("code");
+      var text = code.textContent;
+      var done = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1500); };
+      var select = function () {
+        var r = document.createRange(); r.selectNodeContents(code);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        b.textContent = "Selected";
+        setTimeout(function () { b.textContent = "Copy"; }, 1500);
+      };
+      try {
+        navigator.clipboard.writeText(text).then(done, select);
+      } catch (e) { select(); }
+    });
+  });
+</script>
+</body>
+</html>

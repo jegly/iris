@@ -1,0 +1,13 @@
+Package: iris
+Version: 0.1.0
+Architecture: amd64
+Maintainer: jegly
+Priority: optional
+Section: web
+Homepage: https://io.jegly.iris
+Depends: libnss3, libatk1.0-0t64, libatk-bridge2.0-0t64, libcups2t64, libdrm2, libgtk-3-0t64,
+ libgbm1, libasound2t64, libxkbcommon0, libxdamage1, libxcomposite1, libxrandr2, libpango-1.0-0,
+ libcairo2, libatspi2.0-0t64, libwayland-client0
+Description: Iris hardened web browser
+ Hardened, de-Googled, privacy-focused browser built on Chromium. No JIT, no telemetry,
+ reduced attack surface, post-quantum TLS. By jegly.

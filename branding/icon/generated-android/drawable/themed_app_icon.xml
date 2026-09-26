@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright 2022 The Chromium Authors
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+Iris (jegly): monochrome themed-icon silhouette replaced with a plain orb (circle), same 36-unit region.
+-->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="90dp"
+    android:height="90dp"
+    android:viewportWidth="90"
+    android:viewportHeight="90">
+    <path
+        android:pathData="M27,45a18,18 0,1 0,36 0a18,18 0,1 0,-36 0z"
+        android:fillColor="#000000"/>
+</vector>

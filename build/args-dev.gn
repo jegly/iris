@@ -1,0 +1,81 @@
+# Iris — FAST DEV build args (out/Default). For iterating features/patches WITHOUT paying the
+# ThinLTO+CFI link tax of the official out/Linux build (that link is hours on any change).
+# Same hardening posture as args-linux.gn, MINUS is_official_build / CFI / ThinLTO / PGO.
+# Component build => links in minutes. Use this for all feature work; use out/Linux only for RELEASE.
+#
+# Setup (safe to run even while out/Linux is compiling — different out dir, writes only out/Default):
+#   cd ~/Documents/chromium/src
+#   cp ~/Documents/iris/build/args-dev.gn out/Default/args.gn
+#   gn gen out/Default
+#   autoninja -C out/Default chrome
+#
+# PREREQUISITE for the cc_wrapper line below: `sudo apt install ccache && ccache -M 100G`
+#   If ccache is NOT installed, DELETE the cc_wrapper line or `gn gen` fails.
+
+# --- fast dev core (the difference from release) ---
+is_official_build = false         # NO CFI/ThinLTO -> fast links (this is the whole point)
+is_component_build = true         # shared libs -> incremental relinks in minutes
+is_debug = false                  # release-ish codegen, just not "official"
+symbol_level = 1                  # readable traces, cheap
+dcheck_always_on = true           # keep safety asserts while iterating
+# chrome_pgo_phase not needed here (PGO only engages under is_official_build).
+
+# --- same de-Google / telemetry posture as release ---
+is_chrome_branded = false
+disable_fieldtrial_testing_config = true
+enable_reporting = false
+enable_rlz = false
+use_on_device_model_service = false
+
+# --- V8: STANDARD build config (NO build-time jitless) — changed 2026-09-26 ---
+# Build-time jitless CANNOT link in this V8 revision (cost two overnight builds):
+#  - v8_enable_webassembly=false + jitless -> Blink hard-refs WASM in ~27 unguarded files -> LINK fails
+#  - webassembly + drumbrake + jitless     -> Liftoff refs compiler::SimdShuffle (turbofan-only) -> LINK fails
+# gn gen passes BOTH; only the link catches them. So V8 builds standard (links by construction) and the
+# JIT is disabled at RUNTIME: patches/apply-jitless-runtime.sh sets the JAVASCRIPT_JIT content setting
+# default to BLOCK -> every web renderer launches with --jitless -> no JIT for web content, AND V8 then
+# does not install the WebAssembly global (v8/src/wasm/wasm-js.cc:3432) -> WASM API absent.
+# Do NOT re-add v8_jitless / tier=false / drumbrake here. See memory/01_GOTCHAS.md.
+v8_enable_sandbox = true          # keep V8 sandbox
+
+# --- same attack-surface removal as release ---
+enable_vr = false
+enable_openxr = false
+enable_cardboard = false
+enable_arcore = false
+enable_remoting = false
+
+# --- PHASE 2 (merged 2026-09-26 at user's choice; from the checklist triage) ---
+# Final phase-2 set = use_vaapi=false only (screen-AI trips gn asserts; ANGLE GL-drop declined).
+# Verify after the build: chrome://gpu shows "Video Decode: Software only"; videos still play.
+use_vaapi = false                 # HW video decode off (VA-API/driver surface); software decode instead
+use_v4l2_codec = false            # already false on Linux; pinned
+# enable_screen_ai_service = false  # REMOVED: trips assert(enable_screen_ai_service) in chrome/test
+#   targets (gn gen fails). Moot anyway: the screen-AI library is a downloaded component and
+#   component updates are blocked (--disable-background-networking / --disable-component-update).
+# angle_enable_gl_desktop_backend = false  # DECIDED 2026-09-26: KEEP GL. Only removed the desktop-GL
+#   sub-backend (ANGLE_ENABLE_OPENGL stayed), forced the less-deployed ANGLE-Vulkan path on Linux, and
+#   couldn't be verified pre-build. Marginal gain, real risk. Chromium's default ANGLE-GL is used.
+
+# --- SwiftShader OFF (STAGED 2026-09-26, after the official build started; from Trivalent's spec) ---
+# SwiftShader = JIT-based CPU renderer. Its WebGL fallback is already off by default
+# (kAllowSwiftShaderFallback DISABLED; needs --enable-unsafe-swiftshader), so this compiles out dormant code that
+# a flag could otherwise re-enable. gn gen validated in a scratch dir 2026-09-26: no path chrome -> swiftshader,
+# ANGLE_ENABLE_SWIFTSHADER gone. Cost: none for normal use (real-GPU WebGL unaffected). Link-prove on next build.
+enable_swiftshader = false
+enable_swiftshader_vulkan = false
+dawn_use_swiftshader = false
+angle_enable_swiftshader = false
+
+# --- Compiler hardening (STAGED 2026-09-26; approved by jegly) ---
+# Zero-init all stack variables (Vanadium 0013). Linux already inits (pattern, because dcheck_always_on);
+# zero is the release-hardening choice. + patches/apply-compiler-hardening.sh (strong protector, stack clash).
+init_stack_vars_zero = true
+
+# --- ccache (softens every rebuild; content-keyed, survives clobbers) ---
+# REQUIRES `sudo apt install ccache` first (see prereq note above) or gn gen fails.
+cc_wrapper = "ccache"
+
+# NOTE: WebGPU/WebRTC handled at runtime (launcher flags), NOT gn — same as release.
+# NOTE: this dev build is NOT the hardened deliverable; it's for fast iteration only. Do the final
+#       security build in out/Linux (official + CFI + ThinLTO) before packaging.

@@ -1,0 +1,22 @@
+#!/bin/sh
+# Iris snap launcher. Deliberately smaller than Canonical's chromium.launcher (memory/04_SNAP.md, round 2):
+# - no user init file is sourced (Canonical sources ~/.chromium-browser.init: code/flag injection from $HOME)
+# - no kiosk/daemon mode (it ran --no-sandbox), no profile import, no first-run page
+# All Iris hardening switches are compiled into the binary (patches/apply-default-switches.sh), so none are passed here.
+set -eu
+
+# Cookies and saved credentials are encrypted with a key from the desktop keyring (libsecret). Without the
+# password-manager-service connection Chromium falls back to "basic", whose key is fixed and public,
+# so data at rest is effectively unencrypted. Use the keyring when it is connected; say so when it is not.
+if snapctl is-connected password-manager-service; then
+  PASSWORD_STORE=""          # empty = pick the keyring for the current desktop
+else
+  PASSWORD_STORE=basic
+  printf '%s\n' "Iris: the keyring is not connected, so cookies are stored without real encryption." \
+    "      Fix: sudo snap connect ${SNAP_INSTANCE_NAME}:password-manager-service" >&2
+fi
+
+export CHROME_WRAPPER="/snap/bin/${SNAP_INSTANCE_NAME}"
+export CHROME_VERSION_EXTRA=snap
+
+exec "$SNAP/usr/lib/iris/chrome" --password-store="$PASSWORD_STORE" --gtk-version=3 "$@"

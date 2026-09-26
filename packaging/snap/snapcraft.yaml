@@ -1,0 +1,104 @@
+# Iris snap — DRAFT v2 (2026-09-26). Modeled on Canonical's shipped chromium snapcraft.yaml (read from
+# /snap/chromium/current/snap/snapcraft.yaml), curated down for Iris. Research + reasons: memory/04_SNAP.md (round 2).
+# Built FROM the release .deb (chrome/installer/linux:stable_deb in out/Linux) so .deb and snap ship identical files.
+# UNTESTED: needs the release .deb + snapcraft (`sudo snap install snapcraft --classic`).
+# NEEDS a Snap Store request before publishing: browser-support allow-sandbox:true, setuid chrome-sandbox,
+# auto-connect password-manager-service. camera/audio-record: included but NOT requested for auto-connect.
+name: iris                    # jegly: "iris"; if `snapcraft register iris` fails, use iris-browser (rename app + plugs)
+title: Iris
+summary: Hardened browser built on Chromium, for security and privacy
+description: |
+  Iris started with a look at the most hardened, privacy-focused browsers around. We took what worked,
+  improved on it, and added what they were missing. It's a hardened browser for the modern age, and an
+  open-source alternative if privacy & security matter to you.
+adopt-info: iris
+grade: stable
+confinement: strict
+base: core24
+compression: lzo              # faster first launch than xz (Canonical's choice)
+license: GPL-2.0-or-later     # Iris patches (jegly); Chromium components keep their own licenses
+
+apps:
+  iris-browser:
+    extensions: [gnome]       # gnome-46-2404 + gpu-2404 (mesa) content, gpu wrapper, desktop-launch,
+                              # desktop/desktop-legacy/gsettings/wayland/x11/opengl plugs
+    command: bin/iris.launcher
+    desktop: usr/share/applications/iris-browser.desktop   # from the .deb (StartupWMClass=iris-browser)
+                              # VERIFY at first build: snapcraft rewrites Exec=/usr/bin/iris-browser-stable -> the app,
+                              # and Icon= resolves inside the snap
+    common-id: io.jegly.iris
+    environment:
+      CHROME_DESKTOP: iris-browser.desktop   # matches apply-deb-rebrand.sh + StartupWMClass
+      CHROME_CONFIG_HOME: $SNAP_USER_COMMON  # profile at $SNAP_USER_COMMON/iris, kept across revisions
+      GTK_USE_PORTAL: "1"                    # Save/Open dialogs through xdg-desktop-portal
+    plugs:
+      - audio-playback
+      - home
+      - network
+      - network-bind
+      - password-manager-service   # libsecret keyring -> cookies/passwords encrypted at rest (ask auto-connect)
+      - removable-media
+      - screen-inhibit-control
+      - system-packages-doc
+      - timezone-control
+      - u2f-devices                # YubiKey / FIDO2 (hidraw NOT needed — verified on jegly's box)
+      - unity7                     # xdg-open
+      - upower-observe
+      - camera                     # jegly 2026-09-26: included, NOT auto-connected (user runs snap connect);
+      - audio-record               # sites still need a per-site allow (Iris default BLOCK)
+    slots:
+      - mpris
+
+plugs:
+  browser-sandbox:
+    interface: browser-support
+    allow-sandbox: true        # real Chromium sandbox (store review)
+
+# NOT included vs Canonical, on purpose: bluez, raw-usb, serial-port, hidraw, joystick (web APIs removed),
+# cups + install-cups-runtime-dependency (printing off), pcscd + opensc (no smartcards), kerberos-tickets,
+# network-manager, mount-observe, hardware-observe, system-files (no policy dir), personal-files (no
+# ~/.config/chromium import), chromedriver app, kiosk "daemon" app (ran --no-sandbox), firstrun page, va-drivers
+# (use_vaapi=false), swiftshader (compiled out).
+
+parts:
+  iris:
+    plugin: dump
+    source: iris-browser-stable.deb        # copy the release .deb here (out/Linux/iris-browser-stable_*.deb)
+                                           # and write its version to iris-version.txt
+    source-type: deb
+    organize:
+      opt/jegly/iris: usr/lib/iris
+    stage-packages:
+      - libnss3
+      - libpci3
+      - libxss1
+      - libsecret-1-0
+    override-build: |
+      craftctl default
+      # The .deb's /usr/bin symlink points into /opt; the snap runs bin/iris.launcher instead.
+      rm -f "$CRAFT_PART_INSTALL/usr/bin/iris-browser-stable"
+      # setuid sandbox helper -> Chromium's sandbox works even where unprivileged user namespaces are off.
+      chmod 4555 "$CRAFT_PART_INSTALL/usr/lib/iris/chrome-sandbox"
+      # version: written next to the .deb when it is copied in (e.g. 156.0.8073.0)
+      craftctl set version="$(cat "$CRAFT_PROJECT_DIR/iris-version.txt")"
+    prime:
+      - -etc/cron.daily            # .deb repo cron job (no apt repo in a snap)
+      - -etc/apparmor.d            # snapd generates the confinement profile
+      - -usr/share/man
+      - -usr/share/lintian
+      - -usr/share/menu
+
+  launcher:
+    plugin: dump
+    source: launcher
+    organize:
+      '*': bin/
+
+  # xdg-open handles mailto: too (Canonical's fix for LP:1849774)
+  xdg-email:
+    plugin: nil
+    override-pull: ""
+    override-prime: |
+      set -eux
+      mkdir -p usr/bin
+      ln -sf /usr/bin/xdg-open usr/bin/xdg-email
