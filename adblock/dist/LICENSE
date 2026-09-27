@@ -1,0 +1,16 @@
+Iris bundles filter rules converted from the following lists (network rules only):
+
+== easylist.txt (https://easylist.to/) ==
+! Version: 202609260604
+! Title: EasyList
+! Last modified: 26 Sep 2026 06:04 UTC
+
+== easyprivacy.txt (https://easylist.to/) ==
+! Version: 202609260604
+! Title: EasyPrivacy
+! Last modified: 26 Sep 2026 06:04 UTC
+
+EasyList and EasyPrivacy are written by The EasyList authors (https://easylist.to/)
+and dual-licensed under GPLv3 or later (https://www.gnu.org/licenses/gpl-3.0.html)
+and Creative Commons Attribution-ShareAlike 3.0 Unported
+(https://creativecommons.org/licenses/by-sa/3.0/).

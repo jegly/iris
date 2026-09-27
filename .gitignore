@@ -27,6 +27,8 @@
 !/adblock/
 /adblock/*
 !/adblock/build-ruleset.sh
+!/adblock/lists/
+!/adblock/dist/
 !/test/
 __pycache__/
 *.pyc
