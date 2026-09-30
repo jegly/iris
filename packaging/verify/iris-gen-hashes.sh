@@ -42,6 +42,7 @@ cat SHA256SUMS
 echo "----------------------------------------"
 echo
 echo "NEXT (sign it yourself — this script never touches your GPG key):"
+echo "  openssl pkeyutl -sign -inkey <iris>/keys/jegly-mldsa87.key.pem -rawin -in SHA256SUMS -out SHA256SUMS.mldsa87.sig"
 echo "  gpg --armor --detach-sign --output SHA256SUMS.asc SHA256SUMS"
-echo "  # publish SHA256SUMS, SHA256SUMS.asc, and your public key alongside the release."
+echo "  # publish SHA256SUMS, both signatures, keys/jegly-mldsa87.pub.pem and keys/jegly.asc with the release."
 echo "  # users then run verify/iris-verify.sh (see that script)."

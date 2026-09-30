@@ -30,5 +30,15 @@
 !/adblock/lists/
 !/adblock/dist/
 !/test/
+!/keys/
+/keys/*
+!/keys/jegly-mldsa87.pub.pem
+!/keys/jegly.asc
 __pycache__/
 *.pyc
+
+# Private signing keys: never committed, even if a rule above matches them.
+*.key.pem
+*-private*
+*secret*
+*.rev

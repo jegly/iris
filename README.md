@@ -1,5 +1,5 @@
 > [!NOTE]
-> **Pre-release.** The Ubuntu .deb is available from GitHub Releases. The snap and the Android app are coming later.
+> The snap and the Android app are coming soon.
 
 <p align="center"><img src="website/readme-banner.svg" alt="Iris, built on Chromium. Made for security and privacy." width="100%"></p>
 
@@ -184,16 +184,19 @@ Hardening has a cost. These are the ones you are most likely to notice.
 
 ## Verify your download
 
-Each release carries `SHA256SUMS`, `SHA256SUMS.asc` (signed by jegly) and jegly's public key.
+Every release comes with `SHA256SUMS`, signed twice (ML-DSA-87 and Ed25519), and my public keys.
 
 ```bash
-gpg --import jegly.asc
-gpg --verify SHA256SUMS.asc SHA256SUMS
+openssl pkeyutl -verify -pubin -inkey jegly-mldsa87.pub.pem -rawin -in SHA256SUMS -sigfile SHA256SUMS.mldsa87.sig
+gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-Check the signature first, then the checksum. `packaging/verify/iris-verify.sh <file>` does both steps.
-This proves the file is the one jegly published; it is not a reproducible-build guarantee.
+The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
+sure the keys are mine. My keys are also in `keys/`:
+
+- ML-DSA-87: `sha256sum jegly-mldsa87.pub.pem` = `3c57473c5b1158c5854d97072db1aca4364c75145aef46130f465a7969e5f91f`
+- GPG: `6B84 F8EB 46B9 B634 0BF4 A0E1 A5A5 6CEB 0244 5D37`
 
 ## Building from source
 
