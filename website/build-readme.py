@@ -30,8 +30,7 @@ def md_inline(fragment: str) -> str:
 
 out = []
 out.append("> [!NOTE]\n> The snap and the Android app are coming soon.\n")
-out.append('<p align="center"><img src="website/readme-banner.svg" alt="Iris, built on Chromium. '
-           'Made for security and privacy." width="100%"></p>\n')
+out.append('<p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>\n')
 
 lede = re.search(r'<p class="lede">(.*?)</p>', page, re.S)
 if lede:

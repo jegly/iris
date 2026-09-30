@@ -1,7 +1,7 @@
 > [!NOTE]
 > The snap and the Android app are coming soon.
 
-<p align="center"><img src="website/readme-banner.svg" alt="Iris, built on Chromium. Made for security and privacy." width="100%"></p>
+<p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>
 
 Iris started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for the modern age, and an open-source alternative if privacy & security matter to you.
 
