@@ -5,18 +5,49 @@
 # All Iris hardening switches are compiled into the binary (patches/apply-default-switches.sh), so none are passed here.
 set -eu
 
-# Cookies and saved credentials are encrypted with a key from the desktop keyring (libsecret). Without the
-# password-manager-service connection Chromium falls back to "basic", whose key is fixed and public,
-# so data at rest is effectively unencrypted. Use the keyring when it is connected; say so when it is not.
-if snapctl is-connected password-manager-service; then
-  PASSWORD_STORE=""          # empty = pick the keyring for the current desktop
+# Keys for cookies and saved logins: Iris asks, in order, its passphrase lock (if on), the desktop's Secret portal
+# (works under strict confinement, no extra connection), then the keyring over D-Bus (needs the optional
+# password-manager-service connection). Nothing is forced here: forcing --password-store=basic would skip the portal.
+# Staged libraries (GTK, NSS, ...) live in the snap; the base has only the core ones.
+# (pulseaudio/ holds libpulsecommon, which libpulse needs: without it Chromium falls back to ALSA = no sound)
+export LD_LIBRARY_PATH="$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio:$SNAP/usr/lib:${LD_LIBRARY_PATH:-}"
+export XDG_DATA_DIRS="$SNAP/usr/share:$SNAP/data-dir:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+export XCURSOR_PATH="$SNAP/data-dir/icons:$SNAP/usr/share/icons"
+
+# GTK caches that hold absolute paths: build them once per snap revision (what the GNOME desktop-launch does).
+cache="${XDG_CACHE_HOME:-$SNAP_USER_COMMON/.cache}/iris-gtk"
+mkdir -p "$cache"
+export GDK_PIXBUF_MODULE_FILE="$cache/gdk-pixbuf-loaders.cache"
+export GTK_IM_MODULE_FILE="$cache/immodules.cache"
+if [ "$(cat "$cache/revision" 2>/dev/null)" != "${SNAP_REVISION:-}" ]; then
+  "$SNAP/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders" > "$GDK_PIXBUF_MODULE_FILE" 2>/dev/null || true
+  "$SNAP/usr/lib/x86_64-linux-gnu/libgtk-3-0t64/gtk-query-immodules-3.0" > "$GTK_IM_MODULE_FILE" 2>/dev/null || true
+  printf '%s' "${SNAP_REVISION:-}" > "$cache/revision"
+fi
+
+# Strict confinement remaps $XDG_RUNTIME_DIR to a private dir without the real Wayland and PulseAudio sockets
+# (the interfaces allow them, nothing links them). Same fix as AV's wrapper / snapcraft-desktop-helpers.
+if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+  wdisplay="${WAYLAND_DISPLAY:-wayland-0}"
+  if [ -S "$XDG_RUNTIME_DIR/../$wdisplay" ] && [ ! -e "$XDG_RUNTIME_DIR/$wdisplay" ]; then
+    ln -s "$XDG_RUNTIME_DIR/../$wdisplay" "$XDG_RUNTIME_DIR/$wdisplay"
+  fi
+  if [ -S "$XDG_RUNTIME_DIR/../pulse/native" ]; then
+    export PULSE_SERVER="unix:$XDG_RUNTIME_DIR/../pulse/native"
+  fi
+fi
+
+# Downloads and other user folders: the real ones (~/Downloads), not the snap's private home. Paths from the
+# user's own user-dirs.dirs (readable through the desktop interface), $HOME -> the real home.
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+mkdir -p "$XDG_CONFIG_HOME"
+if [ -r "$SNAP_REAL_HOME/.config/user-dirs.dirs" ]; then
+  sed "s|\$HOME|$SNAP_REAL_HOME|g" "$SNAP_REAL_HOME/.config/user-dirs.dirs" > "$XDG_CONFIG_HOME/user-dirs.dirs"
 else
-  PASSWORD_STORE=basic
-  printf '%s\n' "Iris: the keyring is not connected, so cookies are stored without real encryption." \
-    "      Fix: sudo snap connect ${SNAP_INSTANCE_NAME}:password-manager-service" >&2
+  printf 'XDG_DOWNLOAD_DIR="%s/Downloads"\n' "$SNAP_REAL_HOME" > "$XDG_CONFIG_HOME/user-dirs.dirs"
 fi
 
 export CHROME_WRAPPER="/snap/bin/${SNAP_INSTANCE_NAME}"
 export CHROME_VERSION_EXTRA=snap
 
-exec "$SNAP/usr/lib/iris/chrome" --password-store="$PASSWORD_STORE" --gtk-version=3 "$@"
+exec "$SNAP/usr/lib/iris/chrome" --gtk-version=3 "$@"

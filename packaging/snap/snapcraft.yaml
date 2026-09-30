@@ -1,7 +1,10 @@
 # Iris snap — DRAFT v2 (2026-09-26). Modeled on Canonical's shipped chromium snapcraft.yaml (read from
 # /snap/chromium/current/snap/snapcraft.yaml), curated down for Iris. Research + reasons: memory/04_SNAP.md (round 2).
 # Built FROM the release .deb (chrome/installer/linux:stable_deb in out/Linux) so .deb and snap ship identical files.
-# UNTESTED: needs the release .deb + snapcraft (`sudo snap install snapcraft --classic`).
+# Build on the 26.04 host like AV (no LXD): copy the release .deb here as iris-browser-stable.deb, write its
+# version to iris-version.txt, then `TMPDIR=~/.cache/iris-snap-tmp snapcraft pack --destructive-mode`
+# (`snapcraft clean --destructive-mode` first when rebuilding). core26 = the host's 26.04 packages, so the staged
+# libraries match the base. snapcraft 9.1's gnome extension is core22/24 only -> GTK etc. are staged here instead.
 # NEEDS a Snap Store request before publishing: browser-support allow-sandbox:true, setuid chrome-sandbox,
 # auto-connect password-manager-service. camera/audio-record: included but NOT requested for auto-connect.
 name: iris-browser            # "iris" is taken in the Snap Store (jegly 2026-09-30); app = iris-browser -> command `iris-browser`
@@ -14,14 +17,13 @@ description: |
 adopt-info: iris
 grade: stable
 confinement: strict
-base: core24
+base: core26
 compression: lzo              # faster first launch than xz (Canonical's choice)
 license: GPL-2.0-or-later     # Iris patches (jegly); Chromium components keep their own licenses
 
 apps:
   iris-browser:
-    extensions: [gnome]       # gnome-46-2404 + gpu-2404 (mesa) content, gpu wrapper, desktop-launch,
-                              # desktop/desktop-legacy/gsettings/wayland/x11/opengl plugs
+    extensions: [gpu]         # mesa-2604 via the gpu-2604 content snap + its command-chain wrapper
     command: bin/iris.launcher
     desktop: usr/share/applications/iris-browser.desktop   # from the .deb (StartupWMClass=iris-browser)
                               # VERIFY at first build: snapcraft rewrites Exec=/usr/bin/iris-browser-stable -> the app,
@@ -31,12 +33,26 @@ apps:
       CHROME_DESKTOP: iris-browser.desktop   # matches apply-deb-rebrand.sh + StartupWMClass
       CHROME_CONFIG_HOME: $SNAP_USER_COMMON  # profile at $SNAP_USER_COMMON/iris, kept across revisions
       GTK_USE_PORTAL: "1"                    # Save/Open dialogs through xdg-desktop-portal
+      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
+      XKB_CONFIG_ROOT: $SNAP/usr/share/X11/xkb   # keyboard layouts (GTK on Wayland aborts without them)
+      GTK_PATH: $SNAP/usr/lib/x86_64-linux-gnu/gtk-3.0
+      FONTCONFIG_FILE: $SNAP/etc/fonts/fonts.conf
     plugs:
+      - browser-sandbox
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - gsettings
+      - gtk-3-themes
+      - icon-themes
+      - sound-themes
       - audio-playback
       - home
       - network
       - network-bind
-      - password-manager-service   # libsecret keyring -> cookies/passwords encrypted at rest (ask auto-connect)
+      - password-manager-service   # optional: keyring over D-Bus. Without it the Secret portal is used (no connection needed)
       - removable-media
       - screen-inhibit-control
       - system-packages-doc
@@ -49,7 +65,25 @@ apps:
     slots:
       - mpris
 
+slots:
+  mpris:
+    interface: mpris
+    name: chromium            # Chromium registers org.mpris.MediaPlayer2.chromium.instance<pid> (same as Chromium's snap)
+
 plugs:
+  # Shared GTK themes / icons / cursors, like Chromium's snap (gtk-common-themes is base-independent data)
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes
   browser-sandbox:
     interface: browser-support
     allow-sandbox: true        # real Chromium sandbox (store review)
@@ -68,37 +102,60 @@ parts:
     source-type: deb
     organize:
       opt/jegly/iris: usr/lib/iris
-    stage-packages:
+    stage-packages:              # 26.04 names; from ldd of the Iris binary + what Chromium loads at runtime
+      - libasound2t64
+      - libatk-bridge2.0-0t64
+      - libatk1.0-0t64
+      - libatspi2.0-0t64
+      - libcairo2
+      - libdbus-1-3
+      - libdrm2
+      - libgbm1
+      - libglib2.0-0t64
+      - libgtk-3-0t64
+      - libgtk-3-common            # GSettings schemas GTK needs
+      - libnspr4
       - libnss3
+      - libpango-1.0-0
       - libpci3
-      - libxss1
+      - libpulse0
       - libsecret-1-0
+      - libvulkan1
+      - libxcomposite1
+      - libxdamage1
+      - libxkbcommon0
+      - libxrandr2
+      - libxss1
+      - fontconfig-config
+      - xkb-data
+      - ca-certificates
     override-build: |
       craftctl default
       # The .deb's /usr/bin symlink points into /opt; the snap runs bin/iris.launcher instead.
       rm -f "$CRAFT_PART_INSTALL/usr/bin/iris-browser-stable"
       # setuid sandbox helper -> Chromium's sandbox works even where unprivileged user namespaces are off.
-      chmod 4555 "$CRAFT_PART_INSTALL/usr/lib/iris/chrome-sandbox"
+      # (organize to usr/lib/iris happens after this step, so the .deb path is still opt/jegly/iris here)
+      chmod 4555 "$CRAFT_PART_INSTALL/opt/jegly/iris/chrome-sandbox"
       # version: written next to the .deb when it is copied in (e.g. 156.0.8073.0)
       craftctl set version="$(cat "$CRAFT_PROJECT_DIR/iris-version.txt")"
     prime:
       - -etc/cron.daily            # .deb repo cron job (no apt repo in a snap)
       - -etc/apparmor.d            # snapd generates the confinement profile
+      - -usr/lib/iris/apparmor.d
+      - -usr/lib/iris/cron
       - -usr/share/man
       - -usr/share/lintian
       - -usr/share/menu
+
+    override-prime: |
+      craftctl default
+      # The .deb's postinst installs the themed "iris-browser" icon; snaps run no postinst -> point at the file.
+      sed -i 's|^Icon=iris-browser$|Icon=${SNAP}/usr/lib/iris/product_logo_256.png|' \
+        "$CRAFT_PRIME/usr/share/applications/iris-browser.desktop"
+      glib-compile-schemas "$CRAFT_PRIME/usr/share/glib-2.0/schemas"
 
   launcher:
     plugin: dump
     source: launcher
     organize:
       '*': bin/
-
-  # xdg-open handles mailto: too (Canonical's fix for LP:1849774)
-  xdg-email:
-    plugin: nil
-    override-pull: ""
-    override-prime: |
-      set -eux
-      mkdir -p usr/bin
-      ln -sf /usr/bin/xdg-open usr/bin/xdg-email

@@ -14,6 +14,12 @@
 !/build/args-linux.gn
 !/packaging/
 /packaging/dev/
+/packaging/snap/*.deb
+/packaging/snap/*.snap
+/packaging/snap/iris-version.txt
+/packaging/snap/parts/
+/packaging/snap/stage/
+/packaging/snap/prime/
 !/branding/
 /branding/*
 !/branding/icon/

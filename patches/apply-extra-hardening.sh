@@ -8,6 +8,8 @@
 # 3) Port-bound cookies (net::features::kEnablePortBoundCookies, DISABLED upstream; jegly 2026-09-30): a cookie is only
 #    sent back to the port that set it. Cost: sites sharing a login across ports (router pages, media servers on :32400,
 #    local dev servers) need a separate login per port.
+# 4) Ask where to save each download (prefs::kPromptForDownload default false -> true; jegly 2026-09-30): nothing is
+#    written to disk without the user choosing where. Settings -> Downloads still turns it off.
 # Guarded; idempotent; fails loudly on drift.
 set -euo pipefail
 SRC="${1:-$HOME/Documents/chromium/src}"
@@ -27,5 +29,12 @@ def feature_on(p, name):
 feature_on("components/password_manager/core/browser/features/password_features.cc", "kFillOnAccountSelect")
 feature_on("net/base/features.cc", "kEnableSchemeBoundCookies")
 feature_on("net/base/features.cc", "kEnablePortBoundCookies")
+p = "chrome/browser/download/download_prefs.cc"
+d = open(p).read()
+old = "  registry->RegisterBooleanPref(\n      prefs::kPromptForDownload,\n      false,\n"
+new = "  registry->RegisterBooleanPref(\n      prefs::kPromptForDownload,\n      true,  // Iris: ask where to save\n"
+if new in d: print("SKIP already applied: %s (kPromptForDownload)" % p)
+elif d.count(old) == 1: open(p, "w").write(d.replace(old, new)); print("OK   %s : ask where to save by default" % p)
+else: die("%s: kPromptForDownload registration not found (drift?)" % p)
 PY
 echo "=== extra hardening complete ==="
