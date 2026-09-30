@@ -6,7 +6,7 @@
 <title>Iris Browser</title>
 <meta name="theme-color" content="#1E1E2E">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="Iris is a hardened, de-Googled web browser built on Chromium, for Ubuntu and Android.">
+<meta name="description" content="Iris is a hardened, de-Googled web browser built on Chromium, for Ubuntu, with Android coming later.">
 <style>
   /* No web fonts, no CDNs, no analytics: the site makes zero third-party requests. */
   /* Catppuccin Mocha (https://catppuccin.com/palette) — dark-only by design. Orb keeps the app icon's own colours. */
@@ -151,6 +151,8 @@
   footer { border-top: 1px solid var(--line); padding-block: 32px 48px; color: var(--ink-3); font-size: 0.88rem; display: grid; gap: 10px; }
   footer .row { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
 
+  .dl[hidden] { display: none; }
+
   @media (max-width: 860px) {
     .hero { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 24px 48px; }
     .hero .orb { width: 160px; order: -1; justify-self: start; }
@@ -185,7 +187,7 @@
 
     <section id="download" aria-labelledby="download-h">
       <div class="section-head">
-        <h2 id="download-h">Download <span class="pill">pre-release · 156.0.8073.0</span></h2>
+        <h2 id="download-h">Download <span class="pill">pre-release · 156.0.8073.0-2</span></h2>
       </div>
       <div class="downloads">
         <article class="dl" id="dl-deb">
@@ -194,17 +196,17 @@
           <pre class="cmd"><code>sudo apt install ./iris-browser-stable_*_amd64.deb</code><button class="copy" type="button">Copy</button></pre>
           <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download .deb</a>
         </article>
-        <article class="dl" id="dl-apk">
+        <article class="dl" id="dl-apk" hidden>
           <div class="dl-head"><h3>Android</h3><span class="tag">.apk · arm64</span></div>
           <p class="meta">Package <code>io.jegly.iris</code>. Allow installs from your browser or file manager when Android asks. Runs without Google Play Services; security-key sign-in (like a YubiKey) uses them if they're installed.</p>
           <pre class="cmd"><code>adb install iris-*.apk</code><button class="copy" type="button">Copy</button></pre>
           <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download APK</a>
         </article>
-        <article class="dl" id="dl-snap">
+        <article class="dl" id="dl-snap" hidden>
           <div class="dl-head"><h3>Snap Store</h3><span class="tag">snap · amd64</span></div>
           <p class="meta">Built from the same .deb, with the full browser sandbox and a minimal set of permissions. Camera and microphone stay disconnected until you connect them. Updates arrive through snapd.</p>
-          <pre class="cmd"><code>sudo snap install iris</code><button class="copy" type="button">Copy</button></pre>
-          <a class="btn btn-ghost" href="https://snapcraft.io/iris">Open in Snap Store</a>
+          <pre class="cmd"><code>sudo snap install iris-browser</code><button class="copy" type="button">Copy</button></pre>
+          <a class="btn btn-ghost" href="https://snapcraft.io/iris-browser">Open in Snap Store</a>
         </article>
       </div>
     </section>
@@ -231,9 +233,9 @@
             <li class="rm"><span class="sign">−</span><span>Prefetch, prerender and preconnect of pages you haven't opened</span></li>
             <li class="rm"><span class="sign">−</span><span>Text-fragment links, signed exchanges and compression dictionaries</span></li>
             <li class="rm"><span class="sign">−</span><span>FedCM sign-in prompts</span></li>
-            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>Tracking parameters such as <code>utm_</code>, <code>fbclid</code> and <code>gclid</code> in links</span></li>
+            <li class="rm"><span class="sign">−</span><span>Tracking parameters such as <code>utm_</code>, <code>fbclid</code> and <code>gclid</code> in links</span></li>
             <li class="add"><span class="sign">+</span><span>Data stored by bounce-tracking sites deleted automatically <span class="why">(Chromium default, kept)</span></span></li>
-            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>Global Privacy Control (<code>Sec-GPC</code>) sent to every site</span></li>
+            <li class="add"><span class="sign">+</span><span>Global Privacy Control (<code>Sec-GPC</code>) sent to every site</span></li>
             <li class="add"><span class="sign">+</span><span>Heavy ads unloaded automatically <span class="why">(Chromium default, kept)</span></span></li>
           </ul>
         </div>
@@ -247,9 +249,9 @@
             <li class="rm"><span class="sign">−</span><span>Local font access, the eyedropper and the installed-apps list</span></li>
             <li class="rm"><span class="sign">−</span><span>Origin trials <span class="why">(sites can't switch removed features back on)</span></span></li>
             <li class="add"><span class="sign">+</span><span>A single <code>Accept-Language</code> value instead of your full list</span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>Canvas, audio and WebGL fingerprints randomised per site and per session</span></li>
-            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>CPU core count and device memory reported as common fixed values</span></li>
-            <li class="rm" data-status="planned"><span class="sign">−</span><span>WebGL until you allow a site <span class="why">(off by default, one click to enable)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Canvas and audio fingerprints randomised per site and per session, or blanked, per site</span></li>
+            <li class="add"><span class="sign">+</span><span>CPU core count and device memory reported as common fixed values</span></li>
+            <li class="rm"><span class="sign">−</span><span>WebGL until you allow a site <span class="why">(off by default, one click to enable)</span></span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -262,7 +264,7 @@
             <li class="rm"><span class="sign">−</span><span>Safe Browsing surveys and file uploads for deep scanning</span></li>
             <li class="rm"><span class="sign">−</span><span>Remote new tab page, search-engine logo, popular sites and Google's favicon server</span></li>
             <li class="rm"><span class="sign">−</span><span>Cast device discovery, the Discover feed and Touch to Search</span></li>
-            <li class="rm" data-status="planned"><span class="sign">−</span><span>Google sign-in widgets on other sites, until you allow them</span></li>
+            <li class="rm"><span class="sign">−</span><span>Google sign-in widgets on other sites, until you allow them</span></li>
             <li class="rm"><span class="sign">−</span><span>Background networking, field-trial experiments, usage statistics and crash reports</span></li>
             <li class="add"><span class="sign">+</span><span>DuckDuckGo as the default search engine, and a new tab page that stays local</span></li>
           </ul>
@@ -280,33 +282,38 @@
             <li class="rm"><span class="sign">−</span><span>Window-controls overlay, sub-apps, launch queue, managed configuration and protocol handlers</span></li>
             <li class="rm"><span class="sign">−</span><span>Handwriting ink, raw media-stream processing and Animation Worklet</span></li>
             <li class="rm"><span class="sign">−</span><span>Declarative partial page updates (experimental)</span></li>
-            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>The Payment Request API and its browser-side interface</span></li>
+            <li class="rm"><span class="sign">−</span><span>Cross-site scripts that a page inserts with <code>document.write()</code></span></li>
+            <li class="rm"><span class="sign">−</span><span>The Payment Request API and its browser-side interface</span></li>
           </ul>
         </div>
         <div class="hunk">
           <h3>Your controls</h3>
           <ul>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>App lock: a passphrase before the browser opens, and it locks again after a period away</span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule</span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>Extension auto-updates off unless you switch them on</span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>Forget a site: its cookies and data deleted when you close the browser</span></li>
+            <li class="add"><span class="sign">+</span><span>App lock: a passphrase before the browser opens</span></li>
+            <li class="add"><span class="sign">+</span><span>Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule</span></li>
+            <li class="add"><span class="sign">+</span><span>Extension auto-updates off unless you switch them on</span></li>
+            <li class="add"><span class="sign">+</span><span>Forget a site: its cookies and data deleted when you close the browser</span></li>
             <li class="add"><span class="sign">+</span><span>A JavaScript on/off switch, globally and per site</span></li>
             <li class="add"><span class="sign">+</span><span>Per-site controls for JavaScript, cookies and images</span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>A custom user agent for any site</span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>Cookies, saved logins and bookmarks encrypted with your passphrase</span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>Catppuccin Mocha theme and dark mode by default, with 100+ themes to choose from and an optional glass look</span></li>
+            <li class="add"><span class="sign">+</span><span>A different browser identity for any site, from the lock icon</span></li>
+            <li class="add"><span class="sign">+</span><span>Cookies, saved logins, bookmarks and open tabs encrypted with your passphrase when the app lock is on</span></li>
+            <li class="add"><span class="sign">+</span><span>Catppuccin Mocha theme and dark mode by default, with 59 colour palettes and a glass look (on by default)</span></li>
           </ul>
         </div>
         <div class="hunk">
           <h3>Network &amp; TLS</h3>
           <ul>
             <li class="add"><span class="sign">+</span><span>TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange</span></li>
+            <li class="add"><span class="sign">+</span><span>CNSA 2.0 cipher and key-exchange preferences</span></li>
+            <li class="add"><span class="sign">+</span><span>Merkle Tree Certificate verification, ready for post-quantum certificates</span></li>
+            <li class="add"><span class="sign">+</span><span>Connection details in the lock icon: TLS version, cipher, key exchange and ECH</span></li>
+            <li class="add"><span class="sign">+</span><span>Cookies only sent back to the scheme and port that set them</span></li>
             <li class="add"><span class="sign">+</span><span>Encrypted DNS in secure mode: Quad9 by default, 15 resolvers to choose from</span></li>
             <li class="add"><span class="sign">+</span><span>HTTPS-Only mode: a warning before any <code>http://</code> page</span></li>
             <li class="add"><span class="sign">+</span><span>Full URLs in the address bar, <code>www.</code> and <code>m.</code> included</span></li>
             <li class="add"><span class="sign">+</span><span>Websites can't reach your router, printer or <code>localhost</code> <span class="why">(Chromium default, kept)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Cache, connections and storage partitioned per site <span class="why">(Chromium default, kept)</span></span></li>
-            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>Cookies and saved logins encrypted with a key from your desktop keyring, including in the snap <span class="plat">Ubuntu</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Cookies and saved logins encrypted with a key from your desktop keyring <span class="plat">Ubuntu</span></span></li>
             <li class="add"><span class="sign">+</span><span>Lookalike-domain (IDN homograph) warnings <span class="why">(Chromium default, kept)</span></span></li>
           </ul>
         </div>
@@ -322,8 +329,8 @@
             <li class="add"><span class="sign">+</span><span>PartitionAlloc hardening in every process; internal safety checks kept on in release</span></li>
             <li class="add"><span class="sign">+</span><span>Memory-safe Rust decoders for JPEG, ICO and BMP images</span></li>
             <li class="rm"><span class="sign">−</span><span>Hardware video decode, SwiftShader, remote desktop, VR/AR, Widevine DRM and the on-device AI model, all left out of the build</span></li>
-            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>Printing and local-network device discovery</span></li>
-            <li class="rm" data-status="planned"><span class="sign">−</span><span>Background mode, Family Link, page previews, on-device speech and translation services, media remoting, the Bluetooth and printing system libraries and the AV1 encoder, left out of the build</span></li>
+            <li class="rm"><span class="sign">−</span><span>Printing and local-network device discovery</span></li>
+            <li class="rm"><span class="sign">−</span><span>Page previews, media remoting, enterprise file scanning, the Bluetooth and printing system libraries and the AV1 encoder, left out of the build</span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -333,8 +340,8 @@
             <li class="add"><span class="sign">+</span><span>Origin-keyed processes and strict origin isolation, so subdomains are separated too</span></li>
             <li class="add"><span class="sign">+</span><span>Error pages and sandboxed iframes in isolated processes</span></li>
             <li class="add"><span class="sign">+</span><span>V8 heap sandbox; web renderers run JIT-less with a tighter sandbox</span></li>
-            <li class="add" data-status="pending-apply"><span class="sign">+</span><span>The network service, which handles everything from the internet, sandboxed too <span class="plat">Ubuntu</span></span></li>
-            <li class="add" data-status="planned"><span class="sign">+</span><span>Other programs running as you can't read the browser's memory <span class="plat">Ubuntu</span></span></li>
+            <li class="add"><span class="sign">+</span><span>The network service, which handles everything from the internet, sandboxed too <span class="plat">Ubuntu</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Other programs running as you can't read the browser's memory <span class="plat">Ubuntu</span></span></li>
             <li class="add"><span class="sign">+</span><span>Setuid sandbox helper and AppArmor profile in the .deb, so the full sandbox works without user namespaces <span class="plat">Ubuntu</span></span></li>
           </ul>
         </div>
@@ -347,9 +354,10 @@
             <li class="add"><span class="sign">+</span><span>Popups only from real clicks; downloads never open by themselves</span></li>
             <li class="add"><span class="sign">+</span><span>PDFs open in your system viewer instead of inside the browser</span></li>
             <li class="add"><span class="sign">+</span><span>Media licence requests over HTTPS only, with size limits</span></li>
-            <li class="rm" data-status="pending-apply"><span class="sign">−</span><span>Admin and MDM policies: nothing outside the browser can reconfigure it</span></li>
-            <li class="rm" data-status="planned"><span class="sign">−</span><span>Kerberos and enterprise management features, left out of the build</span></li>
+            <li class="rm"><span class="sign">−</span><span>Admin and MDM policies: nothing outside the browser can reconfigure it</span></li>
+            <li class="rm"><span class="sign">−</span><span>Kerberos and enterprise management features, left out of the build</span></li>
             <li class="rm"><span class="sign">−</span><span>Offers to save passwords, addresses and cards <span class="why">(use a dedicated password manager)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Saved passwords filled in only after you pick the account</span></li>
             <li class="rm"><span class="sign">−</span><span>First-run welcome and import prompts <span class="plat">Ubuntu</span></span></li>
           </ul>
         </div>
@@ -380,6 +388,8 @@
         <div><dt>Printing</dt><dd>Printing is switched off, including "Save as PDF". To keep a copy of a page, save it or take a screenshot.</dd></div>
         <div><dt>Autofill, saved passwords and payment sheets</dt><dd>Iris doesn't offer to save addresses, cards or passwords, and sites can't open the browser's payment sheet, so checkouts use their normal card form. A dedicated password manager is the better place for logins.</dd></div>
         <div><dt>Extension updates</dt><dd>Extensions work, but they don't update themselves unless you switch that on. Update checks go to the Chrome Web Store, which sees which extensions you have.</dd></div>
+        <div><dt>A forgotten app-lock passphrase</dt><dd>There's no recovery. Your cookies, logins, bookmarks and tabs are lost, and you start over with a new profile.</dd></div>
+        <div><dt>Logins across ports</dt><dd>Cookies stay with the port that set them, so services on other ports need their own sign-in.</dd></div>
         <div><dt>Company-managed setups</dt><dd>Iris ignores admin and MDM policies and has no Kerberos sign-in, so workplaces can't manage it centrally.</dd></div>
       </dl>
     </section>

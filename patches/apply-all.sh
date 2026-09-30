@@ -47,15 +47,54 @@ PATCHES=(
   apply-android-user-ca-distrust # Android: user-installed CAs not trusted (feature IrisTrustAndroidUserCAs)
   apply-orb-logo                # product vector icons -> orb
   apply-hw-values-fixed         # navigator.hardwareConcurrency=8, deviceMemory=8 on every device
+  apply-media-router-off        # Cast/Media Router off for real (kMediaRouter; the pref default was a no-op)
   apply-print-discovery-off     # printing off (pref); guard: Media Router off => no mDNS discovery
   apply-gpc-on                  # Global Privacy Control on (compiled-in --enable-features, merged)
+  apply-docwrite-block          # document.write cross-site script block, compiled in (needs default-switches + gpc-on)
   apply-secret-portal-encryption # Linux: encrypt cookies/logins with the Secret-portal key (fixes snap "basic" store)
   apply-tracking-param-strip    # strip utm_*/fbclid/gclid/... from navigations (new code in patches/src/)
   apply-network-sandbox         # Linux: network service sandboxed (seccomp + file allowlist) — RUNTIME TEST
   apply-payment-request-off     # Payment Request API + its Mojo binding gone (kWebPayments off)
   apply-no-platform-policy      # no admin/MDM policies (Linux /etc/chromium/policies, Android app restrictions)
+  apply-wakelock-gate           # navigator.wakeLock actually removed (IDL had no gate)
+  apply-managed-config-gate     # navigator.managed actually removed (IDL had no gate)
+  apply-rebrand-logos           # remaining Chromium logos: WebUI 16/32 px, wordmarks, product SVGs, sidebar icon
+  apply-rebrand-strings         # visible 'Chrome' wording -> Iris (theme 'Iris Colors', 'Built-in panels', menus, dialogs)
+  apply-accept-language-one     # Accept-Language = the first language only (the reduce feature did not do it)
+  apply-extension-update-toggle # B12: Settings -> System toggle, extension updates default OFF
+  apply-settings-you-and-iris   # "You and Google" -> "You and Iris", Google services hidden, autocomplete toggle -> Privacy
+  apply-catppuccin-default      # B9 part 1: dark mode default + Catppuccin Mocha sys colours (desktop)
+  apply-gcm-off                 # GCM/FCM never starts: no Google device check-in / registration at startup
+  apply-app-menu-trim           # ⋮ menu: no Print (printing off), no Translate
+  apply-omnibox-orb-raster      # address-bar chip on chrome:// pages = the real orb image (gradient)
+  apply-bad-flags-iris          # no 'unsupported flag' bar for Iris's own --disable-blink-features
+  apply-no-api-keys-bar         # no 'Google API keys are missing' bar (no keys on purpose)
+  apply-no-desktop-accent       # Linux: ignore GNOME accent colour (brown new-tab flash)
+  apply-download-review-stub    # B13 build fix: download bubble stub for ShouldPromptReviewForDownload (content analysis off)
+  apply-b13-link-stubs          # B13 link fix: no BlueZ/Floss calls (use_bluez=false), remoting guarded (media_remoting=false)
+  apply-iris-permissions        # Phase B batch: IRIS_WEBGL (B1), IRIS_GOOGLE_SIGNIN (B5), IRIS_USER_AGENT (B2) + strings — LONG REBUILD
+  apply-extension-update-strings # B12: translatable toggle label (needs apply-iris-permissions)
+  apply-forget-site             # B6: Page Info 'Forget this site when I close Iris' (needs apply-iris-permissions)
+  apply-shredder                # B7: automatic data deletion toggle, off by default (needs apply-iris-permissions)
+  apply-clipboard-clear         # B7: copied text cleared from the clipboard after 30 s while deletion is on
+  apply-user-agent              # B2: per-site browser identity (needs apply-iris-permissions)
+  apply-fingerprint             # B4: canvas + audio fingerprint protection per site (needs apply-iris-permissions)
+  apply-page-info-icons         # Page Info icons for the Iris rows (else NOTREACHED crash on opening Page Info)
+  apply-page-info-tls           # Page Info: TLS protocol/cipher/key exchange/signature/ECH under the certificate row
+  apply-page-info-identity      # Page Info: quick per-site browser identity menu (needs apply-user-agent + apply-forget-site)
+  apply-ua-navigator-consistency # navigator.platform/vendor/productSub follow the per-site identity
+  apply-hide-avatar-button      # no toolbar profile button for a single normal profile (kept in Incognito/Guest)
+  apply-downloads-icon-autohide # unpinned downloads button hides 10 s after a download finishes (upstream 60 min)
+  apply-palettes-picker         # B9 part 2: Iris palettes (ui/color/iris_palettes.h) in the Customize colour picker
+  apply-glass                   # B9: opt-in glass look for the built-in pages (after apply-shredder)
+  apply-app-lock                # B8 app lock at start + B10 passphrase encryption (os_crypt_async provider)
+  apply-keyring-skip            # no keyring prompt while the Iris passphrase lock is on (needs apply-app-lock)
+  apply-storage-encryption      # bookmarks + open-tab session files encrypted ONLY (upstream wrote a plain-text copy too)
+  apply-extra-hardening         # passwords fill only on account select; scheme- + port-bound cookies
+  apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites
+  apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
 )
 for p in "${PATCHES[@]}"; do
   echo "================ $p"

@@ -4,7 +4,7 @@
 # UNTESTED: needs the release .deb + snapcraft (`sudo snap install snapcraft --classic`).
 # NEEDS a Snap Store request before publishing: browser-support allow-sandbox:true, setuid chrome-sandbox,
 # auto-connect password-manager-service. camera/audio-record: included but NOT requested for auto-connect.
-name: iris                    # jegly: "iris"; if `snapcraft register iris` fails, use iris-browser (rename app + plugs)
+name: iris-browser            # "iris" is taken in the Snap Store (jegly 2026-09-30); app = iris-browser -> command `iris-browser`
 title: Iris
 summary: Hardened browser built on Chromium, for security and privacy
 description: |

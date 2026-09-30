@@ -23,11 +23,17 @@ import sys
 def die(m): sys.stderr.write("ERROR: " + m + "\n"); sys.exit(1)
 p = "chrome/app/chrome_main_delegate.cc"
 s = open(p).read()
+# switches::kEnableFeatures lives in base/base_switches.h, which this file includes ONLY inside #if BUILDFLAG(IS_WIN)
+# (found 2026-09-27 by the post-build compile proof). Add an unconditional include (idempotent, own step).
+inc_marker = '#include "base/base_switches.h"  // Iris: switches::kEnableFeatures (GPC)'
+if inc_marker not in s:
+    a = '#include "base/command_line.h"\n'
+    if s.count(a) != 1: die(f"{p}: include anchor base/command_line.h not found exactly once")
+    s = s.replace(a, a + inc_marker + "\n", 1); open(p, "w").write(s); print("OK   " + p + " : base_switches.h included on all platforms")
 marker = "// Iris: Global Privacy Control"
 if marker in s: print("SKIP already applied: " + p); sys.exit(0)
 anchor = "    iris_command_line->AppendSwitch(switches::kDisableBackgroundNetworking);\n"
 if s.count(anchor) != 1: die(f"{p}: Iris switches block not found (run apply-default-switches.sh first)")
-if '#include "base/base_switches.h"' not in s: die(f"{p}: base/base_switches.h no longer included")
 block = (anchor +
   "    // Iris: Global Privacy Control (Sec-GPC: 1 + navigator.globalPrivacyControl)\n"
   "    // on every site. Merged into any existing --enable-features value, which\n"

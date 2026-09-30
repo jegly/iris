@@ -93,3 +93,19 @@ cc_wrapper = "ccache"
 
 # --- NEXT BUILD (not in current out/Linux; add + re-validate gn gen before next build) ---
 # enable_widevine = false   # compile out Widevine DRM (privacy; may trip a test assert - validate)
+
+# --- B13 build-level removals (jegly 2026-09-27: straight into the dev build, no separate link-proof) ---
+# gn-gen-verified in a scratch dir. Kept ON because code references them unconditionally in this checkout
+# (gn asserts): enable_supervised_users, enable_lens_desktop, enterprise_watermark, enterprise_data_controls,
+# enable_speech_service, enable_on_device_translation, enterprise_cache_encryption, enable_compose,
+# enable_background_mode, enterprise_client_certificates, enterprise_cloud_content_analysis. All inert at runtime.
+enable_paint_preview = false
+enable_media_remoting = false
+enable_libaom = false            # AV1 ENCODER only; AV1 playback stays (dav1d)
+use_bluez = false
+use_cups = false
+use_kerberos = false             # jegly: no Kerberos
+enterprise_content_analysis = false
+enterprise_local_content_analysis = false
+# enterprise_proxy stays ON: chrome/browser/enterprise calls enterprise_net::IsDynamicRouteFetchingEnabled() unconditionally (build failure 2026-09-28)
+enterprise_telomere_reporting = false

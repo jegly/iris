@@ -30,7 +30,7 @@
   <header style="display:grid;gap:8px">
     <h1>Iris self-test</h1>
     <p>Run it from a local server so the page counts as a real website (the ad filter only runs on http/https pages):
-      <code>cd ~/Documents/iris/test &amp;&amp; python3 -m http.server 8765</code> then open
+      <code>python3 ~/Documents/iris/test/serve.py</code> (localhost only, no caching) then open
       <code>http://localhost:8765/iris-selftest.html</code>. For comparison, open the same URL in a stock Chrome or Chromium.</p>
     <div class="summary" id="summary"></div>
     <p id="insecure" hidden style="color:var(--red);font-weight:600">Not a secure context: many APIs are hidden here in any browser, so "absent" results are meaningless. Open it via the localhost URL above.</p>
@@ -39,7 +39,7 @@
   <section><h2>Removed web APIs (expect: absent)</h2><div class="wrap"><table id="t-api"><thead><tr><th>Feature</th><th>Check</th><th>Result</th></tr></thead><tbody></tbody></table></div></section>
   <section><h2>Permissions blocked by default (expect: denied)</h2><div class="wrap"><table id="t-perm"><thead><tr><th>Permission</th><th>Check</th><th>Result</th></tr></thead><tbody></tbody></table></div></section>
   <section><h2>Network (needs internet)</h2>
-    <p style="margin-bottom:10px">Ad blocking loads a known ad script and a normal control file. "Headers" sends one request to httpbin.org and shows what Iris sent (nothing else leaves this page).</p>
+    <p style="margin-bottom:10px">Ad blocking loads a known ad script and a normal control file. "Headers" sends one request to httpbingo.org and shows what Iris sent (nothing else leaves this page).</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"><button id="run-net" type="button">Run network checks</button> <a href="?iris-strip-test=1&amp;utm_source=test&amp;fbclid=abc&amp;keep=1" style="color:var(--blue);align-self:center">Test link stripping</a></div>
     <div class="wrap"><table id="t-net"><thead><tr><th>Check</th><th>Detail</th><th>Result</th></tr></thead><tbody></tbody></table></div></section>
   <section><h2>Reported values (information)</h2><div class="wrap"><table id="t-info"><thead><tr><th>Value</th><th>Reported</th><th>Note</th></tr></thead><tbody></tbody></table></div></section>
@@ -55,7 +55,7 @@
       <li>PDF: a web PDF downloads/opens externally instead of inside the browser.</li>
       <li>Printing: the menu has no Print entry and Ctrl+P does nothing.</li>
       <li>Cookie encryption (Linux): <code>chrome://version</code> command line has no <code>--password-store=basic</code>; after a restart you stay logged in (the key comes from the desktop keyring / Secret portal).</li>
-      <li>No first-run welcome page on a fresh profile. New tab page is local (no network request in DevTools).</li>
+      <li>ECH (encrypted site name): https://tls-ech.dev says "You are using ECH"; https://defo.ie/ech-check.php shows SSL_ECH_STATUS success.</li><li>No first-run welcome page on a fresh profile. New tab page is local (no network request in DevTools).</li>
     </ul>
   </section>
 </main>
@@ -105,7 +105,7 @@ var apis = [
   ["Battery Status", "navigator.getBattery"], ["Gamepad", "navigator.getGamepads"], ["speechSynthesis", "window.speechSynthesis"],
   ["fetchLater", "window.fetchLater"], ["sendBeacon", "navigator.sendBeacon"], ["navigator.userAgentData", "navigator.userAgentData"],
   ["WebRTC (RTCPeerConnection)", "window.RTCPeerConnection"], ["WebRTC (webkitRTCPeerConnection)", "window.webkitRTCPeerConnection"],
-  ["WebGPU", "navigator.gpu"], ["FedCM (IdentityCredential)", "window.IdentityCredential"],
+  ["FedCM (IdentityCredential)", "window.IdentityCredential"],
   ["Text fragments", "document.fragmentDirective"],
   ["WebGL (off by default)", "document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('webgl2')", true],
 ];
@@ -120,7 +120,8 @@ var perms = ["camera", "microphone", "geolocation", "notifications", "clipboard-
 perms.forEach(function (name) {
   if (!navigator.permissions) { row("t-perm", [name, "navigator.permissions"], "fail", "no API"); return; }
   navigator.permissions.query({ name: name }).then(function (st) {
-    row("t-perm", [name, "<code>permissions.query</code>"], st.state === "denied" ? "pass" : "fail", st.state);
+    var ok = st.state === "denied";
+    row("t-perm", [name, "<code>permissions.query</code>"], ok ? "pass" : (name === "ambient-light-sensor" ? "info" : "fail"), st.state);
   }, function (e) {
     row("t-perm", [name, "<code>permissions.query</code>"], "info", "n/a (" + (e && e.name) + ")");
   });
@@ -141,6 +142,13 @@ info("navigator.languages", JSON.stringify(navigator.languages), "Accept-Languag
         stripped && q.get("keep") === "1" ? "pass" : "fail", stripped ? "stripped" : "NOT stripped");
   }
 })();
+// WebGPU: navigator.gpu exists in every Chromium; Iris turns the GPU service off, so requestAdapter() must give null
+// (= what a browser without a usable GPU reports). Hiding the property itself would need a Blink json5 rebuild.
+if (navigator.gpu) {
+  navigator.gpu.requestAdapter().then(function (a) {
+    row("t-api", ["WebGPU adapter", "<code>navigator.gpu.requestAdapter()</code>"], a === null ? "pass" : "fail", a === null ? "null (off)" : "ADAPTER");
+  }, function (e) { row("t-api", ["WebGPU adapter", "<code>navigator.gpu.requestAdapter()</code>"], "pass", "rejected (off)"); });
+} else { row("t-api", ["WebGPU adapter", "<code>navigator.gpu</code>"], "pass", "absent"); }
 // Values fixed by apply-hw-values-fixed.sh / apply-gpc-on.sh (applied after the first dev build).
 row("t-api", ["navigator.hardwareConcurrency = 8", "<code>" + navigator.hardwareConcurrency + "</code>"],
     navigator.hardwareConcurrency === 8 ? "pass" : "fail", String(navigator.hardwareConcurrency));
@@ -170,16 +178,18 @@ document.getElementById("run-net").addEventListener("click", function () {
     row("t-net", ["Control file (cdnjs)", "must load, otherwise the ad checks below mean nothing"], ctrl === "loaded" ? "pass" : "fail", ctrl);
     row("t-net", ["Ad script (googlesyndication)", "expect blocked"], ctrl !== "loaded" ? "info" : (r[0] === "blocked" ? "pass" : "fail"), r[0]);
     row("t-net", ["Tracker script (google-analytics)", "expect blocked"], ctrl !== "loaded" ? "info" : (r[1] === "blocked" ? "pass" : "fail"), r[1]);
-    return fetch("https://httpbin.org/headers", { cache: "no-store" }).then(function (x) { return x.json(); });
+    if (ctrl === "loaded" && (r[0] !== "blocked" || r[1] !== "blocked"))
+      row("t-net", ["Ad blocking note", "On the FIRST launch of a new profile the filter list is still being indexed for a few seconds: wait, then run again. Still loaded after that = real failure."], "info", "rerun");
+    return fetch("https://httpbingo.org/headers", { cache: "no-store" }).then(function (x) { return x.json(); });
   }).then(function (j) {
-    var h = {}; Object.keys(j.headers || {}).forEach(function (k) { h[k.toLowerCase()] = j.headers[k]; });
+    var h = {}; Object.keys(j.headers || {}).forEach(function (k) { var v = j.headers[k]; h[k.toLowerCase()] = Array.isArray(v) ? v.join(", ") : v; });
     var ch = Object.keys(h).filter(function (k) { return k.indexOf("sec-ch-ua") === 0; });
     row("t-net", ["Sec-CH-UA headers sent", ch.length ? ch.join(", ") : "none"], ch.length ? "fail" : "pass", ch.length ? "SENT" : "none");
     var al = h["accept-language"] || "";
     row("t-net", ["Accept-Language", al || "(missing)"], al.indexOf(",") < 0 ? "pass" : "fail", al.indexOf(",") < 0 ? "one value" : "list");
     row("t-net", ["Sec-GPC header", h["sec-gpc"] || "(not sent)"], h["sec-gpc"] === "1" ? "pass" : "fail", h["sec-gpc"] === "1" ? "sent" : "missing");
   }).catch(function (e) {
-    row("t-net", ["httpbin.org header echo", String(e)], "info", "could not run");
+    row("t-net", ["httpbingo.org header echo", String(e)], "info", "could not run");
   }).then(function () { b.textContent = "Done"; });
 });
 summary();

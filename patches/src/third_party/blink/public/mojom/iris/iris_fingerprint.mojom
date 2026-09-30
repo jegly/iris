@@ -1,0 +1,16 @@
+// Copyright 2026 jegly. Licensed under the GNU General Public License v2.0 or later.
+module blink.mojom;
+
+// Iris (Phase B4): what a site gets when it reads canvas pixels or audio samples.
+enum IrisFingerprintMode {
+  kProtected,  // tiny, stable per-site-per-session changes (default)
+  kBlank,      // empty data
+  kReal,       // unchanged
+};
+
+// Implemented in the browser per document (chrome/browser/iris/iris_fingerprint_host.cc).
+interface IrisFingerprintHost {
+  // Mode for the top-level site (Settings -> Site settings -> "Canvas and audio reading") and a seed that is
+  // stable for that site until Iris restarts.
+  [Sync] GetMode() => (IrisFingerprintMode mode, uint64 seed);
+};

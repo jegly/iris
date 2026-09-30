@@ -7,7 +7,7 @@
 # DISCOVERY (mDNS/DNS-SD): on Linux the only scanner that starts on its own is Cast sink discovery
 #   (chrome/browser/media/router/discovery/mdns/cast_media_sink_service.cc -> DnsSdRegistry ->
 #   local_discovery::ServiceDiscoverySharedClient), which runs only when Media Router is enabled. Media Router is
-#   already default-OFF (apply-degoogle-group3.sh: kEnableMediaRouter false) -> nothing to change; GUARDED here so a
+#   switched off by apply-media-router-off.sh (kMediaRouter; the group-3 pref default was a no-op); GUARDED here so a
 #   rebase or a reverted patch can't silently turn discovery back on. Other users need explicit action: the
 #   chrome.mdns extension API (Chrome Apps only) and DevTools chrome://inspect Cast devices.
 # Guarded; idempotent; fails loudly on drift.
@@ -25,9 +25,11 @@ if new in s: print("SKIP already applied: " + p + " (printing)")
 elif s.count(old) == 1: open(p, "w").write(s.replace(old, new)); print("OK   " + p + " : printing off")
 else: die(f"{p}: kPrintingEnabled registration not found exactly once (drift?)")
 
-s = open(p).read()
-if not re.search(r"prefs::kEnableMediaRouter,\s*false", s):
-    die("Media Router is no longer default-off (apply-degoogle-group3.sh) -> Cast mDNS discovery would run")
-print("OK   guard: Media Router default-off -> no automatic mDNS/DNS-SD discovery")
+# 2026-09-27: the old guard checked the kEnableMediaRouter pref default, which MediaRouterEnabled() ignores unless
+# policy-managed (a no-op). The real switch is kMediaRouter (apply-media-router-off.sh, runs before this script).
+m = open("chrome/browser/media/router/media_router_feature.cc").read()
+if "BASE_FEATURE(kMediaRouter, base::FEATURE_DISABLED_BY_DEFAULT);" not in m:
+    die("Media Router is not off (run apply-media-router-off.sh) -> Cast mDNS discovery would run")
+print("OK   guard: Media Router off (kMediaRouter) -> no automatic mDNS/DNS-SD discovery")
 PY
 echo "=== printing + local discovery off complete ==="

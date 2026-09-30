@@ -29,8 +29,8 @@ def md_inline(fragment: str) -> str:
 
 
 out = []
-out.append("> [!NOTE]\n> **Work in progress.** Iris is not released yet; there are no downloads yet, and some features "
-           "listed below are still being built.\n")
+out.append("> [!NOTE]\n> **Pre-release.** The Ubuntu .deb is available from GitHub Releases. The snap and the Android "
+           "app are coming later.\n")
 out.append('<p align="center"><img src="website/readme-banner.svg" alt="Iris, built on Chromium. '
            'Made for security and privacy." width="100%"></p>\n')
 
@@ -41,8 +41,10 @@ if lede:
 # Downloads
 out.append("## Download\n")
 out.append("| Platform | Package | Install | Notes |\n|---|---|---|---|")
-for card in re.finditer(r'<article class="dl"[^>]*>(.*?)</article>', page, re.S):
-    c = card.group(1)
+for card in re.finditer(r'<article class="dl"([^>]*)>(.*?)</article>', page, re.S):
+    if re.search(r"\bhidden\b", card.group(1)):  # not published yet (hidden on the site too)
+        continue
+    c = card.group(2)
     name = text(re.search(r"<h3>(.*?)</h3>", c, re.S).group(1))
     tag = text(re.search(r'<span class="tag">(.*?)</span>', c, re.S).group(1))
     meta = md_inline(re.search(r'<p class="meta">(.*?)</p>', c, re.S).group(1))

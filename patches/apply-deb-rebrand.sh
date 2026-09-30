@@ -62,5 +62,10 @@ edit("chrome/browser/shell_integration_linux.cc",
 edit("chrome/common/chrome_paths_linux.cc",
      '#else\n  std::string data_dir_basename = "chromium";\n#endif',
      '#else\n  std::string data_dir_basename = "iris";  // Iris: ~/.config/iris\n#endif')
+# Debian revision: the first upload was 156.0.8073.0-1. Bump this for every re-release of the same Chromium version
+# (packaging-only change: no recompile, apt sees -2 > -1).
+edit("chrome/installer/linux/common/installer.py",
+     '        data["package_release"] = "1"\n',
+     '        data["package_release"] = "2"  # Iris: bump per re-release (apply-deb-rebrand.sh)\n')
 PY
 echo "=== Linux package identity (iris-browser) complete ==="

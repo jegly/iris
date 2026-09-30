@@ -35,7 +35,9 @@ MARKER='// Iris: compiled-in hardening switches'
 #   entry was a silent no-op. OPFS (navigator.storage.getDirectory) intentionally kept.
 #   Limitation: origin-trial-controlled features (AdInterestGroupAPI, AIWriterAPI, AIRewriterAPI) can still be
 #   re-enabled per-document by a valid origin-trial token (see runtime_enabled_features.cc.tmpl).
-BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet'
+# 2026-09-27 (first dev-build self-test): +UnprefixedSpeechRecognition. window.SpeechRecognition (+ its event/grammar
+#   interfaces) is gated on it; ScriptedSpeechRecognition only gates the webkit* aliases, so speech recognition stayed.
+BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet'
 # Every name must be a RuntimeEnabledFeature (a wrong name is silently ignored) — checked below.
 
 # --- guards: the mechanisms this relies on must still exist upstream ---

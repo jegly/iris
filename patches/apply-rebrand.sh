@@ -39,6 +39,7 @@ GRDS=(
 )
 for G in "${GRDS[@]}"; do
   if [ ! -f "$G" ]; then echo "WARN missing $G" >&2; continue; fi
+  TMPG="$G.iris-tmp"; cp -p "$G" "$TMPG"   # sweep a copy; replace only if changed (keeps mtime -> no rebuild)
   perl -0777 -pi -e '
     s/The Chromium Authors/jegly/g;
     s/Chromium OS/\x00A\x00/g;
@@ -54,14 +55,19 @@ for G in "${GRDS[@]}"; do
     s/\x00D\x00/Chromium projects/g;
     s/\x00E\x00/Chromium project/g;
     s/\x00F\x00/chromium.org/g;
-  ' "$G"
-  echo "OK  swept $G"
+    # the linked project name in "made possible by the <a>Chromium</a> open source project" (About box): the
+    # link tags sit between "Chromium" and "open source project", so the exception above cannot see it.
+    s/(<ph name="BEGIN_LINK_CHROMIUM">.*?<\/ph>)Iris(<ph name="END_LINK_CHROMIUM">)/$1Chromium$2/g;
+  ' "$TMPG"
+  if cmp -s "$G" "$TMPG"; then rm -f "$TMPG"; echo "SKIP already swept: $G"; else mv "$TMPG" "$G"; echo "OK  swept $G"; fi
 done
 
 # --- 3. icons (overwrite the chromium theme logos with Iris orb) ---
 copyi() { # src -> dst, only if src exists
   local s="$ICONS/$1" d="$2"
-  if [ -f "$s" ]; then cp "$s" "$d"; echo "OK  icon $d"; else echo "WARN missing $s" >&2; fi
+  if [ ! -f "$s" ]; then echo "WARN missing $s" >&2
+  elif cmp -s "$s" "$d"; then echo "SKIP icon up to date: $d"
+  else cp "$s" "$d"; echo "OK  icon $d"; fi
 }
 for sz in 16 24 48 64 128 256; do copyi "product_logo_${sz}.png" "chrome/app/theme/chromium/product_logo_${sz}.png"; done
 copyi "product_logo_22_mono.png" "chrome/app/theme/chromium/product_logo_22_mono.png"

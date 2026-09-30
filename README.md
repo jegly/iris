@@ -1,5 +1,5 @@
 > [!NOTE]
-> **Work in progress.** Iris is not released yet; there are no downloads yet, and some features listed below are still being built.
+> **Pre-release.** The Ubuntu .deb is available from GitHub Releases. The snap and the Android app are coming later.
 
 <p align="center"><img src="website/readme-banner.svg" alt="Iris, built on Chromium. Made for security and privacy." width="100%"></p>
 
@@ -10,8 +10,6 @@ Iris started with a look at the most hardened, privacy-focused browsers around. 
 | Platform | Package | Install | Notes |
 |---|---|---|---|
 | **Ubuntu / Debian** | [.deb · amd64](https://github.com/jegly/iris/releases/latest) | `sudo apt install ./iris-browser-stable_*_amd64.deb` | Includes the setuid sandbox helper and an AppArmor profile, so the full Chromium sandbox works without extra setup. |
-| **Android** | [.apk · arm64](https://github.com/jegly/iris/releases/latest) | `adb install iris-*.apk` | Package `io.jegly.iris`. Allow installs from your browser or file manager when Android asks. Runs without Google Play Services; security-key sign-in (like a YubiKey) uses them if they're installed. |
-| **Snap Store** | [snap · amd64](https://snapcraft.io/iris) | `sudo snap install iris` | Built from the same .deb, with the full browser sandbox and a minimal set of permissions. Camera and microphone stay disconnected until you connect them. Updates arrive through snapd. |
 
 ## What Iris technically changes
 
@@ -46,7 +44,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Local font access, the eyedropper and the installed-apps list
 - Origin trials (sites can't switch removed features back on)
 + A single Accept-Language value instead of your full list
-+ Canvas, audio and WebGL fingerprints randomised per site and per session
++ Canvas and audio fingerprints randomised per site and per session, or blanked, per site
 + CPU core count and device memory reported as common fixed values
 - WebGL until you allow a site (off by default, one click to enable)
 ```
@@ -79,33 +77,38 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Window-controls overlay, sub-apps, launch queue, managed configuration and protocol handlers
 - Handwriting ink, raw media-stream processing and Animation Worklet
 - Declarative partial page updates (experimental)
+- Cross-site scripts that a page inserts with document.write()
 - The Payment Request API and its browser-side interface
 ```
 
 ### Your controls
 
 ```diff
-+ App lock: a passphrase before the browser opens, and it locks again after a period away
++ App lock: a passphrase before the browser opens
 + Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule
 + Extension auto-updates off unless you switch them on
 + Forget a site: its cookies and data deleted when you close the browser
 + A JavaScript on/off switch, globally and per site
 + Per-site controls for JavaScript, cookies and images
-+ A custom user agent for any site
-+ Cookies, saved logins and bookmarks encrypted with your passphrase
-+ Catppuccin Mocha theme and dark mode by default, with 100+ themes to choose from and an optional glass look
++ A different browser identity for any site, from the lock icon
++ Cookies, saved logins, bookmarks and open tabs encrypted with your passphrase when the app lock is on
++ Catppuccin Mocha theme and dark mode by default, with 59 colour palettes and a glass look (on by default)
 ```
 
 ### Network & TLS
 
 ```diff
 + TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange
++ CNSA 2.0 cipher and key-exchange preferences
++ Merkle Tree Certificate verification, ready for post-quantum certificates
++ Connection details in the lock icon: TLS version, cipher, key exchange and ECH
++ Cookies only sent back to the scheme and port that set them
 + Encrypted DNS in secure mode: Quad9 by default, 15 resolvers to choose from
 + HTTPS-Only mode: a warning before any http:// page
 + Full URLs in the address bar, www. and m. included
 + Websites can't reach your router, printer or localhost (Chromium default, kept)
 + Cache, connections and storage partitioned per site (Chromium default, kept)
-+ Cookies and saved logins encrypted with a key from your desktop keyring, including in the snap [Ubuntu]
++ Cookies and saved logins encrypted with a key from your desktop keyring [Ubuntu]
 + Lookalike-domain (IDN homograph) warnings (Chromium default, kept)
 ```
 
@@ -122,7 +125,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Memory-safe Rust decoders for JPEG, ICO and BMP images
 - Hardware video decode, SwiftShader, remote desktop, VR/AR, Widevine DRM and the on-device AI model, all left out of the build
 - Printing and local-network device discovery
-- Background mode, Family Link, page previews, on-device speech and translation services, media remoting, the Bluetooth and printing system libraries and the AV1 encoder, left out of the build
+- Page previews, media remoting, enterprise file scanning, the Bluetooth and printing system libraries and the AV1 encoder, left out of the build
 ```
 
 ### Process isolation
@@ -149,6 +152,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Admin and MDM policies: nothing outside the browser can reconfigure it
 - Kerberos and enterprise management features, left out of the build
 - Offers to save passwords, addresses and cards (use a dedicated password manager)
++ Saved passwords filled in only after you pick the account
 - First-run welcome and import prompts [Ubuntu]
 ```
 
@@ -174,6 +178,8 @@ Hardening has a cost. These are the ones you are most likely to notice.
 - **Printing.** Printing is switched off, including "Save as PDF". To keep a copy of a page, save it or take a screenshot.
 - **Autofill, saved passwords and payment sheets.** Iris doesn't offer to save addresses, cards or passwords, and sites can't open the browser's payment sheet, so checkouts use their normal card form. A dedicated password manager is the better place for logins.
 - **Extension updates.** Extensions work, but they don't update themselves unless you switch that on. Update checks go to the Chrome Web Store, which sees which extensions you have.
+- **A forgotten app-lock passphrase.** There's no recovery. Your cookies, logins, bookmarks and tabs are lost, and you start over with a new profile.
+- **Logins across ports.** Cookies stay with the port that set them, so services on other ports need their own sign-in.
 - **Company-managed setups.** Iris ignores admin and MDM policies and has no Kerberos sign-in, so workplaces can't manage it centrally.
 
 ## Verify your download
@@ -193,34 +199,40 @@ This proves the file is the one jegly published; it is not a reproducible-build 
 
 Iris is a set of small, guarded patch scripts applied to an upstream Chromium checkout, plus build configs.
 
-1. Get Chromium (`depot_tools`, `fetch chromium`) and check out the base commit in
-   `patches/snapshot/*.base-commit` (currently `90b94f20cbf6d512624a5ab4ef5920311d50c7ec`).
-2. Build the ad-block ruleset: `adblock/build-ruleset.sh` (downloads EasyList + EasyPrivacy, needs the
-   `ruleset_converter` tool from `out/Default`).
+1. Get Chromium (`depot_tools`, `fetch chromium`) and check out the base commit
+   `90b94f20cbf6d512624a5ab4ef5920311d50c7ec` (Chromium 156.0.8073.0).
+2. The ad-block ruleset is included in `adblock/dist/`. `adblock/build-ruleset.sh` rebuilds it from fresh lists.
 3. Apply everything: `patches/apply-all.sh ~/path/to/chromium/src`. Each script checks the code it changes and
    stops with an error if upstream has drifted; re-running is safe.
 4. Configure and build:
    ```bash
-   cp build/args-linux.gn out/Linux/args.gn && gn gen out/Linux
-   autoninja -C out/Linux chrome chrome/installer/linux:stable_deb
+   mkdir -p out/Linux && cp build/args-linux.gn out/Linux/args.gn && gn gen out/Linux
+   autoninja -C out/Linux -k 0 chrome chrome/installer/linux:stable_deb
    ```
-   Android: `build/args-android.gn` and `autoninja -C out/Android chrome_public_apk`.
+   Android (`build/args-android.gn`) isn't released yet.
 
-`build/args-dev.gn` is a faster non-official config for development. After building, open
-`test/iris-selftest.html` from a local server to check the removed APIs, permissions, ad blocking and headers.
+`build/args-dev.gn` is a faster non-official config for development. To check a build, run `python3 test/serve.py`
+and open the self-test page in Iris.
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| `patches/` | one script per change; `apply-all.sh` runs them in order |
+| `patches/` | one script per change; `apply-all.sh` runs them in order; new source files in `patches/src/` |
 | `build/` | gn args for Linux, Android and dev builds |
 | `adblock/` | ruleset builder; bundled lists and their license |
 | `packaging/` | .deb notes, snap, launcher, release verification tools |
 | `branding/` | icons, orb logo, theme palettes |
 | `website/` | the project website (`index.html`); `build-readme.py` turns it into this README, `make-banner.py` draws the banner |
 | `test/` | self-test page for a built browser |
-| `FEATURES.md` | every feature and the patch behind it |
+
+## Security notes
+
+- The GPU process isn't sandboxed on Linux with Mesa drivers, same as stock Chromium. Web pages and the network
+  service are.
+- Ubuntu's default `ptrace_scope=1` stops other programs from reading Iris's memory.
+- Without the app lock or a desktop keyring, stored data falls back to Chromium's built-in key. History and cache are
+  never encrypted, so use full-disk encryption.
 
 ## Reporting problems
 
@@ -232,7 +244,9 @@ GitHub's *Report a vulnerability* (Security tab) rather than a public issue.
 - Chromium: BSD-3-Clause and the licenses of its third-party components (see `chrome://credits` in the browser).
 - EasyList and EasyPrivacy filter lists: The EasyList authors, GPLv3+ / CC BY-SA 3.0
   (shipped as `/usr/share/doc/iris-browser-stable/filter-lists-LICENSE`).
-- DotGothic16 font (Iris wordmark): The DotGothic16 Project Authors, SIL Open Font License 1.1 (`website/fonts/OFL.txt`).
+- DotGothic16 font (Iris wordmark and Settings headers): The DotGothic16 Project Authors, SIL Open Font License 1.1
+  (`website/fonts/OFL.txt`).
+- IBM Plex Sans font (built-in pages): IBM Corp., SIL Open Font License 1.1.
 - Catppuccin colour palette: the Catppuccin project, MIT.
 - Iris patches and tooling: GPL-2.0-or-later (`LICENSE`). "Or later" because Chromium contains Apache-2.0
   components, which are compatible with GPL-3.0 but not GPL-2.0-only.

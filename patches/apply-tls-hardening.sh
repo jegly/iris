@@ -52,4 +52,20 @@ flip "$SSLMGR" \
 assert_present "$SSLMGR" \
   'registry->RegisterBooleanPref(prefs::kEncryptedClientHelloEnabled, true);'
 
+# 3) CNSA compliance ON by default (jegly 2026-09-30; Chrome's own flag "Cryptography Compliance (CNSA)", gone from
+#    newer Chrome but present in our 156). chrome/browser/ssl/ssl_config_service_manager.cc: groups preset kCnsa2
+#    (ML-KEM-1024 + X25519MLKEM768 + P-384 + P-256 + X25519; key shares still X25519MLKEM768 + X25519) and TLS 1.3
+#    prefers AES-256-GCM. Desktop AND Android (chrome/common). Trade-off: ClientHello differs from stock Chrome.
+flip chrome/common/chrome_features.cc \
+  'BASE_FEATURE(kCryptographyComplianceCnsa, base::FEATURE_DISABLED_BY_DEFAULT);' \
+  'BASE_FEATURE(kCryptographyComplianceCnsa, base::FEATURE_ENABLED_BY_DEFAULT);  // Iris'
+
+# 4) Merkle Tree Certificate verification ON (jegly 2026-09-30; flag #verify-mtcs). Uses the signer set COMPILED
+#    into the build (net/data/ssl/chrome_root_store/signer_set.textproto), so it works without the component updater.
+#    Needs kTLSTrustAnchorIDs, which is already ENABLED upstream (guarded below).
+assert_present net/base/features.cc 'BASE_FEATURE(kTLSTrustAnchorIDs, base::FEATURE_ENABLED_BY_DEFAULT);'
+flip net/base/features.cc \
+  'BASE_FEATURE(kVerifyMTCs, base::FEATURE_DISABLED_BY_DEFAULT);' \
+  'BASE_FEATURE(kVerifyMTCs, base::FEATURE_ENABLED_BY_DEFAULT);  // Iris'
+
 echo "=== TLS hardening complete ==="
