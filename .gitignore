@@ -26,6 +26,7 @@
 /branding/icon/*
 !/branding/icon/generated/
 !/branding/icon/generated-android/
+!/branding/icon/gen_android_icon.py
 !/branding/icon/product_orb_16.icon
 !/branding/icon/product_orb_24.icon
 !/branding/icon/product_refresh_orb.icon
