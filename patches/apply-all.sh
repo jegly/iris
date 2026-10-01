@@ -45,6 +45,8 @@ PATCHES=(
   apply-ua-client-hints-off     # never any Sec-CH-UA*: not by default, and sites cannot opt in (Accept-CH/Critical-CH/meta)
   apply-origin-trials-off       # no origin trials: tokens cannot re-enable cut features
   apply-android-user-ca-distrust # Android: user-installed CAs not trusted (feature IrisTrustAndroidUserCAs)
+  apply-android-scs-target-only # Android: shadow call stack only for the arm64 target toolchain (gn assert on host)
+  apply-android-omnibox-novr    # Android: omnibox/searchbox build with enable_vr=false (guards GetVectorIcon callers)
   apply-orb-logo                # product vector icons -> orb
   apply-hw-values-fixed         # navigator.hardwareConcurrency=8, deviceMemory=8 on every device
   apply-media-router-off        # Cast/Media Router off for real (kMediaRouter; the pref default was a no-op)

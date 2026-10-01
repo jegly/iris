@@ -82,6 +82,8 @@ fn = ("namespace {\n\n"
       "// all later mixers and the WebUI colors derive. Mocha applies only to the plain\n"
       "// dark theme; an installed/GTK/Qt theme (custom_theme), an ordinary picked\n"
       "// color, grey, device colors or high contrast keep Chromium's behavior.\n"
+      "// Desktop only (the call is desktop-only too; unused here = -Werror on Android).\n"
+      "#if !BUILDFLAG(IS_ANDROID)\n"
       "void AddIrisCatppuccinMochaMixer(ColorProvider* provider,\n"
       "                                 const ColorProviderKey& key) {\n"
       "  if (key.contrast_mode == ColorProviderKey::ContrastMode::kHigh ||\n"
@@ -101,7 +103,8 @@ fn = ("namespace {\n\n"
       "  for (size_t i = 0; i < std::size(iris::kPaletteTokens); ++i) {\n"
       "    mixer[iris::kPaletteTokens[i]] = {palette->colors[i]};\n"
       "  }\n"
-      "}\n\n"
+      "}\n"
+      "#endif  // !BUILDFLAG(IS_ANDROID)\n\n"
       "}  // namespace\n\n")
 
 # 3. (2026-09-27, measured over DevTools) Settings ignores theme colours unless the in-development

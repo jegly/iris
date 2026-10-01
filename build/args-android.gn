@@ -30,7 +30,8 @@ use_on_device_model_service = false
 # default to BLOCK -> every web renderer launches with --jitless -> no JIT for web content, AND V8 then
 # does not install the WebAssembly global (v8/src/wasm/wasm-js.cc:3432) -> WASM API absent.
 # Do NOT re-add v8_jitless / tier=false / drumbrake here. See memory/01_GOTCHAS.md.
-v8_enable_sandbox = true          # keep V8 sandbox
+# v8_enable_sandbox: NOT set. V8 turns it on by itself wherever supported (64-bit + pointer compression, v8/BUILD.gn),
+# and forcing it breaks gn for the 32-bit android_clang_arm helper toolchain ("sandbox requires external code space").
 
 enable_vr = false
 enable_openxr = false
