@@ -20,6 +20,8 @@ PATCHES=(
   apply-degoogle-group3         # search-suggest, media-router, payments, sensors, bg-sync, 3p cookies
   apply-tls-hardening           # min TLS 1.3 + ECH guard
   apply-remove-ai-page          # settings AI page gone
+  apply-glic-off                # Gemini (Glic) kill switch off on all platforms (Android showed "Ask Gemini")
+  apply-ai-off                  # No AI: AI Mode, AICore/Gemini Nano, Read Aloud, Google Lens
   apply-default-search          # DuckDuckGo default (IRIS_SEARCH_ENGINE to swap)
   apply-search-list-ddg         # DDG selectable in every region
   apply-popup-hardening         # block popups without a trusted user gesture
@@ -47,6 +49,9 @@ PATCHES=(
   apply-android-user-ca-distrust # Android: user-installed CAs not trusted (feature IrisTrustAndroidUserCAs)
   apply-android-scs-target-only # Android: shadow call stack only for the arm64 target toolchain (gn assert on host)
   apply-android-omnibox-novr    # Android: omnibox/searchbox build with enable_vr=false (guards GetVectorIcon callers)
+  apply-android-hide-gpm        # Android: hide Google Password Manager (closed-source backend; never works in Iris)
+  apply-android-strings-iris    # Android: UI strings Chrome -> Iris (+ re-keyed translations)
+  apply-android-no-gms          # Android: never use Google Play services; chrome://version without device model
   apply-orb-logo                # product vector icons -> orb
   apply-hw-values-fixed         # navigator.hardwareConcurrency=8, deviceMemory=8 on every device
   apply-media-router-off        # Cast/Media Router off for real (kMediaRouter; the pref default was a no-op)
