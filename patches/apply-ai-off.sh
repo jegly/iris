@@ -12,6 +12,13 @@
 #   3) Read Aloud / "Listen to this page" (Android; Google server TTS of the page) — ReadAloudFeatures.isAllowed().
 #   4) Google Lens (Android; sends images/screens to Google) — LensController.isLensEnabled() and
 #      LensSupportStatusHelper.isLensSearchSupported(), plus the Lens button on the quick-action search widget.
+#   5) Desktop (2026-10-01 desktop audit; jegly: 'we dont want any ai features'): master switches that were still ON:
+#      Google Lens (kLensOverlay desktop branch, kLensStandalone; upstream only hides Lens while search isn't Google),
+#      'Help me write' (kEnableCompose, kComposeEligible; enable_compose can't be gn-disabled: asserts), Gemini in
+#      DevTools (console insights, AI assistance/'Freestyler', file + performance agents, code completion/generation,
+#      global AI button), New Tab Page AI search box (kNtpComposebox), AI Mode workspace, built-in AI eager init,
+#      on-device AI settings, AI permission prompts (kPermissionsAIP92), AI model-quality logging to Google.
+#      (Gemini's own sub-features stay behind kGlic=off; Contextual Tasks' master switch is already off upstream.)
 # Guarded; idempotent; fails loudly on drift.
 set -euo pipefail
 SRC="${1:-$HOME/Documents/chromium/src}"
@@ -77,4 +84,42 @@ else:
     m = re.findall(r"BASE_FEATURE\(kLensOnQuickActionSearchWidget,\s*base::FEATURE_ENABLED_BY_DEFAULT\);\n", s)
     if len(m) != 1: die("%s: kLensOnQuickActionSearchWidget not found exactly once (drift?)" % p)
     open(p, "w").write(s.replace(m[0], new)); print("OK   %s : Lens widget button off" % p)
+# 5) Desktop AI master switches (also shared files; harmless on Android)
+import re
+DESKTOP_FLIPS = [
+    ("components/lens/lens_features.cc", "kLensStandalone"),
+    ("components/compose/core/browser/compose_features.cc", "kEnableCompose"),
+    ("components/compose/core/browser/compose_features.cc", "kComposeEligible"),
+    ("chrome/browser/devtools/features.cc", "kDevToolsConsoleInsights"),
+    ("chrome/browser/devtools/features.cc", "kDevToolsFreestyler"),
+    ("chrome/browser/devtools/features.cc", "kDevToolsAiCodeCompletion"),
+    ("chrome/browser/devtools/features.cc", "kDevToolsAiCodeGeneration"),
+    ("chrome/browser/devtools/features.cc", "kDevToolsAiAssistanceFileAgent"),
+    ("chrome/browser/devtools/features.cc", "kDevToolsAiAssistancePerformanceAgent"),
+    ("chrome/browser/devtools/features.cc", "kDevToolsGlobalAiButton"),
+    ("chrome/browser/ui/webui/new_tab_page/composebox/variations/composebox_fieldtrial.cc", "kNtpComposebox"),
+    ("chrome/common/chrome_features.cc", "kGoogleSearchAiModeWorkspace"),
+    ("chrome/browser/ai/ai_manager.cc", "kBuiltInAIEagerInit"),
+    ("chrome/browser/ui/webui/settings/on_device_ai_settings_handler.cc", "kShowOnDeviceAiSettings"),
+    ("components/permissions/features.cc", "kPermissionsAIP92"),
+    ("components/optimization_guide/core/optimization_guide_features.cc", "kModelQualityLogging"),
+]
+for fp, name in DESKTOP_FLIPS:
+    s = open(fp).read()
+    off = re.compile(r"BASE_FEATURE\(%s,(\s*\"[^\"]*\",)?\s*base::FEATURE_DISABLED_BY_DEFAULT\);  // Iris: no AI" % name)
+    if off.search(s): print("SKIP already applied: %s (%s)" % (fp, name)); continue
+    on = re.compile(r"BASE_FEATURE\(%s,(\s*\"[^\"]*\",)?\s*base::FEATURE_ENABLED_BY_DEFAULT\);" % name)
+    m = on.findall(s)
+    if len(m) != 1: die("%s: %s not found exactly once as ENABLED_BY_DEFAULT (drift?)" % (fp, name))
+    s = on.sub(lambda mm: "BASE_FEATURE(%s,%s base::FEATURE_DISABLED_BY_DEFAULT);  // Iris: no AI"
+               % (name, (mm.group(1) or "")), s, count=1)
+    open(fp, "w").write(s); print("OK   %s : %s off" % (fp, name))
+fp = "components/lens/lens_features.cc"
+s = open(fp).read()
+new = "BASE_FEATURE(kLensOverlay, base::FEATURE_DISABLED_BY_DEFAULT);  // Iris: no Google Lens (desktop too)\n"
+old = ("BASE_FEATURE(kLensOverlay,\n#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)\n"
+       "             base::FEATURE_DISABLED_BY_DEFAULT\n#else\n             base::FEATURE_ENABLED_BY_DEFAULT\n#endif\n);\n")
+if new in s: print("SKIP already applied: %s (kLensOverlay)" % fp)
+elif s.count(old) != 1: die("%s: kLensOverlay definition not found exactly once (drift?)" % fp)
+else: open(fp, "w").write(s.replace(old, new)); print("OK   %s : kLensOverlay off (desktop)" % fp)
 PY

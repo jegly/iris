@@ -22,6 +22,8 @@ PATCHES=(
   apply-remove-ai-page          # settings AI page gone
   apply-glic-off                # Gemini (Glic) kill switch off on all platforms (Android showed "Ask Gemini")
   apply-ai-off                  # No AI: AI Mode, AICore/Gemini Nano, Read Aloud, Google Lens
+  apply-no-google-startup       # No Google at startup: ListAccounts, network time; component updater = CRLSet + PKI only
+  apply-version-protections     # chrome://version: live 'Iris protections' readout
   apply-default-search          # DuckDuckGo default (IRIS_SEARCH_ENGINE to swap)
   apply-search-list-ddg         # DDG selectable in every region
   apply-popup-hardening         # block popups without a trusted user gesture
@@ -52,6 +54,8 @@ PATCHES=(
   apply-android-hide-gpm        # Android: hide Google Password Manager (closed-source backend; never works in Iris)
   apply-android-strings-iris    # Android: UI strings Chrome -> Iris (+ re-keyed translations)
   apply-android-no-gms          # Android: never use Google Play services; chrome://version without device model
+  apply-android-manifest-harden # Android: no location/all-apps/Google push+accounts/Cast/ads/BT/NFC/HID permissions
+  apply-android-webauthn-credman # Android: passkeys + security keys via Credential Manager, no Play services
   apply-orb-logo                # product vector icons -> orb
   apply-hw-values-fixed         # navigator.hardwareConcurrency=8, deviceMemory=8 on every device
   apply-media-router-off        # Cast/Media Router off for real (kMediaRouter; the pref default was a no-op)

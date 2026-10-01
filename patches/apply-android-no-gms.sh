@@ -11,6 +11,8 @@
 # 3) Cast (BrowserMediaRouter) asks GoogleApiAvailability directly -> no Cast providers.
 # 4) WebOTP's SMS backend (SmsProviderGms) asks GoogleApiAvailability directly -> verification backend off
 #    (WebOTP is also disabled as a Blink feature by apply-default-switches.sh).
+# 6) Push/FCM: GCMDriver.register() and InstanceIDBridge.getToken() call Play services directly (no availability
+#    check) -> both return the existing failure value ("") before contacting Google. (Desktop: apply-gcm-off.sh.)
 # Cost: Cast and Play-services passkeys/security keys don't work in Iris.
 # chrome://version (Android) also loses the device model/build number and the Play services row (local-only info,
 # but people share screenshots of that page); the Android version + SDK level stay.
@@ -59,18 +61,23 @@ edit(p, "    private static final int MIN_GOOGLE_PLAY_SERVICES_APK_VERSION = 126
 edit(p, "                public void addProviders(MediaRouteManager manager) {\n",
      "                public void addProviders(MediaRouteManager manager) {\n" + M, M, "no Cast providers")
 
-# 4) WebOTP SMS backend
+# 4) WebOTP SMS backend: Iris's switch is checked FIRST, so Play services is never even asked
 p = "content/public/android/java/src/org/chromium/content/browser/sms/SmsProviderGms.java"
-old = ("                                        MIN_GMS_VERSION_NUMBER_WITH_CODE_BROWSER_BACKEND)\n"
-       "                        == ConnectionResult.SUCCESS;\n")
-new = ("                                        MIN_GMS_VERSION_NUMBER_WITH_CODE_BROWSER_BACKEND)\n"
-       "                        == ConnectionResult.SUCCESS\n"
-       "                && !IRIS_GMS_OFF; // Iris: no Google Play services\n")
 edit(p, "    @CalledByNative\n    private static SmsProviderGms create(",
      "    private static final boolean IRIS_GMS_OFF = true; // Iris\n\n"
      "    @CalledByNative\n    private static SmsProviderGms create(",
      "IRIS_GMS_OFF = true; // Iris\n", "IRIS_GMS_OFF constant")
-edit(p, old, new, "&& !IRIS_GMS_OFF;", "verification backend off")
+s_ = open(p).read()
+OLD_IRIS = ("                        == ConnectionResult.SUCCESS\n"
+            "                && !IRIS_GMS_OFF; // Iris: no Google Play services\n")   # earlier Iris form
+if OLD_IRIS in s_: s_ = s_.replace(OLD_IRIS, "                        == ConnectionResult.SUCCESS;\n")
+FIRST = "                !IRIS_GMS_OFF // Iris: never ask Google Play services\n                        && "
+UP = "        boolean isVerificationBackendAvailable =\n                GoogleApiAvailability"
+if FIRST in s_: print("SKIP already applied: %s (verification backend off)" % p)
+elif s_.count(UP) != 1: die("%s: SMS availability check not found exactly once (drift?)" % p)
+else:
+    s_ = s_.replace(UP, "        boolean isVerificationBackendAvailable =\n" + FIRST + "GoogleApiAvailability")
+    open(p, "w").write(s_); print("OK   %s : verification backend off (checked before Play services)" % p)
 
 # 5) chrome://version: no device model/build, no Play services row
 p = "chrome/browser/ui/webui/version/version_ui.cc"
@@ -100,4 +107,25 @@ s = open(p).read()
 if "$i18n{gms_version}" not in s: print("SKIP already applied: %s (Play services row)" % p)
 elif s.count(old) != 1: die("%s: Play services row not found exactly once (drift?)" % p)
 else: open(p, "w").write(s.replace(old, "")); print("OK   %s : Play services row removed" % p)
+# 6) Push / FCM (Android's GCM goes straight to Play services; apply-gcm-off.sh is desktop-only)
+def add_const(p, line, label):
+    s = open(p).read()
+    if line in s: print("SKIP already applied: %s (%s)" % (p, label)); return
+    i = s.rstrip().rfind("}")
+    if i < 0 or not s.rstrip().endswith("}"): die("%s: class end not found (drift?)" % p)
+    open(p, "w").write(s[:i] + "\n" + line + s[i:]); print("OK   %s : %s" % (p, label))
+C = "    private static final boolean IRIS_NO_FCM = true; // Iris: no Google push (FCM)\n"
+p = "components/gcm_driver/android/java/src/org/chromium/components/gcm_driver/GCMDriver.java"
+M = "                    if (IRIS_NO_FCM) return \"\"; // Iris: never subscribe with Google (FCM)\n"
+edit(p, "                    String subtype = appId;\n"
+        "                    String registrationId = mSubscriber.subscribe(senderId, subtype, null);\n",
+     M + "                    String subtype = appId;\n"
+         "                    String registrationId = mSubscriber.subscribe(senderId, subtype, null);\n",
+     M, "no FCM registration")
+add_const(p, C, "IRIS_NO_FCM constant")
+p = "components/gcm_driver/instance_id/android/java/src/org/chromium/components/gcm_driver/instance_id/InstanceIDBridge.java"
+M = "                    if (IRIS_NO_FCM) return \"\"; // Iris: never ask Google for a push token (FCM)\n"
+edit(p, "                    return mInstanceID.getToken(authorizedEntity, scope);\n",
+     M + "                    return mInstanceID.getToken(authorizedEntity, scope);\n", M, "no FCM token")
+add_const(p, C, "IRIS_NO_FCM constant")
 PY

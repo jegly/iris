@@ -62,10 +62,18 @@ edit("chrome/browser/shell_integration_linux.cc",
 edit("chrome/common/chrome_paths_linux.cc",
      '#else\n  std::string data_dir_basename = "chromium";\n#endif',
      '#else\n  std::string data_dir_basename = "iris";  // Iris: ~/.config/iris\n#endif')
-# Debian revision: the first upload was 156.0.8073.0-1. Bump this for every re-release of the same Chromium version
-# (packaging-only change: no recompile, apt sees -2 > -1).
-edit("chrome/installer/linux/common/installer.py",
-     '        data["package_release"] = "1"\n',
-     '        data["package_release"] = "2"  # Iris: bump per re-release (apply-deb-rebrand.sh)\n')
+# Debian revision: the first upload was 156.0.8073.0-1. Bump IRIS_RELEASE for every re-release of the same Chromium
+# version (packaging-only change: no recompile, apt sees -3 > -2). Upgrades any earlier Iris value in place.
+# -2: 2026-09-30. -3: 2026-10-01 (AI off on desktop, no Google at startup, no screen capture).
+import re
+IRIS_RELEASE = "3"
+p_ = "chrome/installer/linux/common/installer.py"
+s_ = open(p_).read()
+want = '        data["package_release"] = "%s"  # Iris: bump per re-release (apply-deb-rebrand.sh)\n' % IRIS_RELEASE
+if want in s_: print("SKIP already applied: %s (package_release %s)" % (p_, IRIS_RELEASE))
+else:
+    m = re.findall(r'        data\["package_release"\] = "\d+"(?:  # Iris: bump per re-release \(apply-deb-rebrand\.sh\))?\n', s_)
+    if len(m) != 1: die("%s: package_release line not found exactly once (drift?)" % p_)
+    open(p_, "w").write(s_.replace(m[0], want)); print("OK   %s : package_release -> %s" % (p_, IRIS_RELEASE))
 PY
 echo "=== Linux package identity (iris-browser) complete ==="
