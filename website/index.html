@@ -202,11 +202,11 @@
           <pre class="cmd"><code>adb install iris-*.apk</code><button class="copy" type="button">Copy</button></pre>
           <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download APK</a>
         </article>
-        <article class="dl" id="dl-snap" hidden>
-          <div class="dl-head"><h3>Snap Store</h3><span class="tag">snap · amd64</span></div>
-          <p class="meta">Built from the same .deb, with the full browser sandbox and a minimal set of permissions. Camera and microphone stay disconnected until you connect them. Updates arrive through snapd.</p>
-          <pre class="cmd"><code>sudo snap install iris-browser</code><button class="copy" type="button">Copy</button></pre>
-          <a class="btn btn-ghost" href="https://snapcraft.io/iris-browser">Open in Snap Store</a>
+        <article class="dl" id="dl-snap">
+          <div class="dl-head"><h3>Snap</h3><span class="tag">snap · amd64</span></div>
+          <p class="meta">Built from the same .deb, with the full browser sandbox. Until it's in the Snap Store, install the file from the release, then run <code>sudo snap connect iris-browser:browser-sandbox</code> and <code>sudo snap connect iris-browser:u2f-devices</code> once.</p>
+          <pre class="cmd"><code>sudo snap install --dangerous iris-browser_*.snap</code><button class="copy" type="button">Copy</button></pre>
+          <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download snap</a>
         </article>
       </div>
     </section>

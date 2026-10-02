@@ -1,6 +1,3 @@
-> [!NOTE]
-> The snap and the Android app are coming soon.
-
 <p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>
 
 Iris started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for the modern age, and an open-source alternative if privacy & security matter to you.
@@ -11,6 +8,7 @@ Iris started with a look at the most hardened, privacy-focused browsers around. 
 |---|---|---|---|
 | **Ubuntu / Debian** | [.deb · amd64](https://github.com/jegly/iris/releases/latest) | `sudo apt install ./iris-browser-stable_*_amd64.deb` | Includes the setuid sandbox helper and an AppArmor profile, so the full Chromium sandbox works without extra setup. |
 | **Android** | [.apk · arm64](https://github.com/jegly/iris/releases/latest) | `adb install iris-*.apk` | Package `io.jegly.iris`. Allow installs from your browser or file manager when Android asks. Runs without Google Play Services. |
+| **Snap** | [snap · amd64](https://github.com/jegly/iris/releases/latest) | `sudo snap install --dangerous iris-browser_*.snap` | Built from the same .deb, with the full browser sandbox. Until it's in the Snap Store, install the file from the release, then run `sudo snap connect iris-browser:browser-sandbox` and `sudo snap connect iris-browser:u2f-devices` once. |
 
 ## What Iris technically changes
 
