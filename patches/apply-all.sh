@@ -52,10 +52,16 @@ PATCHES=(
   apply-android-scs-target-only # Android: shadow call stack only for the arm64 target toolchain (gn assert on host)
   apply-android-omnibox-novr    # Android: omnibox/searchbox build with enable_vr=false (guards GetVectorIcon callers)
   apply-android-hide-gpm        # Android: hide Google Password Manager (closed-source backend; never works in Iris)
+  apply-android-no-google-settings # Android: no 'You and Google' / Google services in Settings
   apply-android-strings-iris    # Android: UI strings Chrome -> Iris (+ re-keyed translations)
   apply-android-no-gms          # Android: never use Google Play services; chrome://version without device model
   apply-android-manifest-harden # Android: no location/all-apps/Google push+accounts/Cast/ads/BT/NFC/HID permissions
   apply-android-webauthn-credman # Android: passkeys + security keys via Credential Manager, no Play services
+  apply-android-screenshot-protection # Android: FLAG_SECURE (default on) + switch
+  apply-android-iris-privacy-settings # Android: 'Iris' section in Privacy (screenshots, auto-delete, WebGL, sign-in)
+  apply-android-themes          # Android: Iris palettes (Catppuccin Mocha + dark default), Appearance > Colours
+  apply-android-app-lock        # Android: app lock (passphrase + fingerprint, real encryption, 5-min re-lock)
+  apply-android-per-site        # Android: per-site WebGL/sign-in/identity/canvas in the site's settings
   apply-orb-logo                # product vector icons -> orb
   apply-hw-values-fixed         # navigator.hardwareConcurrency=8, deviceMemory=8 on every device
   apply-media-router-off        # Cast/Media Router off for real (kMediaRouter; the pref default was a no-op)
@@ -92,6 +98,7 @@ PATCHES=(
   apply-fingerprint             # B4: canvas + audio fingerprint protection per site (needs apply-iris-permissions)
   apply-page-info-icons         # Page Info icons for the Iris rows (else NOTREACHED crash on opening Page Info)
   apply-page-info-tls           # Page Info: TLS protocol/cipher/key exchange/signature/ECH under the certificate row
+  apply-android-page-info-tls-extra # Android: Page Info signature scheme + ECH sentences
   apply-page-info-identity      # Page Info: quick per-site browser identity menu (needs apply-user-agent + apply-forget-site)
   apply-ua-navigator-consistency # navigator.platform/vendor/productSub follow the per-site identity
   apply-hide-avatar-button      # no toolbar profile button for a single normal profile (kept in Incognito/Guest)
@@ -106,6 +113,7 @@ PATCHES=(
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
+  apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
 )
 for p in "${PATCHES[@]}"; do
   echo "================ $p"

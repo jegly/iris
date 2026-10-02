@@ -10,6 +10,7 @@ Iris started with a look at the most hardened, privacy-focused browsers around. 
 | Platform | Package | Install | Notes |
 |---|---|---|---|
 | **Ubuntu / Debian** | [.deb · amd64](https://github.com/jegly/iris/releases/latest) | `sudo apt install ./iris-browser-stable_*_amd64.deb` | Includes the setuid sandbox helper and an AppArmor profile, so the full Chromium sandbox works without extra setup. |
+| **Android** | [.apk · arm64](https://github.com/jegly/iris/releases/latest) | `adb install iris-*.apk` | Package `io.jegly.iris`. Allow installs from your browser or file manager when Android asks. Runs without Google Play Services. |
 
 ## What Iris technically changes
 
@@ -56,6 +57,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Search suggestions sent as you type, and mistyped addresses sent to Google for suggestions
 - Translate offers, spellcheck dictionary downloads and autofill server lookups
 - Built-in AI: Prompt, Summarizer, Writer, Rewriter, Translator and language-detection APIs, the on-device model, AI checkout scanning and the AI settings page
+- Google Lens, AI Mode and Gemini
 - Safe Browsing surveys and file uploads for deep scanning
 - Remote new tab page, search-engine logo, popular sites and Google's favicon server
 - Cast device discovery, the Discover feed and Touch to Search
@@ -79,6 +81,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Declarative partial page updates (experimental)
 - Cross-site scripts that a page inserts with document.write()
 - The Payment Request API and its browser-side interface
+- Screen sharing
 ```
 
 ### Your controls
@@ -87,12 +90,12 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + App lock: a passphrase before the browser opens
 + Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule
 + Extension auto-updates off unless you switch them on
-+ Forget a site: its cookies and data deleted when you close the browser
++ Forget a site: its cookies and data deleted when you close the browser [Ubuntu]
 + A JavaScript on/off switch, globally and per site
 + Per-site controls for JavaScript, cookies and images
 + A different browser identity for any site, from the lock icon
-+ Cookies, saved logins, bookmarks and open tabs encrypted with your passphrase when the app lock is on
-+ Catppuccin Mocha theme and dark mode by default, with 59 colour palettes and a glass look (on by default)
++ Cookies, saved logins and bookmarks encrypted with your passphrase when the app lock is on, open tabs too on Ubuntu
++ Catppuccin Mocha theme and dark mode by default, with 59 colour palettes, and a glass look on Ubuntu
 ```
 
 ### Network & TLS
@@ -159,9 +162,10 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 ### Android only
 
 ```diff
-+ Location from Android itself, without Google Play Services
++ No location or nearby-device access
 + Every protection built into the app itself, because Android ignores launch flags
 + Installs alongside Chrome as its own app (io.jegly.iris)
++ App lock with fingerprint, and screenshots blocked
 - Trust in user-installed CA certificates (blocks TLS interception)
 - Android and Google cloud backups of browser data
 - The first-run setup flow and DRM preprovisioning at startup
@@ -192,6 +196,14 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
+SHA-256 of the 156.0.8073.0-3 files:
+
+```
+d51cc47a5011dda505ef78e871facddee92864f06cd5324e919bb36ae40635a5  iris-browser-stable_156.0.8073.0-3_amd64.deb
+64dafc67c8e18880bec89bd4d4b2c43d63716310f30ef580e6d64aae3969b2c4  iris-browser_156.0.8073.0-3_amd64.snap
+e1508feef7943764f8f4419092d4c30e93727d5a9cff06d9bc1180316ec58dcf  iris-156.0.8073.0-3-pqc-signed.apk
+```
+
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
 sure the keys are mine. My keys are also in `keys/`:
 
@@ -212,7 +224,7 @@ Iris is a set of small, guarded patch scripts applied to an upstream Chromium ch
    mkdir -p out/Linux && cp build/args-linux.gn out/Linux/args.gn && gn gen out/Linux
    autoninja -C out/Linux -k 0 chrome chrome/installer/linux:stable_deb
    ```
-   Android (`build/args-android.gn`) isn't released yet.
+   Android: the same with `build/args-android.gn` in `out/Android`, then `autoninja -C out/Android chrome_public_apk`.
 
 `build/args-dev.gn` is a faster non-official config for development. To check a build, run `python3 test/serve.py`
 and open the self-test page in Iris.

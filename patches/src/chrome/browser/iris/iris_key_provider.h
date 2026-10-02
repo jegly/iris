@@ -9,6 +9,7 @@
 #define CHROME_BROWSER_IRIS_IRIS_KEY_PROVIDER_H_
 
 #include "base/memory/raw_ptr.h"
+#include "base/memory/weak_ptr.h"
 #include "components/os_crypt/async/browser/key_provider.h"
 
 class PrefService;
@@ -27,6 +28,7 @@ class IrisKeyProvider : public os_crypt_async::KeyProvider {
 
  private:
   raw_ptr<PrefService> local_state_;
+  base::WeakPtrFactory<IrisKeyProvider> weak_factory_{this};
 };
 
 #endif  // CHROME_BROWSER_IRIS_IRIS_KEY_PROVIDER_H_

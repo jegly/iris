@@ -8,6 +8,14 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
+SHA-256 of the 156.0.8073.0-3 files:
+
+```
+d51cc47a5011dda505ef78e871facddee92864f06cd5324e919bb36ae40635a5  iris-browser-stable_156.0.8073.0-3_amd64.deb
+64dafc67c8e18880bec89bd4d4b2c43d63716310f30ef580e6d64aae3969b2c4  iris-browser_156.0.8073.0-3_amd64.snap
+e1508feef7943764f8f4419092d4c30e93727d5a9cff06d9bc1180316ec58dcf  iris-156.0.8073.0-3-pqc-signed.apk
+```
+
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
 sure the keys are mine. My keys are also in `keys/`:
 
@@ -28,7 +36,7 @@ Iris is a set of small, guarded patch scripts applied to an upstream Chromium ch
    mkdir -p out/Linux && cp build/args-linux.gn out/Linux/args.gn && gn gen out/Linux
    autoninja -C out/Linux -k 0 chrome chrome/installer/linux:stable_deb
    ```
-   Android (`build/args-android.gn`) isn't released yet.
+   Android: the same with `build/args-android.gn` in `out/Android`, then `autoninja -C out/Android chrome_public_apk`.
 
 `build/args-dev.gn` is a faster non-official config for development. To check a build, run `python3 test/serve.py`
 and open the self-test page in Iris.

@@ -8,6 +8,8 @@
 #include "base/base64.h"
 #include "base/check.h"
 #include "base/containers/span.h"
+#include "base/functional/callback.h"
+#include "base/no_destructor.h"
 #include "base/rand_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "components/prefs/pref_registry_simple.h"
@@ -37,6 +39,20 @@ struct Derived {
 std::optional<DataKey>& UnlockedKey() {
   static std::optional<DataKey> key;
   return key;
+}
+
+// Callbacks waiting for the data key (RunWhenUnlocked).
+std::vector<base::OnceClosure>& Waiters() {
+  static base::NoDestructor<std::vector<base::OnceClosure>> waiters;
+  return *waiters;
+}
+
+void RunWaiters() {
+  std::vector<base::OnceClosure> waiters;
+  waiters.swap(Waiters());
+  for (base::OnceClosure& waiter : waiters) {
+    std::move(waiter).Run();
+  }
 }
 
 std::optional<Derived> Derive(std::u16string_view passphrase,
@@ -151,7 +167,16 @@ bool Unlock(PrefService* local_state, std::u16string_view passphrase) {
     return false;
   }
   UnlockedKey() = *key;
+  RunWaiters();
   return true;
+}
+
+void RunWhenUnlocked(base::OnceClosure callback) {
+  if (UnlockedKey()) {
+    std::move(callback).Run();
+    return;
+  }
+  Waiters().push_back(std::move(callback));
 }
 
 std::optional<DataKey> GetDataKey(PrefService* local_state) {
@@ -191,6 +216,7 @@ Result SetPassphrase(PrefService* local_state,
   }
   StoreLock(local_state, new_passphrase, key);
   UnlockedKey() = key;
+  RunWaiters();
   return Result::kOk;
 }
 

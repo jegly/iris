@@ -6,7 +6,7 @@
 <title>Iris Browser</title>
 <meta name="theme-color" content="#1E1E2E">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="Iris is a hardened, de-Googled web browser built on Chromium, for Ubuntu, with Android coming later.">
+<meta name="description" content="Iris is a hardened, de-Googled web browser built on Chromium, for Ubuntu and Android.">
 <style>
   /* No web fonts, no CDNs, no analytics: the site makes zero third-party requests. */
   /* Catppuccin Mocha (https://catppuccin.com/palette) — dark-only by design. Orb keeps the app icon's own colours. */
@@ -187,7 +187,7 @@
 
     <section id="download" aria-labelledby="download-h">
       <div class="section-head">
-        <h2 id="download-h">Download <span class="pill">156.0.8073.0-2</span></h2>
+        <h2 id="download-h">Download <span class="pill">156.0.8073.0-3</span></h2>
       </div>
       <div class="downloads">
         <article class="dl" id="dl-deb">
@@ -196,9 +196,9 @@
           <pre class="cmd"><code>sudo apt install ./iris-browser-stable_*_amd64.deb</code><button class="copy" type="button">Copy</button></pre>
           <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download .deb</a>
         </article>
-        <article class="dl" id="dl-apk" hidden>
+        <article class="dl" id="dl-apk">
           <div class="dl-head"><h3>Android</h3><span class="tag">.apk · arm64</span></div>
-          <p class="meta">Package <code>io.jegly.iris</code>. Allow installs from your browser or file manager when Android asks. Runs without Google Play Services; security-key sign-in (like a YubiKey) uses them if they're installed.</p>
+          <p class="meta">Package <code>io.jegly.iris</code>. Allow installs from your browser or file manager when Android asks. Runs without Google Play Services.</p>
           <pre class="cmd"><code>adb install iris-*.apk</code><button class="copy" type="button">Copy</button></pre>
           <a class="btn btn-primary" href="https://github.com/jegly/iris/releases/latest">Download APK</a>
         </article>
@@ -261,6 +261,7 @@
             <li class="rm"><span class="sign">−</span><span>Search suggestions sent as you type, and mistyped addresses sent to Google for suggestions</span></li>
             <li class="rm"><span class="sign">−</span><span>Translate offers, spellcheck dictionary downloads and autofill server lookups</span></li>
             <li class="rm"><span class="sign">−</span><span>Built-in AI: Prompt, Summarizer, Writer, Rewriter, Translator and language-detection APIs, the on-device model, AI checkout scanning and the AI settings page</span></li>
+            <li class="rm"><span class="sign">−</span><span>Google Lens, AI Mode and Gemini</span></li>
             <li class="rm"><span class="sign">−</span><span>Safe Browsing surveys and file uploads for deep scanning</span></li>
             <li class="rm"><span class="sign">−</span><span>Remote new tab page, search-engine logo, popular sites and Google's favicon server</span></li>
             <li class="rm"><span class="sign">−</span><span>Cast device discovery, the Discover feed and Touch to Search</span></li>
@@ -284,6 +285,7 @@
             <li class="rm"><span class="sign">−</span><span>Declarative partial page updates (experimental)</span></li>
             <li class="rm"><span class="sign">−</span><span>Cross-site scripts that a page inserts with <code>document.write()</code></span></li>
             <li class="rm"><span class="sign">−</span><span>The Payment Request API and its browser-side interface</span></li>
+            <li class="rm"><span class="sign">−</span><span>Screen sharing</span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -292,12 +294,12 @@
             <li class="add"><span class="sign">+</span><span>App lock: a passphrase before the browser opens</span></li>
             <li class="add"><span class="sign">+</span><span>Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule</span></li>
             <li class="add"><span class="sign">+</span><span>Extension auto-updates off unless you switch them on</span></li>
-            <li class="add"><span class="sign">+</span><span>Forget a site: its cookies and data deleted when you close the browser</span></li>
+            <li class="add"><span class="sign">+</span><span>Forget a site: its cookies and data deleted when you close the browser <span class="plat">Ubuntu</span></span></li>
             <li class="add"><span class="sign">+</span><span>A JavaScript on/off switch, globally and per site</span></li>
             <li class="add"><span class="sign">+</span><span>Per-site controls for JavaScript, cookies and images</span></li>
             <li class="add"><span class="sign">+</span><span>A different browser identity for any site, from the lock icon</span></li>
-            <li class="add"><span class="sign">+</span><span>Cookies, saved logins, bookmarks and open tabs encrypted with your passphrase when the app lock is on</span></li>
-            <li class="add"><span class="sign">+</span><span>Catppuccin Mocha theme and dark mode by default, with 59 colour palettes and a glass look (on by default)</span></li>
+            <li class="add"><span class="sign">+</span><span>Cookies, saved logins and bookmarks encrypted with your passphrase when the app lock is on, open tabs too on Ubuntu</span></li>
+            <li class="add"><span class="sign">+</span><span>Catppuccin Mocha theme and dark mode by default, with 59 colour palettes, and a glass look on Ubuntu</span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -364,9 +366,10 @@
         <div class="hunk">
           <h3>Android only</h3>
           <ul>
-            <li class="add"><span class="sign">+</span><span>Location from Android itself, without Google Play Services</span></li>
+            <li class="add"><span class="sign">+</span><span>No location or nearby-device access</span></li>
             <li class="add"><span class="sign">+</span><span>Every protection built into the app itself, because Android ignores launch flags</span></li>
             <li class="add"><span class="sign">+</span><span>Installs alongside Chrome as its own app (<code>io.jegly.iris</code>)</span></li>
+            <li class="add"><span class="sign">+</span><span>App lock with fingerprint, and screenshots blocked</span></li>
             <li class="rm"><span class="sign">−</span><span>Trust in user-installed CA certificates <span class="why">(blocks TLS interception)</span></span></li>
             <li class="rm"><span class="sign">−</span><span>Android and Google cloud backups of browser data</span></li>
             <li class="rm"><span class="sign">−</span><span>The first-run setup flow and DRM preprovisioning at startup</span></li>

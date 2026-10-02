@@ -24,6 +24,8 @@
 #include <optional>
 #include <string_view>
 
+#include "base/functional/callback_forward.h"
+
 class PrefRegistrySimple;
 class PrefService;
 
@@ -52,6 +54,12 @@ bool IsUnlocked();
 
 // Checks `passphrase`; on success keeps the data key in memory for this run.
 bool Unlock(PrefService* local_state, std::u16string_view passphrase);
+
+// Runs `callback` once the data key is available in this run (immediately if it
+// already is). Android: the browser starts before the user unlocks, so
+// IrisKeyProvider waits here instead of answering "unavailable". Desktop unlocks
+// before any key is requested, so it never waits. UI thread.
+void RunWhenUnlocked(base::OnceClosure callback);
 
 // The data key for this run: the unlocked key, or the stored plain key when
 // the lock was turned off after being used. std::nullopt if neither.
