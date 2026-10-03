@@ -99,6 +99,7 @@ PATCHES=(
   apply-page-info-icons         # Page Info icons for the Iris rows (else NOTREACHED crash on opening Page Info)
   apply-page-info-tls           # Page Info: TLS protocol/cipher/key exchange/signature/ECH under the certificate row
   apply-android-page-info-tls-extra # Android: Page Info signature scheme + ECH sentences
+  apply-strict-pq-tls           # opt-in "Strict post-quantum encryption": ML-KEM-1024 key share + TLS 1.3 AES-256-GCM only (desktop + Android)
   apply-page-info-identity      # Page Info: quick per-site browser identity menu (needs apply-user-agent + apply-forget-site)
   apply-ua-navigator-consistency # navigator.platform/vendor/productSub follow the per-site identity
   apply-hide-avatar-button      # no toolbar profile button for a single normal profile (kept in Incognito/Guest)
