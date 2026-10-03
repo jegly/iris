@@ -39,7 +39,11 @@ MARKER='// Iris: compiled-in hardening switches'
 #   interfaces) is gated on it; ScriptedSpeechRecognition only gates the webkit* aliases, so speech recognition stayed.
 # 2026-10-01 (jegly: no screen capture): +GetDisplayMedia (screen sharing; 'stable' on desktop,
 #   'experimental' = already off on Android).
-BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia'
+# 2026-10-03 (jegly): +XSLT,EnableXSLTForCAPAlerts. XSLT = libxslt (old C parser, frequent CVEs; Chrome is
+#   deprecating it). Both gates are read by XSLTProcessor::IsXSLTEnabled (xslt_processor.cc:94): XSLTProcessor +
+#   <?xml-stylesheet?> processing; the CAP-alert exception is its own feature. Origin trials are off in Iris, so the
+#   'XSLT' deprecation trial can't turn it back on. Cost: old XML pages with a stylesheet show as raw XML.
+BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia,XSLT,EnableXSLTForCAPAlerts'
 # Every name must be a RuntimeEnabledFeature (a wrong name is silently ignored) — checked below.
 
 # --- guards: the mechanisms this relies on must still exist upstream ---

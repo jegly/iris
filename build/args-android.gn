@@ -9,12 +9,16 @@
 target_os = "android"
 target_cpu = "arm64"              # modern phones
 is_official_build = true          # CFI + ThinLTO on supported targets
-chrome_pgo_phase = 0              # REQUIRED offline (official defaults to PGO phase 2 -> needs profile)
+chrome_pgo_phase = 2              # PGO ON (jegly 2026-10-03). arm64 profile = chrome/android/orderfiles/arm64/
+                                  # pgo_profile.arm64.profdata (CIPD orderfiles package, fetched on every Android
+                                  # checkout; tools/update_pgo_profiles.py get_profile_path). The 32-bit helper
+                                  # toolchain may need the android-arm32 profile = .gclient "checkout_pgo_profiles".
+                                  # Missing profile -> gn gen fails at once. See memory/03_BUILD.md.
 is_component_build = false        # required (official) + real installable APK
 is_debug = false
 is_chrome_branded = false
 symbol_level = 1
-dcheck_always_on = true
+dcheck_always_on = false          # jegly 2026-10-03: release DCHECKs off (speed, no DCHECK crashes; CHECKs stay)
 
 disable_fieldtrial_testing_config = true
 enable_reporting = false

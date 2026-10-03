@@ -110,6 +110,8 @@ PATCHES=(
   apply-keyring-skip            # no keyring prompt while the Iris passphrase lock is on (needs apply-app-lock)
   apply-storage-encryption      # bookmarks + open-tab session files encrypted ONLY (upstream wrote a plain-text copy too)
   apply-extra-hardening         # passwords fill only on account select; scheme- + port-bound cookies
+  apply-remote-debugging-guard  # no --remote-debugging-port/pipe on the real profile (as Google Chrome; infostealers)
+  apply-no-load-extension       # --load-extension ignored (as Google Chrome); Load unpacked in chrome://extensions still works
   apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites

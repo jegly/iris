@@ -6,14 +6,17 @@
 
 # --- base / release ---
 is_official_build = true          # enables CFI + ThinLTO on supported targets (Linux x64)
-chrome_pgo_phase = 0              # REQUIRED offline: official build defaults to PGO phase 2, which
-                                  # needs a .profdata profile that isn't present & can't download
-                                  # offline -> build fails. 0 disables PGO (ThinLTO/CFI still on).
+chrome_pgo_phase = 2              # PGO ON (jegly 2026-10-03; ~10% faster). Needs Google's Linux profile in the
+                                  # checkout: .gclient custom_vars "checkout_pgo_profiles": True, then
+                                  # `gclient runhooks` (download). Missing profile -> gn gen fails at once
+                                  # (build/config/compiler/pgo/BUILD.gn assert). PGO also requires
+                                  # dcheck_always_on = false (pgo.gni). See memory/03_BUILD.md.
 is_component_build = false        # REQUIRED: official build cannot be component build
 is_debug = false
 is_chrome_branded = false         # unbranded => no UMA/metrics/crash/UKM compiled in
 symbol_level = 1                  # minimal symbols: readable traces, cheap build
-dcheck_always_on = true           # keep safety asserts active (bug-surfacing)
+dcheck_always_on = false          # jegly 2026-10-03: release DCHECKs off (speed, no DCHECK crashes; CHECKs stay).
+                                  # Dev build (args-dev.gn) keeps them on for bug-surfacing.
 
 # --- kill experimental field-trial features ---
 disable_fieldtrial_testing_config = true
