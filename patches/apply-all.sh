@@ -62,6 +62,7 @@ PATCHES=(
   apply-android-themes          # Android: Iris palettes (Catppuccin Mocha + dark default), Appearance > Colours
   apply-android-app-lock        # Android: app lock (passphrase + fingerprint, real encryption, 5-min re-lock)
   apply-android-per-site        # Android: per-site WebGL/sign-in/identity/canvas in the site's settings
+  apply-android-no-xr-module    # Android: no XR/ARCore feature module in the APK (~20 MB of unused Google libs)
   apply-orb-logo                # product vector icons -> orb
   apply-hw-values-fixed         # navigator.hardwareConcurrency=8, deviceMemory=8 on every device
   apply-media-router-off        # Cast/Media Router off for real (kMediaRouter; the pref default was a no-op)
