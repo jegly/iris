@@ -36,6 +36,12 @@ inline constexpr char kSaltPref[] = "iris.app_lock.salt";
 inline constexpr char kVerifierPref[] = "iris.app_lock.verifier";
 inline constexpr char kWrappedKeyPref[] = "iris.app_lock.wrapped_key";
 inline constexpr char kPlainKeyPref[] = "iris.app_lock.plain_key";
+// The browser look for the "Iris is locked" window, which opens before any
+// profile is loaded: written by ThemeService (apply-lock-screen-theme.sh), read by
+// iris_unlock_dialog.cc. Palette = index into ui/color/iris_palettes.h (-1 = none);
+// color scheme = ThemeService::BrowserColorScheme (0 system, 1 light, 2 dark).
+inline constexpr char kLockPalettePref[] = "iris.app_lock.palette";
+inline constexpr char kLockColorSchemePref[] = "iris.app_lock.color_scheme";
 
 using DataKey = std::array<uint8_t, 32>;
 

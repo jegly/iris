@@ -113,6 +113,13 @@ PATCHES=(
   apply-extra-hardening         # passwords fill only on account select; scheme- + port-bound cookies
   apply-remote-debugging-guard  # no --remote-debugging-port/pipe on the real profile (as Google Chrome; infostealers)
   apply-no-load-extension       # --load-extension ignored (as Google Chrome); Load unpacked in chrome://extensions still works
+  apply-lock-screen-theme       # 'Iris is locked' window uses the user's palette + Light/Dark (needs app-lock, catppuccin)
+  apply-settings-safety-hub-trim # Safety Hub: no 'organization turned off passwords' card, no Google 'keeps you safe' links
+  apply-settings-iris-avatar    # Settings 'You and Iris': default profile picture = the Iris orb
+  apply-no-enhanced-protection  # Safe Browsing Enhanced protection gone (always off + hidden; desktop + Android)
+  apply-no-translate-settings   # Languages: no 'Use Google Translate' (translate is off anyway; desktop + Android)
+  apply-autofill-page-trim      # Autofill page: no Google account card, Google Wallet/Account links, Gemini card
+  apply-search-engines-world    # 33 search engines worldwide in every country (after search-list-ddg/default-search)
   apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites

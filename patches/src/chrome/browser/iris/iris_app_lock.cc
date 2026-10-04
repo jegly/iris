@@ -151,6 +151,10 @@ void RegisterLocalStatePrefs(PrefRegistrySimple* registry) {
   registry->RegisterStringPref(kVerifierPref, std::string());
   registry->RegisterStringPref(kWrappedKeyPref, std::string());
   registry->RegisterStringPref(kPlainKeyPref, std::string());
+  registry->RegisterIntegerPref(kLockPalettePref, -1);
+  // 2 = dark: Iris starts in dark mode (Catppuccin Mocha) until the browser
+  // has saved the real choice once.
+  registry->RegisterIntegerPref(kLockColorSchemePref, 2);
 }
 
 bool IsEnabled(PrefService* local_state) {

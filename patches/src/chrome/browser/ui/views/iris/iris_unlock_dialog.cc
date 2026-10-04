@@ -13,6 +13,8 @@
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/mojom/dialog_button.mojom.h"
 #include "ui/color/color_id.h"
+#include "ui/color/color_provider_key.h"
+#include "ui/color/iris_palettes.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/controls/label.h"
@@ -27,7 +29,7 @@ constexpr int kWidth = 380;
 }  // namespace
 
 // static
-bool IrisUnlockDialog::Run(TryUnlock try_unlock) {
+bool IrisUnlockDialog::Run(TryUnlock try_unlock, int palette, int color_scheme) {
   base::RunLoop run_loop;
   bool unlocked = false;
   auto done = base::BindOnce(
@@ -40,6 +42,17 @@ bool IrisUnlockDialog::Run(TryUnlock try_unlock) {
   views::Widget* widget = views::DialogDelegate::CreateDialogWidget(
       new IrisUnlockDialog(std::move(try_unlock), std::move(done)), nullptr,
       nullptr);
+  // Same look as the browser (no profile is loaded yet, so the window cannot
+  // ask ThemeService; the values come from Local State, see the header).
+  if (color_scheme == 1) {
+    widget->SetColorModeOverride(ui::ColorProviderKey::ColorMode::kLight);
+  } else if (color_scheme == 2) {
+    widget->SetColorModeOverride(ui::ColorProviderKey::ColorMode::kDark);
+  }  // 0: follow the system, as the browser does
+  if (palette >= 0 && static_cast<size_t>(palette) < ui::iris::kPaletteCount) {
+    widget->SetUserColorOverride(
+        ui::iris::IrisPaletteSeed(static_cast<size_t>(palette)));
+  }
   widget->Show();
   base::WeakPtr<views::Widget> weak_widget = widget->GetWeakPtr();
 

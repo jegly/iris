@@ -24,7 +24,11 @@ class IrisUnlockDialog : public views::DialogDelegate {
 
   // Shows the dialog and waits (nested run loop) until the passphrase is
   // accepted (true) or the user quits (false).
-  static bool Run(TryUnlock try_unlock);
+  // `palette` (index into ui/color/iris_palettes.h, -1 = none) and
+  // `color_scheme` (ThemeService::BrowserColorScheme: 0 system, 1 light,
+  // 2 dark) give the window the browser's look; the caller reads them from
+  // Local State (iris_app_lock::kLockPalettePref / kLockColorSchemePref).
+  static bool Run(TryUnlock try_unlock, int palette = -1, int color_scheme = 2);
 
   IrisUnlockDialog(TryUnlock try_unlock, base::OnceCallback<void(bool)> done);
   IrisUnlockDialog(const IrisUnlockDialog&) = delete;
