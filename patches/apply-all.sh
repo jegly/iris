@@ -121,6 +121,10 @@ PATCHES=(
   apply-autofill-page-trim      # Autofill page: no Google account card, Google Wallet/Account links, Gemini card
   apply-search-engines-world    # 33 search engines worldwide in every country (after search-list-ddg/default-search)
   apply-flags-default-state     # chrome://flags: 'Default (Enabled)' / 'Default (Disabled)' shows what Default means
+  apply-android-settings-trim   # Android: Google services items, Safety check, Developer options gone (after no-google-settings)
+  apply-android-home-clean      # Android home: no Google feed (spinner), no tip cards / tip notifications
+  apply-email-verification-off  # no automatic email verification (Email Verification Protocol off)
+  apply-site-settings-defaults  # Auto-verify BLOCK, Protected content ASK (Android), JS optimisation BLOCK (after iris-permissions)
   apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites
