@@ -120,6 +120,7 @@ PATCHES=(
   apply-no-translate-settings   # Languages: no 'Use Google Translate' (translate is off anyway; desktop + Android)
   apply-autofill-page-trim      # Autofill page: no Google account card, Google Wallet/Account links, Gemini card
   apply-search-engines-world    # 33 search engines worldwide in every country (after search-list-ddg/default-search)
+  apply-flags-default-state     # chrome://flags: 'Default (Enabled)' / 'Default (Disabled)' shows what Default means
   apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites
