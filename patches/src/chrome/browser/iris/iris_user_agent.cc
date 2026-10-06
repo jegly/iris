@@ -25,18 +25,51 @@ int ChromeMajor() {
 
 }  // namespace
 
+// All preset ids, in the order the UIs list them. "" (Iris default) is not here.
+constexpr const char* kPresetIds[] = {
+    "firefox_linux",   "firefox_windows", "firefox_mac",     "firefox_android",
+    "chrome_windows",  "chrome_mac",      "chrome_linux",    "chrome_android",
+    "chrome_ios",      "edge_windows",    "safari_mac",      "safari_ios",
+    "samsung_android",
+};
+
 bool IsValidUserAgentPreset(std::string_view preset) {
-  return preset == "firefox_linux" || preset == "chrome_windows" ||
-         preset == "safari_mac";
+  for (const char* id : kPresetIds) {
+    if (preset == id) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::string UserAgentForPreset(std::string_view preset) {
   const int chrome = ChromeMajor();
+  const int firefox = chrome + 3;
+  // Safari: one major per year (26 at Chrome 140, Sept 2025). Samsung Internet: ~one major per 6 Chrome majors
+  // (28 at Chrome 130); approximate, sites only care that it is a plausible recent version.
+  const int safari = 26 + (chrome - 140) / 13;
+  const int samsung = 28 + (chrome - 130) / 6;
   if (preset == "firefox_linux") {
     return base::StringPrintf(
-        "Mozilla/5.0 (X11; Linux x86_64; rv:%d.0) Gecko/20100101 "
+        "Mozilla/5.0 (X11; Linux x86_64; rv:%d.0) Gecko/20100101 Firefox/%d.0",
+        firefox, firefox);
+  }
+  if (preset == "firefox_windows") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:%d.0) Gecko/20100101 "
         "Firefox/%d.0",
-        chrome + 3, chrome + 3);
+        firefox, firefox);
+  }
+  if (preset == "firefox_mac") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:%d.0) Gecko/20100101 "
+        "Firefox/%d.0",
+        firefox, firefox);
+  }
+  if (preset == "firefox_android") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (Android 15; Mobile; rv:%d.0) Gecko/%d.0 Firefox/%d.0",
+        firefox, firefox, firefox);
   }
   if (preset == "chrome_windows") {
     return base::StringPrintf(
@@ -44,11 +77,55 @@ std::string UserAgentForPreset(std::string_view preset) {
         "like Gecko) Chrome/%d.0.0.0 Safari/537.36",
         chrome);
   }
+  if (preset == "chrome_mac") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/%d.0.0.0 Safari/537.36",
+        chrome);
+  }
+  if (preset == "chrome_linux") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like "
+        "Gecko) Chrome/%d.0.0.0 Safari/537.36",
+        chrome);
+  }
+  if (preset == "chrome_android") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like "
+        "Gecko) Chrome/%d.0.0.0 Mobile Safari/537.36",
+        chrome);
+  }
+  if (preset == "chrome_ios") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/%d.0.0.0 "
+        "Mobile/15E148 Safari/604.1",
+        chrome);
+  }
+  if (preset == "edge_windows") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
+        "like Gecko) Chrome/%d.0.0.0 Safari/537.36 Edg/%d.0.0.0",
+        chrome, chrome);
+  }
   if (preset == "safari_mac") {
     return base::StringPrintf(
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
         "(KHTML, like Gecko) Version/%d.0 Safari/605.1.15",
-        26 + (chrome - 140) / 13);
+        safari);
+  }
+  if (preset == "safari_ios") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/%d.0 "
+        "Mobile/15E148 Safari/604.1",
+        safari);
+  }
+  if (preset == "samsung_android") {
+    return base::StringPrintf(
+        "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like "
+        "Gecko) SamsungBrowser/%d.0 Chrome/%d.0.0.0 Mobile Safari/537.36",
+        samsung, chrome);
   }
   return std::string();
 }
@@ -128,7 +205,7 @@ void UserAgentTabHelper::DidStartNavigation(content::NavigationHandle* handle) {
   }
   // Undo an identity Iris set for a previous site; leave other overrides alone.
   const std::string& current = contents->GetUserAgentOverride().ua_string_override;
-  for (const char* p : {"firefox_linux", "chrome_windows", "safari_mac"}) {
+  for (const char* p : kPresetIds) {
     if (!current.empty() && current == UserAgentForPreset(p)) {
       handle->SetIsOverridingUserAgent(false);
       return;

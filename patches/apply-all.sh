@@ -104,6 +104,7 @@ PATCHES=(
   apply-strict-pq-tls           # opt-in "Strict post-quantum encryption": ML-KEM-1024 key share + TLS 1.3 AES-256-GCM only (desktop + Android)
   apply-page-info-identity      # Page Info: quick per-site browser identity menu (needs apply-user-agent + apply-forget-site)
   apply-ua-navigator-consistency # navigator.platform/vendor/productSub follow the per-site identity
+  apply-more-identities         # 4 -> 14 browser identities (Firefox/Chrome/Edge/Safari/Samsung; desktop, Android, iPhone) in all three menus
   apply-hide-avatar-button      # no toolbar profile button for a single normal profile (kept in Incognito/Guest)
   apply-downloads-icon-autohide # unpinned downloads button hides 10 s after a download finishes (upstream 60 min)
   apply-palettes-picker         # B9 part 2: Iris palettes (ui/color/iris_palettes.h) in the Customize colour picker

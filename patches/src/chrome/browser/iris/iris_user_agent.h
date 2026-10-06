@@ -23,7 +23,8 @@ class BrowserContext;
 
 namespace iris {
 
-// Preset ids: "firefox_linux", "chrome_windows", "safari_mac"; "" = Iris default.
+// Preset ids: see kPresetIds in iris_user_agent.cc (13: Firefox/Chrome/Edge/Safari/Samsung on desktop, Android and
+// iPhone); "" = Iris default.
 bool IsValidUserAgentPreset(std::string_view preset);
 std::string GetUserAgentPreset(content::BrowserContext* context, const GURL& url);
 void SetUserAgentPreset(content::BrowserContext* context,
