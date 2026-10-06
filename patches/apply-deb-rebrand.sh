@@ -65,8 +65,10 @@ edit("chrome/common/chrome_paths_linux.cc",
 # Debian revision: the first upload was 156.0.8073.0-1. Bump IRIS_RELEASE for every re-release of the same Chromium
 # version (packaging-only change: no recompile, apt sees -3 > -2). Upgrades any earlier Iris value in place.
 # -2: 2026-09-30. -3: 2026-10-01 (AI off on desktop, no Google at startup, no screen capture).
+# A NEW Chromium version restarts at "1" (156.0.8078.11-1, 2026-10-07); the build's own rules (BUILD.gn / siso) expect
+# -1 as the output name, so a different value makes the build report "missing outputs" although the .deb is written.
 import re
-IRIS_RELEASE = "3"
+IRIS_RELEASE = "1"
 p_ = "chrome/installer/linux/common/installer.py"
 s_ = open(p_).read()
 want = '        data["package_release"] = "%s"  # Iris: bump per re-release (apply-deb-rebrand.sh)\n' % IRIS_RELEASE
