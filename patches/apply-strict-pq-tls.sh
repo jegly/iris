@@ -177,7 +177,7 @@ edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
 
 TOGGLE = ("    <!-- Iris: strict post-quantum encryption (apply-strict-pq-tls.sh; English-only label, TODO localize) -->\n"
           "    <settings-toggle-button id=\"irisStrictPqTls\" class=\"hr\"\n"
-          "        pref=\"{{prefs.iris.tls.strict_pq}}\"\n"
+          "        pref-key=\"iris.tls.strict_pq\"\n"
           "        label=\"%s\"\n"
           "        sub-label=\"%s\">\n"
           "    </settings-toggle-button>\n" % (LABEL, SUB))
@@ -200,6 +200,15 @@ edit(SEC + "security_page_v2.html",
      "    </template>\n" + TOGGLE +
      "    <template is=\"dom-if\" if=\"[[enableSecurityKeysSubpage_]]\">\n",
      "irisStrictPqTls", "Security page (v2) toggle")
+
+# Trees patched before 2026-10-07 used the legacy pref="{{prefs...}}" binding, which does not write in 156 (the toggle
+# did nothing): switch them to pref-key like every other Iris toggle.
+for f in ("security_page.html", "security_page_v2.html"):
+    q = SEC + f
+    t = open(q).read()
+    old_b = 'pref="{{prefs.iris.tls.strict_pq}}"'
+    if old_b in t:
+        open(q, "w").write(t.replace(old_b, 'pref-key="iris.tls.strict_pq"')); print("OK   %s : toggle uses pref-key" % q)
 
 # 8) Android Settings -> Privacy and security -> Iris: switch on the same Local State pref.
 edit("chrome/android/java/src/org/chromium/chrome/browser/privacy/settings/PrivacySettings.java",
