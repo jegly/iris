@@ -126,6 +126,7 @@ PATCHES=(
   apply-android-settings-trim   # Android: Google services items, Safety check, Developer options gone (after no-google-settings)
   apply-android-home-clean      # Android home: no Google feed (spinner), no tip cards / tip notifications
   apply-android-home-clean2     # Android home round 2: no logo spinner, no Iris tips card
+  apply-android-no-settings-search # Android Settings: no search bar (fixes sub-page jump)
   apply-email-verification-off  # no automatic email verification (Email Verification Protocol off)
   apply-site-settings-defaults  # Auto-verify BLOCK, Protected content ASK (Android), JS optimisation BLOCK (after iris-permissions)
   apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
