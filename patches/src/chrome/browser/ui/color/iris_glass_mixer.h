@@ -25,6 +25,9 @@ inline constexpr int kDefaultOpacity = 78;
 
 // Browser-wide state (the colour pipeline has no prefs); the last profile to set it wins.
 void SetWindowGlass(bool enabled, int opacity_percent);
+// True while the see-through window is on (the Linux frame then reports its top bar as translucent to the
+// compositor; browser_frame_view_linux.cc).
+bool IsWindowGlassEnabled();
 
 // Added last in AddChromeColorMixers().
 void AddIrisGlassMixer(ui::ColorProvider* provider,

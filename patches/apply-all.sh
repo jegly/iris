@@ -144,6 +144,7 @@ PATCHES=(
   apply-iris-hardening-page     # all Iris switches on one "Iris hardening" sub-page (desktop) / topic groups (Android) + hide the Install button
   apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance
   apply-glass-window            # desktop: see-through glass window (title bar, tabs, toolbar) + opacity slider in Appearance, off by default
+  apply-security-page-iris      # Security page: no Google Advanced Protection Program; "... other Iris security settings"
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
 )

@@ -11,7 +11,7 @@
 #    part of ColorProviderKey) and notify -> open windows repaint at once.
 #  - Prefs iris.glass.window (false) + iris.glass.window_opacity (78) registered by IrisShredder.
 # Needs apply-glass.sh (anchor in theme_service.cc), apply-traffic-lights.sh (Appearance anchor order), apply-shredder.
-# STATUS 2026-10-08: copy-tested only, NOT compile-proven. Visual result unknown until a dev build (jegly to see it).
+# STATUS 2026-10-08: phase 1 seen working in jegly's dev build; top-bar flicker fix (opaque region) NOT yet seen.
 # Guarded; idempotent; fails loudly on drift.
 set -euo pipefail
 SRC="${1:-$HOME/Documents/chromium/src}"
@@ -84,6 +84,51 @@ edit(t,
      "        profile_->GetPrefs()->GetInteger(iris_glass::kOpacityPref));\n"
      "  }\n",
      "iris_apply_glass", "prefs -> glass state")
+# Fix (jegly 2026-10-08, "flickers in the top bar", Notas does not): the Linux frame told the compositor the whole
+# window was opaque (BrowserFrameViewLinux::GetTranslucentTopAreaHeight() returned 0 -> opaque region = everything), so
+# GNOME skipped drawing what is behind the see-through bar and stale pixels flickered there. With glass on it now
+# reports the top container (tab strip + toolbar + bookmarks bar, plus slack for a bar that appears later) as
+# translucent - the same thing upstream's GTK frame does when its frame is translucent. Toggling glass / the slider
+# fires a native-theme update, which makes BrowserDesktopWindowTreeHostLinux::UpdateFrameHints() resend the region.
+fv = "chrome/browser/ui/views/frame/browser_frame_view_linux.cc"
+edit(fv, '#include "chrome/browser/ui/views/frame/browser_frame_view_linux.h"\n',
+     '#include "chrome/browser/ui/views/frame/browser_frame_view_linux.h"\n\n'
+     '#include <algorithm>  // Iris\n\n'
+     '#include "base/numerics/safe_conversions.h"  // Iris\n'
+     '#include "chrome/browser/ui/color/iris_glass_mixer.h"  // Iris\n',
+     "iris_glass_mixer.h\"  // Iris", "frame: includes")
+edit(fv, "int BrowserFrameViewLinux::GetTranslucentTopAreaHeight() const {\n  return 0;\n}\n",
+     "int BrowserFrameViewLinux::GetTranslucentTopAreaHeight() const {\n"
+     "  // Iris: see-through glass window (apply-glass-window.sh). Report the top\n"
+     "  // bar as translucent, or the compositor skips what is behind it and the\n"
+     "  // bar flickers. 40 DIP slack covers a bookmarks bar shown later.\n"
+     "  if (iris_glass::IsWindowGlassEnabled()) {\n"
+     "    int height = GetTopAreaHeight();\n"
+     "    if (const views::View* top = GetBrowserView()->top_container()) {\n"
+     "      gfx::RectF top_bounds(top->GetLocalBounds());\n"
+     "      views::View::ConvertRectToTarget(top, this, &top_bounds);\n"
+     "      height = std::max(height, base::ClampCeil(top_bounds.bottom()));\n"
+     "    }\n"
+     "    return height + 40;\n"
+     "  }\n"
+     "  return 0;\n}\n",
+     "iris_glass::IsWindowGlassEnabled()", "frame: translucent top area")
+edit(fv, '#include "chrome/browser/ui/color/iris_glass_mixer.h"  // Iris\n',
+     '#include "chrome/browser/ui/color/iris_glass_mixer.h"  // Iris\n'
+     '#include "chrome/browser/ui/views/frame/top_container_view.h"  // Iris\n',
+     'top_container_view.h"  // Iris', "frame: include top container")
+t2 = "chrome/browser/themes/theme_service.cc"
+edit(t2, "      ui::ColorProviderManager::Get().ResetColorProviderCache();\n      self->NotifyThemeChanged();\n",
+     "      ui::ColorProviderManager::Get().ResetColorProviderCache();\n"
+     "      // Also resends the window's opaque region (frame hints) on Linux.\n"
+     "      ui::NativeTheme::GetInstanceForNativeUi()->NotifyOnNativeThemeUpdated();\n"
+     "      self->NotifyThemeChanged();\n",
+     "NotifyOnNativeThemeUpdated();\n      self->NotifyThemeChanged();", "native theme update on toggle")
+s2 = open(t2).read()
+if '#include "ui/native_theme/native_theme.h"' not in s2:
+    edit(t2, '#include "ui/color/color_provider_manager.h"  // Iris\n',
+         '#include "ui/color/color_provider_manager.h"  // Iris\n#include "ui/native_theme/native_theme.h"  // Iris\n',
+         '#include "ui/native_theme/native_theme.h"  // Iris', "include native_theme")
 edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
      "  // Iris: apply-traffic-lights.sh\n",
      "  // Iris: apply-glass-window.sh\n"

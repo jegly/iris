@@ -35,6 +35,10 @@ void SetWindowGlass(bool enabled, int opacity_percent) {
   g_opacity = std::clamp(opacity_percent, 30, 100);
 }
 
+bool IsWindowGlassEnabled() {
+  return g_enabled;
+}
+
 void AddIrisGlassMixer(ui::ColorProvider* provider,
                        const ui::ColorProviderKey& key) {
   // Installed/GTK/Qt themes and high contrast keep their opaque frame.

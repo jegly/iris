@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Iris — B9 glass look (2026-09-28): ON by default since 2026-09-30 (jegly), toggle to turn off. Settings -> Appearance -> "Glass look".
+# Iris — B9 glass look (2026-09-28): ON by default since 2026-09-30 (jegly), toggle to turn off. Settings -> Appearance -> "Frosted pages" (was "Glass look" until 2026-10-08).
 # The browser window stays opaque (see-through-to-wallpaper would need window translucency in Views: fragile,
 # not done). Inside Iris's own pages (Settings, History, Downloads, Extensions, ... = every WebUI that loads
 # chrome://theme/colors.css) the page gets a soft two-colour glow from the current palette and the cards become
@@ -50,7 +50,11 @@ s = open(p).read()
 old = ('  <message name="IDS_SETTINGS_IRIS_APP_LOCK_AFTER" desc="Iris: setting for how long until Iris locks again.">\n'
        '    Lock again after\n')
 new = ('  <message name="IDS_SETTINGS_IRIS_APP_LOCK_AFTER" desc="Iris: toggle for the translucent glass look of the built-in pages (re-used message; there is no re-lock setting).">\n'
-       '    Glass look\n')
+       '    Frosted pages\n')
+# 2026-10-08 (jegly): renamed from "Glass look" (it is a glow + frosted cards on Iris's own pages; the see-through window
+# is apply-glass-window.sh). Upgrades a tree that has the old name.
+glass_old = new.replace('    Frosted pages\n', '    Glass look\n')
+if glass_old in s: s = s.replace(glass_old, new, 1); open(p, "w").write(s); print("OK   %s : label renamed to 'Frosted pages'" % p)
 if new in s: print("SKIP already applied: %s (label)" % p)
 elif s.count(old) == 1: open(p, "w").write(s.replace(old, new, 1)); print("OK   %s : label 'Glass look'" % p)
 else: die(p + ": IDS_SETTINGS_IRIS_APP_LOCK_AFTER not found (run apply-iris-permissions.sh first)")
