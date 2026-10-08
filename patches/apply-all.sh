@@ -134,6 +134,7 @@ PATCHES=(
   apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites
+  apply-adblock-extra           # "Block more ads and trackers": second bundled ruleset (StevenBlack, HaGeZi, AdGuard DNS, URLhaus), setting on desktop + Android
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
 )

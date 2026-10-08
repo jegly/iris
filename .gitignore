@@ -34,7 +34,9 @@
 !/adblock/
 /adblock/*
 !/adblock/build-ruleset.sh
+!/adblock/prepare-extra-lists.py
 !/adblock/lists/
+/adblock/lists/extra-merged.txt
 !/adblock/dist/
 !/test/
 !/keys/
