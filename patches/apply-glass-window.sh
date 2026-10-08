@@ -212,6 +212,12 @@ edit(nt, "    source->AddString(\"colorBackground\",\n"
      "                  webui::GetNativeThemeDeprecated(web_contents),\n"
      "                  color_provider, kColorNewTabPageBackground)));\n",
      "see-through glass window -> transparent new tab page", "new tab page: transparent")
+# 2026-10-09 (jegly: "even at 100% still see-thru"): scaled steps - upgrade the card alpha in colors.css so 100 % is solid.
+_t = open("chrome/browser/ui/webui/theme_source.cc").read()
+_o = "          std::max(a - 0.15f, 0.20f), SkColorGetR(line), SkColorGetG(line),\n"
+_n = "          std::max(a - 0.15f * (1.0f - a) / 0.70f, 0.20f),  // scaled steps\n          SkColorGetR(line), SkColorGetG(line),\n"
+if _o in _t:
+    open("chrome/browser/ui/webui/theme_source.cc", "w").write(_t.replace(_o, _n, 1)); print("OK   theme_source.cc : card alpha uses scaled steps")
 ts = "chrome/browser/ui/webui/theme_source.cc"
 edit(ts, "  std::move(callback).Run(\n      base::MakeRefCounted<base::RefCountedString>(std::move(*css_content)));\n",
      "  // Iris: see-through glass window, phase 2 (apply-glass-window.sh): the page\n"

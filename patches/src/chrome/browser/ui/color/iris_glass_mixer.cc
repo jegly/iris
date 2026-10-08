@@ -47,9 +47,12 @@ void AddIrisGlassMixer(ui::ColorProvider* provider,
     return;
   }
   const float a = g_opacity / 100.0f;
-  const SkAlpha body = ToAlpha(a);           // toolbar, selected tab, bookmarks
-  const SkAlpha edge = ToAlpha(a - 0.25f);   // title bar + tab strip
-  const SkAlpha hover = ToAlpha(a - 0.15f);  // inactive tab under the mouse
+  // Notas' steps (title bar -0.25, hover -0.15) shrink to nothing as the slider
+  // goes up, so 100 % is fully solid (jegly 2026-10-09: "even at 100% still see-thru").
+  const float k = (1.0f - a) / 0.70f;  // 1 at the 30 % minimum, 0 at 100 %
+  const SkAlpha body = ToAlpha(a);                 // toolbar, selected tab, bookmarks
+  const SkAlpha edge = ToAlpha(a - 0.25f * k);     // title bar + tab strip
+  const SkAlpha hover = ToAlpha(a - 0.15f * k);    // inactive tab under the mouse
 
   ui::ColorMixer& mixer = provider->AddMixer();
   for (ui::ColorId id : {ui::kColorFrameActive, ui::kColorFrameInactive}) {
@@ -63,9 +66,13 @@ void AddIrisGlassMixer(ui::ColorProvider* provider,
         kColorTabBackgroundSelectedFrameInactive}) {
     mixer[id] = ui::SetAlpha(ui::FromTransformInput(), body);
   }
-  for (ui::ColorId id : {kColorTabBackgroundInactiveFrameActive,
-                         kColorTabBackgroundInactiveFrameInactive}) {
-    mixer[id] = {SK_ColorTRANSPARENT};
+  // Inactive tabs are clear (they sit on the translucent strip); at 100 % the
+  // strip is solid, so they are left as they are.
+  if (g_opacity < 100) {
+    for (ui::ColorId id : {kColorTabBackgroundInactiveFrameActive,
+                           kColorTabBackgroundInactiveFrameInactive}) {
+      mixer[id] = {SK_ColorTRANSPARENT};
+    }
   }
   for (ui::ColorId id : {kColorTabBackgroundInactiveHoverFrameActive,
                          kColorTabBackgroundInactiveHoverFrameInactive,
