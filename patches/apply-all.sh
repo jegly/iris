@@ -142,6 +142,7 @@ PATCHES=(
   apply-privacy-toggles-2       # toggles: coarser timers, UTC + US English, memory-only cache, clear on exit, extensions off (needs shredder + toggles-1)
   apply-privacy-toggles-3       # toggles: block ads (on), web fonts, referrers, QUIC, autoplay, clipboard, JIT everywhere, WebGL/Google sign-in defaults
   apply-iris-hardening-page     # all Iris switches on one "Iris hardening" sub-page (desktop) / topic groups (Android) + hide the Install button
+  apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
 )

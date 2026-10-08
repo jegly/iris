@@ -16,6 +16,10 @@ for f in iris_shredder.h iris_shredder.cc; do
 done
 python3 - <<'PY'
 import sys
+import os
+IRIS_HARDENING = "chrome/browser/resources/settings/privacy_page/iris_hardening_page.html"
+def moved(toggle_id):  # moved to the Iris hardening page by apply-iris-hardening-page.sh
+    return os.path.exists(IRIS_HARDENING) and toggle_id in open(IRIS_HARDENING).read()
 def die(m): sys.stderr.write("ERROR: " + m + "\n"); sys.exit(1)
 def edit(p, old, new, marker, label):
     s = open(p).read()
@@ -54,16 +58,19 @@ edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
      "  // Iris (B7): Settings -> Privacy -> \"Delete browsing data automatically\".\n"
      "  (*s_allowlist)[\"iris.shredding.enabled\"] = settings_api::PrefType::kBoolean;\n",
      "iris.shredding.enabled", "settings may read/write the pref")
-edit("chrome/browser/resources/settings/privacy_page/privacy_page.html",
-     "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n",
-     "    <!-- Iris (B7): automatic data deletion, off by default (apply-shredder.sh) -->\n"
-     "    <settings-toggle-button id=\"irisShreddingToggle\" class=\"hr\"\n"
-     "        pref-key=\"iris.shredding.enabled\"\n"
-     "        label=\"$i18n{irisShredding}\"\n"
-     "        sub-label=\"$i18n{irisShreddingSublabel}\">\n"
-     "    </settings-toggle-button>\n"
-     "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n",
-     "irisShreddingToggle", "Privacy toggle")
+if moved("irisShreddingToggle"):
+    print("SKIP moved to the Iris hardening page: irisShreddingToggle")
+else:
+    edit("chrome/browser/resources/settings/privacy_page/privacy_page.html",
+         "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n",
+         "    <!-- Iris (B7): automatic data deletion, off by default (apply-shredder.sh) -->\n"
+         "    <settings-toggle-button id=\"irisShreddingToggle\" class=\"hr\"\n"
+         "        pref-key=\"iris.shredding.enabled\"\n"
+         "        label=\"$i18n{irisShredding}\"\n"
+         "        sub-label=\"$i18n{irisShreddingSublabel}\">\n"
+         "    </settings-toggle-button>\n"
+         "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n",
+         "irisShreddingToggle", "Privacy toggle")
 edit("chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc",
      "      {\"hardwareAccelerationLabel\",\n       IDS_SETTINGS_SYSTEM_HARDWARE_ACCELERATION_LABEL},\n",
      "      {\"hardwareAccelerationLabel\",\n       IDS_SETTINGS_SYSTEM_HARDWARE_ACCELERATION_LABEL},\n"

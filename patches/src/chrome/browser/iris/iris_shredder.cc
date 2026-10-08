@@ -27,6 +27,12 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref(kBlockWebFontsPref, false);
   registry->RegisterBooleanPref(kBlockAutoplayPref, false);
   registry->RegisterBooleanPref(kHideInstallButtonPref, false);
+  // Traffic-light window buttons (apply-traffic-lights.sh; names in
+  // chrome/browser/ui/views/frame/iris_traffic_light_button.h).
+  registry->RegisterBooleanPref("iris.ui.traffic_lights", true);
+  registry->RegisterStringPref("iris.ui.traffic_light_close", "#ff5f57");
+  registry->RegisterStringPref("iris.ui.traffic_light_minimize", "#febc2e");
+  registry->RegisterStringPref("iris.ui.traffic_light_maximize", "#28c840");
 }
 
 IrisShredder::IrisShredder(Profile* profile) : profile_(profile) {

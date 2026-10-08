@@ -36,6 +36,10 @@ if cmp -s "$DIST/LICENSE" "$LIC"; then echo "SKIP up to date: $LIC"; else cp "$D
 
 python3 - <<'PY'
 import sys
+import os
+IRIS_HARDENING = "chrome/browser/resources/settings/privacy_page/iris_hardening_page.html"
+def moved(toggle_id):  # moved to the Iris hardening page by apply-iris-hardening-page.sh
+    return os.path.exists(IRIS_HARDENING) and toggle_id in open(IRIS_HARDENING).read()
 def die(m): sys.stderr.write("ERROR: " + m + "\n"); sys.exit(1)
 def edit(p, old, new, marker, label):
     s = open(p).read()
@@ -127,24 +131,27 @@ edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
      "  // Iris: Settings -> Privacy and security -> \"Block more ads and trackers\".\n"
      "  (*s_allowlist)[\"%s\"] = settings_api::PrefType::kBoolean;\n" % PREF,
      '"%s"' % PREF, "settings may read/write %s" % PREF)
-edit("chrome/browser/resources/settings/privacy_page/privacy_page.html",
-     "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n"
-     "        pref-key=\"search.suggest_enabled\"\n"
-     "        label=\"$i18n{searchSuggestPref}\"\n"
-     "        sub-label=\"$i18n{searchSuggestPrefDesc}\">\n"
-     "    </settings-toggle-button>\n",
-     "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n"
-     "        pref-key=\"search.suggest_enabled\"\n"
-     "        label=\"$i18n{searchSuggestPref}\"\n"
-     "        sub-label=\"$i18n{searchSuggestPrefDesc}\">\n"
-     "    </settings-toggle-button>\n"
-     "    <!-- Iris: bigger bundled ad/tracker lists (apply-adblock-extra.sh; English-only label, TODO localize) -->\n"
-     "    <settings-toggle-button id=\"irisAdblockExtraToggle\" class=\"hr\"\n"
-     "        pref-key=\"%s\"\n"
-     "        label=\"%s\"\n"
-     "        sub-label=\"%s\">\n"
-     "    </settings-toggle-button>\n" % (PREF, LABEL, SUB),
-     "irisAdblockExtraToggle", "Privacy page toggle")
+if moved("irisAdblockExtraToggle"):
+    print("SKIP moved to the Iris hardening page: irisAdblockExtraToggle")
+else:
+    edit("chrome/browser/resources/settings/privacy_page/privacy_page.html",
+         "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n"
+         "        pref-key=\"search.suggest_enabled\"\n"
+         "        label=\"$i18n{searchSuggestPref}\"\n"
+         "        sub-label=\"$i18n{searchSuggestPrefDesc}\">\n"
+         "    </settings-toggle-button>\n",
+         "    <settings-toggle-button id=\"irisSearchSuggestToggle\" class=\"hr\"\n"
+         "        pref-key=\"search.suggest_enabled\"\n"
+         "        label=\"$i18n{searchSuggestPref}\"\n"
+         "        sub-label=\"$i18n{searchSuggestPrefDesc}\">\n"
+         "    </settings-toggle-button>\n"
+         "    <!-- Iris: bigger bundled ad/tracker lists (apply-adblock-extra.sh; English-only label, TODO localize) -->\n"
+         "    <settings-toggle-button id=\"irisAdblockExtraToggle\" class=\"hr\"\n"
+         "        pref-key=\"%s\"\n"
+         "        label=\"%s\"\n"
+         "        sub-label=\"%s\">\n"
+         "    </settings-toggle-button>\n" % (PREF, LABEL, SUB),
+         "irisAdblockExtraToggle", "Privacy page toggle")
 
 # 4. Android Settings
 edit("chrome/android/java/src/org/chromium/chrome/browser/privacy/settings/PrivacySettings.java",

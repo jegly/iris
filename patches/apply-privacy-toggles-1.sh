@@ -23,6 +23,10 @@ SRC="${1:-$HOME/Documents/chromium/src}"
 cd "$SRC"
 python3 - <<'PY'
 import sys
+import os
+IRIS_HARDENING = "chrome/browser/resources/settings/privacy_page/iris_hardening_page.html"
+def moved(toggle_id):  # moved to the Iris hardening page by apply-iris-hardening-page.sh
+    return os.path.exists(IRIS_HARDENING) and toggle_id in open(IRIS_HARDENING).read()
 def die(m): sys.stderr.write("ERROR: " + m + "\n"); sys.exit(1)
 def edit(p, old, new, marker, label):
     s = open(p).read()
@@ -98,7 +102,7 @@ def tog(i, key, k, extra=""):
 A = ("    <settings-toggle-button id=\"irisAdblockExtraToggle\" class=\"hr\"\n")
 p = "chrome/browser/resources/settings/privacy_page/privacy_page.html"
 s = open(p).read()
-if "irisJavascriptOffToggle" in s:
+if "irisJavascriptOffToggle" in s or moved("irisJavascriptOffToggle"):
     print("SKIP already applied: %s (toggles)" % p)
 else:
     i = s.find(A)
