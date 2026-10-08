@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Iris — see-through "glass" window, like Notas (jegly 2026-10-08, phase 1: title bar, tab strip, toolbar; web pages
-# stay opaque; verified against 156.0.8078.11). Off by default; Settings -> Appearance: switch + opacity slider 30-100 %
+# Iris — see-through "glass" window, like Notas (jegly 2026-10-08; phase 1: title bar, tab strip, toolbar; phase 2:
+# Iris's own chrome:// pages; websites stay opaque; verified against 156.0.8078.11). Off by default; Settings -> Appearance: switch + opacity slider 30-100 %
 # (default 78 %, Notas' rules, see patches/src/chrome/browser/ui/color/iris_glass_mixer.h).
 #  - The Linux window already has an alpha channel (browser_native_widget_aura_linux.cc kTranslucent, upstream, for
 #    the client-side shadow); the top container layer is already non-opaque (browser_view.cc).
@@ -129,6 +129,83 @@ if '#include "ui/native_theme/native_theme.h"' not in s2:
     edit(t2, '#include "ui/color/color_provider_manager.h"  // Iris\n',
          '#include "ui/color/color_provider_manager.h"  // Iris\n#include "ui/native_theme/native_theme.h"  // Iris\n',
          '#include "ui/native_theme/native_theme.h"  // Iris', "include native_theme")
+# Phase 2 (jegly 2026-10-08): Iris's own pages (chrome://, incl. the local new tab page) see-through too.
+#  - ContentsWebView: while glass is on and the tab shows a chrome:// page, its background layer and the page's
+#    renderer background are transparent (the upstream "background not visible" path); re-checked on navigation
+#    (PrimaryPageChanged), tab switch (SetWebContents/RenderViewReady) and theme/glass changes (OnThemeChanged).
+#    Websites are never made transparent.
+#  - colors.css (ThemeSource): the page background is transparent and cards use the theme base colour at Notas'
+#    editor level (opacity - 0.15, floor 0.20); refreshed by ThemeService::NotifyThemeChanged on toggle/slider.
+cw = "chrome/browser/ui/views/frame/contents_web_view.cc"
+edit("chrome/browser/ui/views/frame/contents_web_view.h",
+     "#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)\n  void DidGetUserInteraction(const blink::WebInputEvent& event) override;\n#endif\n",
+     "#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)\n  void DidGetUserInteraction(const blink::WebInputEvent& event) override;\n#endif\n"
+     "  // Iris: re-check the see-through glass background (apply-glass-window.sh).\n"
+     "  void PrimaryPageChanged(content::Page& page) override;\n",
+     "void PrimaryPageChanged(content::Page& page) override;", "contents view: header")
+edit(cw, '#include "chrome/browser/ui/color/chrome_color_id.h"\n',
+     '#include "chrome/browser/ui/color/chrome_color_id.h"\n'
+     '#include "chrome/browser/ui/color/iris_glass_mixer.h"  // Iris\n'
+     '#include "content/public/common/url_constants.h"  // Iris\n',
+     'iris_glass_mixer.h"  // Iris', "contents view: includes")
+edit(cw, "void ContentsWebView::UpdateBackgroundColor() {\n",
+     "// Iris: see-through glass window, phase 2 (apply-glass-window.sh): Iris's own\n"
+     "// chrome:// pages get a transparent background so the desktop shows through;\n"
+     "// websites never do.\n"
+     "void ContentsWebView::PrimaryPageChanged(content::Page& page) {\n"
+     "  views::WebView::PrimaryPageChanged(page);\n"
+     "  if (GetWidget()) {\n    UpdateBackgroundColor();\n  }\n}\n\n"
+     "void ContentsWebView::UpdateBackgroundColor() {\n"
+     "  const bool iris_glass_page =\n"
+     "      iris_glass::IsWindowGlassEnabled() && web_contents() &&\n"
+     "      web_contents()->GetLastCommittedURL().SchemeIs(content::kChromeUIScheme);\n"
+     "  const bool background_visible = background_visible_ && !iris_glass_page;\n",
+     "const bool iris_glass_page =", "contents view: glass pages")
+s2 = open(cw).read()
+old_tail = ("    if (background_visible_) {\n      return;\n    }\n  }\n\n"
+            "  auto* background_layer = layer()->AsSolidColor();\n"
+            "  background_layer->SetColor(\n"
+            "      SkColor4f::FromColor(background_visible_ ? color : SK_ColorTRANSPARENT));\n\n"
+            "  SafeInvoke(web_contents())\n"
+            "      .Then(&content::WebContents::GetRenderWidgetHostView)\n"
+            "      .Then(&content::RenderWidgetHostView::SetBackgroundColor,\n"
+            "            background_visible_ ? color : SK_ColorTRANSPARENT);\n")
+new_tail = old_tail.replace("background_visible_", "background_visible")
+edit(cw, old_tail, new_tail, "SkColor4f::FromColor(background_visible ? color", "contents view: use glass flag")
+ts = "chrome/browser/ui/webui/theme_source.cc"
+edit(ts, "  std::move(callback).Run(\n      base::MakeRefCounted<base::RefCountedString>(std::move(*css_content)));\n",
+     "  // Iris: see-through glass window, phase 2 (apply-glass-window.sh): the page\n"
+     "  // background is transparent (the tab lets the desktop through) and cards\n"
+     "  // keep a translucent base colour so text stays readable (Notas' editor\n"
+     "  // level: opacity - 0.15, never below 0.20).\n"
+     "  {\n"
+     "    PrefService* iris_prefs = profile_->GetOriginalProfile()->GetPrefs();\n"
+     "    std::string iris_shadow_host;\n"
+     "    if (iris_prefs->GetBoolean(\"iris.glass.window\") &&\n"
+     "        !(net::GetValueForKeyInQuery(url, \"shadow_host\", &iris_shadow_host) &&\n"
+     "          base::EqualsCaseInsensitiveASCII(iris_shadow_host, \"true\"))) {\n"
+     "      const float a =\n"
+     "          std::clamp(iris_prefs->GetInteger(\"iris.glass.window_opacity\"), 30, 100) /\n"
+     "          100.0f;\n"
+     "      const SkColor base = color_provider.GetColor(ui::kColorSysBase);\n"
+     "      const SkColor line = color_provider.GetColor(ui::kColorSysOnSurface);\n"
+     "      css_content->append(base::StringPrintf(\n"
+     "          \"html:not(#z),html:not(#z) body{background:transparent !important;}\"\n"
+     "          \"html:not(#z){--md-background-color:transparent;\"\n"
+     "          \"--cr-card-background-color:rgba(%d,%d,%d,%.3f);\"\n"
+     "          \"--iris-glass-border:1px solid rgba(%d,%d,%d,0.12);}\",\n"
+     "          SkColorGetR(base), SkColorGetG(base), SkColorGetB(base),\n"
+     "          std::max(a - 0.15f, 0.20f), SkColorGetR(line), SkColorGetG(line),\n"
+     "          SkColorGetB(line)));\n"
+     "    }\n"
+     "  }\n\n"
+     "  std::move(callback).Run(\n      base::MakeRefCounted<base::RefCountedString>(std::move(*css_content)));\n",
+     "see-through glass window, phase 2", "colors.css: transparent pages")
+s3 = open(ts).read()
+if "#include <algorithm>" not in s3:
+    edit(ts, '#include "chrome/browser/ui/webui/theme_source.h"\n',
+         '#include "chrome/browser/ui/webui/theme_source.h"\n\n#include <algorithm>  // Iris\n',
+         "#include <algorithm>  // Iris", "include algorithm")
 edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
      "  // Iris: apply-traffic-lights.sh\n",
      "  // Iris: apply-glass-window.sh\n"
