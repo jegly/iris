@@ -14,29 +14,34 @@ Iris takes a fundamentally different approach:
 
 If a capability is unnecessary for ordinary browsing, Iris can **remove or disable it entirely** rather than relying on a security boundary to contain it after compromise.
 
-This includes entire classes of high-complexity or high-risk web functionality:
+Removed or switched off, the high-complexity and high-risk web functionality:
 
-- **JIT compilation disabled**
-- **WebAssembly disabled**
+- **JIT compilation disabled** (can be allowed per site)
+- **WebAssembly disabled** (can be allowed per site)
 - **WebRTC disabled**
 - **WebGPU disabled**
 - **WebXR and WebNN disabled**
 - **WebUSB, WebHID, Web Serial and Bluetooth APIs disabled**
 - **NFC and other hardware interfaces disabled**
-- **File System Access restricted**
+- **File System Access pickers disabled**
 - **Screen capture and screen sharing disabled**
 - **Background networking and unnecessary remote services removed**
-- **Excess browser integration and telemetry removed**
-- **Aggressive permission restrictions**
+- **Google services, sync and telemetry removed**
+
+Hardened, so what is left is harder to exploit:
+
 - **Strict site and origin isolation**
-- **Hardened renderer and process configuration**
+- **Hardened renderer and process configuration** (JIT-less renderers, a sandboxed network service)
 - **Control-flow and memory-corruption mitigations**
-- **Hardened cryptographic defaults**
-- **Encrypted Client Hello (ECH)**
-- **Post-quantum key exchange**
+- **Aggressive permission restrictions**: camera, microphone, location and more stay blocked until you allow a site
+- **TLS 1.3 minimum and hardened cryptographic defaults**
+
+Added, to protect your privacy and your data:
+
+- **Encrypted Client Hello (ECH)** and **post-quantum key exchange**, with an optional strict post-quantum mode
 - **Built-in tracker and advertising protection**
 - **Fingerprinting reduction and randomization**
-- **Automatic data cleanup and shredding**
+- **Automatic data cleanup and shredding** (off until you switch it on)
 - **Application-level locking and protected local data**
 
 ### Mitigation vs. elimination
