@@ -140,6 +140,7 @@ PATCHES=(
   apply-adblock-extra           # "Block more ads and trackers": second bundled ruleset (StevenBlack, HaGeZi, AdGuard DNS, URLhaus), setting on desktop + Android
   apply-privacy-toggles-1       # toggles: JavaScript off, service workers off, WebGL off completely, ask before every download (needs adblock-extra)
   apply-privacy-toggles-2       # toggles: coarser timers, UTC + US English, memory-only cache, clear on exit, extensions off (needs shredder + toggles-1)
+  apply-privacy-toggles-3       # toggles: block ads (on), web fonts, referrers, QUIC, autoplay, clipboard, JIT everywhere, WebGL/Google sign-in defaults
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
 )

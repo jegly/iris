@@ -23,6 +23,9 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref(kMemoryCachePref, false);
   registry->RegisterBooleanPref(kClearOnExitPref, false);
   registry->RegisterStringPref(kSavedAcceptLanguagesPref, std::string());
+  registry->RegisterBooleanPref(kClearClipboardPref, false);
+  registry->RegisterBooleanPref(kBlockWebFontsPref, false);
+  registry->RegisterBooleanPref(kBlockAutoplayPref, false);
 }
 
 IrisShredder::IrisShredder(Profile* profile) : profile_(profile) {
@@ -32,12 +35,19 @@ IrisShredder::IrisShredder(Profile* profile) : profile_(profile) {
                 base::BindRepeating(&IrisShredder::Run,
                                     base::Unretained(this)));
   pref_change_registrar_.Init(profile_->GetPrefs());
+  // Clipboard clearing used to come with automatic deletion: keep it for
+  // profiles that had that on (once; afterwards it is its own toggle).
+  if (!profile_->GetPrefs()->HasPrefPath(kClearClipboardPref) &&
+      profile_->GetPrefs()->GetBoolean(kEnabledPref)) {
+    profile_->GetPrefs()->SetBoolean(kClearClipboardPref, true);
+  }
   pref_change_registrar_.Add(
-      kEnabledPref, base::BindRepeating(&IrisShredder::UpdateClipboardClearing,
-                                        base::Unretained(this)));
+      kClearClipboardPref,
+      base::BindRepeating(&IrisShredder::UpdateClipboardClearing,
+                          base::Unretained(this)));
   // At start only switch it on: a profile with the setting off (e.g. guest)
   // must not turn it off for a profile that has it on.
-  if (profile_->GetPrefs()->GetBoolean(kEnabledPref)) {
+  if (profile_->GetPrefs()->GetBoolean(kClearClipboardPref)) {
     UpdateClipboardClearing();
   }
   pref_change_registrar_.Add(
@@ -56,7 +66,7 @@ IrisShredder::~IrisShredder() = default;
 void IrisShredder::UpdateClipboardClearing() {
   // The clipboard is shared by all profiles; the last change wins.
   ui::ScopedClipboardWriter::SetIrisClearCopiedTextAfter(
-      profile_->GetPrefs()->GetBoolean(kEnabledPref)
+      profile_->GetPrefs()->GetBoolean(kClearClipboardPref)
           ? std::optional<base::TimeDelta>(base::Seconds(30))
           : std::nullopt);
 }

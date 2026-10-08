@@ -4,8 +4,9 @@
 // "Delete browsing data automatically"). When on, every hour (and a minute after start) it deletes:
 //   cookies and site data older than 24 hours, cached files older than 12 hours,
 //   the downloads list older than 7 days.
-// While on, text copied in Iris is also cleared from the clipboard after 30 seconds if it is still there
-// (ui::ScopedClipboardWriter, apply-clipboard-clear.sh).
+// Clipboard clearing (text copied in Iris removed after 30 s, ui::ScopedClipboardWriter, apply-clipboard-clear.sh)
+// is its own toggle since 2026-10-08 (kClearClipboardPref, apply-privacy-toggles-3.sh); profiles that had automatic
+// deletion on keep it on.
 // It uses Chromium's own BrowsingDataRemover; nothing is sent anywhere.
 //
 // It also keeps two "Privacy and security" toggles in effect (apply-privacy-toggles-2.sh, all off by default):
@@ -47,6 +48,10 @@ class IrisShredder : public KeyedService {
   // The user's own website language list while kStandardLocalePref is on.
   static constexpr char kSavedAcceptLanguagesPref[] =
       "iris.privacy.saved_accept_languages";
+  // apply-privacy-toggles-3.sh, default false.
+  static constexpr char kClearClipboardPref[] = "iris.privacy.clear_clipboard";
+  static constexpr char kBlockWebFontsPref[] = "iris.privacy.block_web_fonts";
+  static constexpr char kBlockAutoplayPref[] = "iris.privacy.block_autoplay";
   static void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
 
   explicit IrisShredder(Profile* profile);
