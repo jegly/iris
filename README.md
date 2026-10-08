@@ -97,9 +97,13 @@ This is **defense in depth through attack-surface reduction**.
 
 ### Iris vs. other browsers
 
-Mainstream browsers are designed to support an extraordinarily broad range of modern web applications. That is a legitimate and valuable design goal. Iris deliberately makes a different trade-off. The chart compares Iris with other browsers in general, as a feature list, not a score: a 🔴 for Iris usually means "deliberately removed to reduce attack surface", while a 🔴 for other browsers usually means the feature is simply not provided.
+Mainstream browsers are designed to support an extraordinarily broad range of modern web applications. That is a legitimate and valuable design goal. Iris deliberately makes a different trade-off.
 
-> **Legend:** 🟢 Strong / built in &nbsp; 🟡 Partial, optional, or varies between browsers &nbsp; 🔴 No / deliberately disabled
+The chart compares Iris with other browsers in general, as a feature list, not a score. Read each row as a question, for example "Is JIT disabled?"
+
+> **Legend:** 🟢 Yes, built in &nbsp; 🟡 Partly, optional, or differs between browsers &nbsp; 🔴 No
+
+The last six rows are things Iris deliberately leaves out, so a 🔴 there is a choice, not a gap. See "What you give up" below.
 
 | Security / privacy feature | **Iris** | Other browsers |
 | --- | --- | --- |
