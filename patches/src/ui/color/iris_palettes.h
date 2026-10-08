@@ -203,6 +203,7 @@ inline constexpr size_t kTokenBase = 8;
 inline constexpr size_t kTokenBaseContainer = 9;
 inline constexpr size_t kTokenPrimary = 26;
 inline constexpr size_t kDefaultPalette = 0;  // Catppuccin Mocha
+inline constexpr size_t kDefaultLightPalette = 93;  // Monokai Pro Light (jegly 2026-10-08)
 
 inline constexpr SkColor IrisPaletteSeed(size_t index) {
   return SkColorSetARGB(0x01, 0x49, (index >> 8) & 0xFF, index & 0xFF);

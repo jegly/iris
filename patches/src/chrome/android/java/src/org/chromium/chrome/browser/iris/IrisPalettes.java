@@ -9,12 +9,16 @@ import org.chromium.chrome.R;
 
 /**
  * Iris colour palettes on Android (114, same as desktop). The chosen palette is stored as a plain app
- * preference ({@link #PREF}, index; default 0 = Catppuccin Mocha) and applied as a theme overlay when its
+ * preference ({@link #PREF}, index) and applied as a theme overlay when its
  * light/dark kind matches the current mode (choosing a palette also switches the mode).
  */
 @NullMarked
 public final class IrisPalettes {
     public static final String PREF = "iris_palette";
+
+    /** Defaults when nothing was picked (jegly 2026-10-08): Monokai Pro Light, or Catppuccin Mocha in dark mode. */
+    public static final int DEFAULT_LIGHT = 93;
+    public static final int DEFAULT_DARK = 0;
 
     public static final String[] NAMES = {
         "Catppuccin Mocha",
@@ -254,10 +258,10 @@ public final class IrisPalettes {
 
     private IrisPalettes() {}
 
-    /** Index of the chosen palette (0 = Catppuccin Mocha). */
+    /** Index of the chosen palette (default Monokai Pro Light). */
     public static int getSelected() {
-        int i = ContextUtils.getAppSharedPreferences().getInt(PREF, 0);
-        return i >= 0 && i < STYLES.length ? i : 0;
+        int i = ContextUtils.getAppSharedPreferences().getInt(PREF, DEFAULT_LIGHT);
+        return i >= 0 && i < STYLES.length ? i : DEFAULT_LIGHT;
     }
 
     public static void setSelected(int index) {
@@ -266,6 +270,9 @@ public final class IrisPalettes {
 
     /** The theme overlay to apply for the current mode, or 0 if the chosen palette is for the other mode. */
     public static int overlayFor(boolean nightMode) {
+        if (!ContextUtils.getAppSharedPreferences().contains(PREF)) {
+            return STYLES[nightMode ? DEFAULT_DARK : DEFAULT_LIGHT];
+        }
         int i = getSelected();
         return DARK[i] == nightMode ? STYLES[i] : 0;
     }

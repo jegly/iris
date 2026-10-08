@@ -33,6 +33,7 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterStringPref("iris.ui.traffic_light_close", "#ff5f57");
   registry->RegisterStringPref("iris.ui.traffic_light_minimize", "#febc2e");
   registry->RegisterStringPref("iris.ui.traffic_light_maximize", "#28c840");
+  registry->RegisterBooleanPref("iris.ui.traffic_light_symbols", true);
   // See-through glass window (apply-glass-window.sh; names in
   // chrome/browser/ui/color/iris_glass_mixer.h).
   registry->RegisterBooleanPref("iris.glass.window", false);

@@ -46,7 +46,7 @@ old = ("        if (shouldApplyDynamicColors()) {\n"
        "                DynamicColors.applyToActivityIfAvailable(this);\n"
        "            }\n"
        "        }\n")
-new = old + ("\n        // Iris: colour palette (Settings > Appearance; default Catppuccin Mocha, dark).\n"
+new = old + ("\n        // Iris: colour palette (Settings > Appearance; default Monokai Pro Light; Catppuccin Mocha in dark mode).\n"
              "        int irisPalette =\n"
              "                org.chromium.chrome.browser.iris.IrisPalettes.overlayFor(\n"
              "                        mNightModeStateProvider.isInNightMode());\n"
@@ -54,9 +54,14 @@ new = old + ("\n        // Iris: colour palette (Settings > Appearance; default 
 edit(p, old, new, "// Iris: colour palette (Settings > Appearance", "apply palette overlay")
 
 p = "chrome/browser/ui/android/night_mode/java/src/org/chromium/chrome/browser/night_mode/NightModeUtils.java"
+_t = open(p).read()  # 2026-10-08: upgrade the old dark default
+if "return ThemeType.DARK; // Iris: dark by default (as on desktop)" in _t:
+    open(p, "w").write(_t.replace("return ThemeType.DARK; // Iris: dark by default (as on desktop)",
+                                  "return ThemeType.LIGHT; // Iris: light by default (as on desktop)", 1))
+    print("OK   %s : upgraded to light by default" % p)
 edit(p, "        if (userSetting == -1) {\n            return ThemeType.SYSTEM_DEFAULT;\n",
-     "        if (userSetting == -1) {\n            return ThemeType.DARK; // Iris: dark by default (as on desktop)\n",
-     "return ThemeType.DARK; // Iris", "dark by default")
+     "        if (userSetting == -1) {\n            return ThemeType.LIGHT; // Iris: light by default (as on desktop)\n",
+     "return ThemeType.LIGHT; // Iris", "light by default (jegly 2026-10-08)")
 
 p = "chrome/android/java/src/org/chromium/chrome/browser/appearance/settings/AppearanceSettingsFragment.java"
 M = ('        // Iris: "Colours" (Iris palettes; picking one also sets light/dark to match).\n'

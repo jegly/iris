@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Iris — B9 glass look (2026-09-28): ON by default since 2026-09-30 (jegly), toggle to turn off. Settings -> Appearance -> "Frosted pages" (was "Glass look" until 2026-10-08).
+# Iris — B9 glass look (2026-09-28): OFF by default (jegly 2026-10-08; was on 2026-09-30..10-08). Settings -> Appearance -> "Frosted pages" (was "Glass look" until 2026-10-08).
 # The browser window stays opaque (see-through-to-wallpaper would need window translucency in Views: fragile,
 # not done). Inside Iris's own pages (Settings, History, Downloads, Extensions, ... = every WebUI that loads
 # chrome://theme/colors.css) the page gets a soft two-colour glow from the current palette and the cards become
 # translucent frosted panels (backdrop blur) over it.
-#  - Profile pref iris.glass.enabled (default true since 2026-09-30), allowlisted for Settings.
+#  - Profile pref iris.glass.enabled (default false since 2026-10-08; true 09-30..10-08), allowlisted for Settings.
 #  - ThemeSource::SendColorsCss appends the glass rules when the pref is on (not for shadow-host sheets).
 #  - ThemeService treats the pref like a colour change -> open pages refresh at once.
 #  - settings-section cards use --iris-glass-filter / --iris-glass-border (none unless glass is on).
@@ -28,15 +28,15 @@ def edit(p, old, new, marker, label):
 edit("chrome/browser/prefs/browser_prefs.cc",
      "  IrisShredder::RegisterProfilePrefs(registry);  // Iris (B7)\n",
      "  IrisShredder::RegisterProfilePrefs(registry);  // Iris (B7)\n"
-     "  registry->RegisterBooleanPref(\"iris.glass.enabled\", true);  // Iris (B9 glass)\n",
-     "iris.glass.enabled", "register pref (run apply-shredder.sh first)")
+     "  registry->RegisterBooleanPref(\"iris.glass.enabled\", false);  // Iris (B9 glass)\n",
+     "RegisterBooleanPref(\"iris.glass.enabled\"", "register pref (run apply-shredder.sh first)")
 
-# 1b. default ON (jegly 2026-09-30) — upgrades a tree patched while glass was opt-in.
+# 1b. Frosted pages OFF by default again (jegly 2026-10-08; it was ON from 2026-09-30) — upgrades the tree.
 p = "chrome/browser/prefs/browser_prefs.cc"
 s = open(p).read()
-off = '  registry->RegisterBooleanPref("iris.glass.enabled", false);  // Iris (B9 glass)\n'
-if off in s:
-    open(p, "w").write(s.replace(off, off.replace("false", "true"), 1)); print("OK   %s : glass on by default" % p)
+on = '  registry->RegisterBooleanPref("iris.glass.enabled", true);  // Iris (B9 glass)\n'
+if on in s:
+    open(p, "w").write(s.replace(on, on.replace("true", "false"), 1)); print("OK   %s : Frosted pages off by default" % p)
 edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
      "  (*s_allowlist)[\"iris.shredding.enabled\"] = settings_api::PrefType::kBoolean;\n",
      "  (*s_allowlist)[\"iris.shredding.enabled\"] = settings_api::PrefType::kBoolean;\n"

@@ -29,6 +29,8 @@ class IrisTrafficLightButton : public views::FrameCaptionButton {
   static constexpr char kClosePref[] = "iris.ui.traffic_light_close";
   static constexpr char kMinimizePref[] = "iris.ui.traffic_light_minimize";
   static constexpr char kMaximizePref[] = "iris.ui.traffic_light_maximize";
+  // Show the ×/−/□ symbols on hover (Settings -> Appearance; default true).
+  static constexpr char kSymbolsPref[] = "iris.ui.traffic_light_symbols";
   static constexpr char kCloseDefault[] = "#ff5f57";
   static constexpr char kMinimizeDefault[] = "#febc2e";
   static constexpr char kMaximizeDefault[] = "#28c840";

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Iris — Phase B9 part 1: dark mode by default + Catppuccin Mocha colours for the default dark UI (jegly 2026-09-26;
+# Iris — Phase B9 part 1: LIGHT mode by default + Monokai Pro Light (since 2026-10-08; was dark + Catppuccin
+# Mocha, which stays the dark-mode default) for the default UI (jegly 2026-09-26;
 # verified against this checkout 2026-09-27). Desktop only (Android theming = Phase C).
 # 1. Dark by default: prefs::kBrowserColorScheme default kSystem -> kDark (chrome/browser/themes/theme_service.cc).
 #    Users can still pick Light / Device in Settings -> Appearance -> Mode.
@@ -24,14 +25,44 @@ def edit(p, old, new, marker, label):
     if s.count(old) != 1: die("%s: anchor for %s not found exactly once (drift?)" % (p, label))
     open(p, "w").write(s.replace(old, new, 1)); print("OK   %s : %s" % (p, label))
 
+
+# 2026-10-08 (jegly): default is now LIGHT + Monokai Pro Light (Catppuccin Mocha stays the dark-mode default).
+# Upgrade a tree patched with the old dark default so the edits below see the new text.
+import os
+_ts = "chrome/browser/themes/theme_service.cc"
+_t = open(_ts).read()
+if "BrowserColorScheme::kDark));  // Iris" in _t:
+    open(_ts, "w").write(_t.replace("BrowserColorScheme::kDark));  // Iris", "BrowserColorScheme::kLight));  // Iris", 1))
+    print("OK   %s : upgraded to light by default" % _ts)
+_cm = "ui/color/color_mixers.cc"
+_c = open(_cm).read()
+_old = ("    if (key.color_mode != ColorProviderKey::ColorMode::kDark ||\n"
+        "        key.user_color_source !=\n"
+        "            ColorProviderKey::UserColorSource::kBaseline) {\n"
+        "      return;\n"
+        "    }\n"
+        "    palette = &iris::kPalettes[iris::kDefaultPalette];\n")
+_new = ("    if (key.user_color_source !=\n"
+        "        ColorProviderKey::UserColorSource::kBaseline) {\n"
+        "      return;\n"
+        "    }\n"
+        "    // Iris: Monokai Pro Light by default, Catppuccin Mocha in dark mode\n"
+        "    // (jegly 2026-10-08).\n"
+        "    palette = &iris::kPalettes[key.color_mode ==\n"
+        "                                       ColorProviderKey::ColorMode::kDark\n"
+        "                                   ? iris::kDefaultPalette\n"
+        "                                   : iris::kDefaultLightPalette];\n")
+if _old in _c:
+    open(_cm, "w").write(_c.replace(_old, _new, 1)); print("OK   %s : upgraded default palette (light/dark)" % _cm)
+
 edit("chrome/browser/themes/theme_service.cc",
      "  registry->RegisterIntegerPref(\n"
      "      prefs::kBrowserColorScheme,\n"
      "      std::to_underlying(ThemeService::BrowserColorScheme::kSystem));\n",
      "  registry->RegisterIntegerPref(\n"
      "      prefs::kBrowserColorScheme,\n"
-     "      std::to_underlying(ThemeService::BrowserColorScheme::kDark));  // Iris\n",
-     "BrowserColorScheme::kDark));  // Iris", "dark mode by default")
+     "      std::to_underlying(ThemeService::BrowserColorScheme::kLight));  // Iris\n",
+     "BrowserColorScheme::kLight));  // Iris", "light mode by default (jegly 2026-10-08)")
 
 # 1b. (2026-09-27, found in jegly's first look: Settings showed "Theme: GTK") On Linux the default theme is GTK
 #     (ui::GetDefaultSystemTheme()), which (a) is excluded from the Catppuccin mixer below and (b) forces the colour
@@ -92,12 +123,16 @@ fn = ("namespace {\n\n"
       "  }\n"
       "  const iris::Palette* palette = iris::PaletteForSeed(key.user_color);\n"
       "  if (!palette) {\n"
-      "    if (key.color_mode != ColorProviderKey::ColorMode::kDark ||\n"
-      "        key.user_color_source !=\n"
-      "            ColorProviderKey::UserColorSource::kBaseline) {\n"
+      "    if (key.user_color_source !=\n"
+      "        ColorProviderKey::UserColorSource::kBaseline) {\n"
       "      return;\n"
       "    }\n"
-      "    palette = &iris::kPalettes[iris::kDefaultPalette];\n"
+      "    // Iris: Monokai Pro Light by default, Catppuccin Mocha in dark mode\n"
+      "    // (jegly 2026-10-08).\n"
+      "    palette = &iris::kPalettes[key.color_mode ==\n"
+      "                                       ColorProviderKey::ColorMode::kDark\n"
+      "                                   ? iris::kDefaultPalette\n"
+      "                                   : iris::kDefaultLightPalette];\n"
       "  }\n"
       "  ColorMixer& mixer = provider->AddMixer();\n"
       "  for (size_t i = 0; i < std::size(iris::kPaletteTokens); ++i) {\n"

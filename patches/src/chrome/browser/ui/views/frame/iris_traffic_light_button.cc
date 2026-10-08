@@ -64,7 +64,8 @@ IrisTrafficLightButton::IrisTrafficLightButton(
   // No ripple or round hover highlight: the dot itself is the button.
   views::InkDrop::Get(this)->SetMode(views::InkDropHost::InkDropMode::OFF);
   pref_change_registrar_.Init(prefs_);
-  for (const char* pref : {kClosePref, kMinimizePref, kMaximizePref}) {
+  for (const char* pref :
+       {kClosePref, kMinimizePref, kMaximizePref, kSymbolsPref}) {
     pref_change_registrar_.Add(
         pref, base::BindRepeating(&IrisTrafficLightButton::SchedulePaint,
                                   base::Unretained(this)));
@@ -150,7 +151,9 @@ void IrisTrafficLightButton::PaintButtonContents(gfx::Canvas* canvas) {
   flags.setColor(SkColorSetA(SK_ColorBLACK, dark_frame ? 56 : 36));
   canvas->DrawCircle(center, radius - 0.5f, flags);
 
-  if (!IsGroupHovered()) {
+  const bool show_symbols = !prefs_ || !prefs_->FindPreference(kSymbolsPref) ||
+                            prefs_->GetBoolean(kSymbolsPref);
+  if (!show_symbols || !IsGroupHovered()) {
     return;
   }
   // The glyph, drawn with lines so it stays crisp at this size.

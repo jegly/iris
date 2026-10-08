@@ -10,7 +10,8 @@
 #  - OpaqueBrowserFrameViewLayout: Iris buttons get kSlotWidth (24 px) instead of the caption-button width.
 #  - Prefs (IrisShredder::RegisterProfilePrefs): iris.ui.traffic_lights (true) + iris.ui.traffic_light_{close,minimize,
 #    maximize} ("#rrggbb"). Colours repaint live.
-#  - Settings -> Appearance: "Traffic-light window buttons" switch + three colour pickers + Reset.
+#  - Settings -> Appearance: "Traffic-light window buttons" switch + three colour pickers + Reset, and
+#    "Show symbols on the window buttons" (iris.ui.traffic_light_symbols, default on; 2026-10-08).
 # STATUS 2026-10-08: copy-tested only, NOT compile-proven.
 # Guarded; idempotent; fails loudly on drift.
 set -euo pipefail
@@ -188,5 +189,22 @@ edit(t, "  protected onThemeClick_() {\n",
      "  }\n\n"
      "  protected onThemeClick_() {\n",
      "onIrisTrafficColorChange_(e: Event)", "handlers")
+
+# 2026-10-08 (jegly): switch to hide the ×/−/□ symbols (iris.ui.traffic_light_symbols, default true).
+edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
+     "  (*s_allowlist)[\"iris.ui.traffic_lights\"] = settings_api::PrefType::kBoolean;\n",
+     "  (*s_allowlist)[\"iris.ui.traffic_lights\"] = settings_api::PrefType::kBoolean;\n"
+     "  (*s_allowlist)[\"iris.ui.traffic_light_symbols\"] =\n      settings_api::PrefType::kBoolean;\n",
+     "\"iris.ui.traffic_light_symbols\"", "allowlist: symbols")
+edit(A + "appearance_page.html.ts",
+     "    <div id=\"irisTrafficLightColors\" class=\"cr-row\"\n",
+     "    <settings-toggle-button id=\"irisTrafficSymbolsToggle\" class=\"hr\"\n"
+     "        pref-key=\"iris.ui.traffic_light_symbols\"\n"
+     "        label=\"Show symbols on the window buttons\"\n"
+     "        sub-label=\"The close, minimise and maximise symbols appear while you point at the buttons.\"\n"
+     "        ?hidden=\"${!this.irisTrafficLightsPref_?.value}\">\n"
+     "    </settings-toggle-button>\n"
+     "    <div id=\"irisTrafficLightColors\" class=\"cr-row\"\n",
+     "irisTrafficSymbolsToggle", "Appearance: symbols switch")
 PY
 echo "=== traffic-light window buttons complete ==="
