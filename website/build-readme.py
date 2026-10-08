@@ -35,6 +35,11 @@ lede = re.search(r'<p class="lede">(.*?)</p>', page, re.S)
 if lede:
     out.append(text(lede.group(1)) + "\n")
 
+# GitHub-only security philosophy + comparison chart, right after the intro (website/readme-top.md)
+top_path = HERE / "readme-top.md"
+if top_path.exists():
+    out.append(top_path.read_text().rstrip() + "\n")
+
 # Downloads
 out.append("## Download\n")
 out.append("| Platform | Package | Install | Notes |\n|---|---|---|---|")
