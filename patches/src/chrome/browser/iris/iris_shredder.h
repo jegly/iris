@@ -7,6 +7,15 @@
 // While on, text copied in Iris is also cleared from the clipboard after 30 seconds if it is still there
 // (ui::ScopedClipboardWriter, apply-clipboard-clear.sh).
 // It uses Chromium's own BrowsingDataRemover; nothing is sent anywhere.
+//
+// It also keeps two "Privacy and security" toggles in effect (apply-privacy-toggles-2.sh, all off by default):
+//  - "Use UTC and US English for websites" (kStandardLocalePref): while on, the website language list
+//    (intl.accept_languages) is "en-US"; the user's own list is saved and put back when it is turned off.
+//    (The UTC time zone part is a renderer switch, see chrome_content_browser_client.cc.)
+//  - "Clear browsing data when Iris closes" (kClearOnExitPref): fills Chromium's own ClearBrowsingDataOnExitList
+//    (history, downloads list, cookies + site data, cache; not passwords or site settings), which is cleared when the
+//    last window closes (desktop) and, because the deletion is marked pending, again at every start (catches crashes;
+//    on Android, where apps do not really close, this is when it happens).
 
 #ifndef CHROME_BROWSER_IRIS_IRIS_SHREDDER_H_
 #define CHROME_BROWSER_IRIS_IRIS_SHREDDER_H_
@@ -30,6 +39,14 @@ class IrisShredder : public KeyedService {
  public:
   // Profile pref, default false.
   static constexpr char kEnabledPref[] = "iris.shredding.enabled";
+  // Profile prefs for the hardening toggles (apply-privacy-toggles-2.sh), default false.
+  static constexpr char kCoarseTimersPref[] = "iris.privacy.coarse_timers";
+  static constexpr char kStandardLocalePref[] = "iris.privacy.standard_locale";
+  static constexpr char kMemoryCachePref[] = "iris.privacy.memory_cache";
+  static constexpr char kClearOnExitPref[] = "iris.privacy.clear_on_exit";
+  // The user's own website language list while kStandardLocalePref is on.
+  static constexpr char kSavedAcceptLanguagesPref[] =
+      "iris.privacy.saved_accept_languages";
   static void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
 
   explicit IrisShredder(Profile* profile);
@@ -40,6 +57,8 @@ class IrisShredder : public KeyedService {
  private:
   void Run();
   void UpdateClipboardClearing();
+  void ApplyStandardLocale();
+  void ApplyClearOnExit();
 
   raw_ptr<Profile> profile_;
   base::OneShotTimer first_run_;
