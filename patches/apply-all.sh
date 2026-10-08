@@ -129,6 +129,7 @@ PATCHES=(
   apply-android-home-clean      # Android home: no Google feed (spinner), no tip cards / tip notifications
   apply-android-home-clean2     # Android home round 2: no logo spinner, no Iris tips card
   apply-android-no-settings-search # Android Settings: no search bar (fixes sub-page jump)
+  apply-android-orb-favicon     # Android: Iris orb instead of the Chromium logo for icon-less pages (new tab in the tab strip, Page Info, ...)
   apply-no-sharedarraybuffer    # SharedArrayBuffer off everywhere (side-channel timer)
   apply-no-crash-dumps          # Crashpad never writes minidumps to disk
   apply-extensions-on-click     # new extensions: site access "on click" unless ticked at install
