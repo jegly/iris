@@ -172,6 +172,31 @@ old_tail = ("    if (background_visible_) {\n      return;\n    }\n  }\n\n"
             "            background_visible_ ? color : SK_ColorTRANSPARENT);\n")
 new_tail = old_tail.replace("background_visible_", "background_visible")
 edit(cw, old_tail, new_tail, "SkColor4f::FromColor(background_visible ? color", "contents view: use glass flag")
+# Fixes after jegly's test (2026-10-08: "works for a second, switch back to old tab not on"):
+#  - tab switch re-applies the background (SetWebContents did not call UpdateBackgroundColor).
+#  - the local new tab page bakes its background colour into the page (colorBackground, kColorNewTabPageBackground)
+#    and does not load colors.css -> "transparent" while the glass window is on (new tabs; reload an open one).
+edit(cw, "  UpdateIsBlockedByModal();\n\n  if (!status_bubble_) {\n",
+     "  UpdateIsBlockedByModal();\n\n"
+     "  // Iris: tab switch re-applies the see-through glass background.\n"
+     "  if (GetWidget()) {\n    UpdateBackgroundColor();\n  }\n\n"
+     "  if (!status_bubble_) {\n",
+     "tab switch re-applies the see-through glass background", "contents view: tab switch")
+nt = "chrome/browser/ui/webui/new_tab_page_third_party/new_tab_page_third_party_ui.cc"
+edit(nt, "    source->AddString(\"colorBackground\",\n"
+         "                      color_utils::SkColorToRgbaString(GetThemeColor(\n"
+         "                          webui::GetNativeThemeDeprecated(web_contents),\n"
+         "                          color_provider, kColorNewTabPageBackground)));\n",
+     "    // Iris: see-through glass window -> transparent new tab page\n"
+     "    // (apply-glass-window.sh).\n"
+     "    source->AddString(\n"
+     "        \"colorBackground\",\n"
+     "        profile->GetPrefs()->GetBoolean(\"iris.glass.window\")\n"
+     "            ? std::string(\"transparent\")\n"
+     "            : color_utils::SkColorToRgbaString(GetThemeColor(\n"
+     "                  webui::GetNativeThemeDeprecated(web_contents),\n"
+     "                  color_provider, kColorNewTabPageBackground)));\n",
+     "see-through glass window -> transparent new tab page", "new tab page: transparent")
 ts = "chrome/browser/ui/webui/theme_source.cc"
 edit(ts, "  std::move(callback).Run(\n      base::MakeRefCounted<base::RefCountedString>(std::move(*css_content)));\n",
      "  // Iris: see-through glass window, phase 2 (apply-glass-window.sh): the page\n"
