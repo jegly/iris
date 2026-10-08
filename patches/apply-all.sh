@@ -122,6 +122,7 @@ PATCHES=(
   apply-no-translate-settings   # Languages: no 'Use Google Translate' (translate is off anyway; desktop + Android)
   apply-autofill-page-trim      # Autofill page: no Google account card, Google Wallet/Account links, Gemini card
   apply-search-engines-world    # 33 search engines worldwide in every country (after search-list-ddg/default-search)
+  apply-search-no-mailru        # Mail.ru out of the search list (TLS 1.2 only): 32 engines
   apply-flags-default-state     # chrome://flags: 'Default (Enabled)' / 'Default (Disabled)' shows what Default means
   apply-android-settings-trim   # Android: Google services items, Safety check, Developer options gone (after no-google-settings)
   apply-android-home-clean      # Android home: no Google feed (spinner), no tip cards / tip notifications
