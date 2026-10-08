@@ -8,12 +8,12 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 156.0.8073.0-3 files:
+SHA-256 of the 156.0.8078.11-1 files:
 
 ```
-d51cc47a5011dda505ef78e871facddee92864f06cd5324e919bb36ae40635a5  iris-browser-stable_156.0.8073.0-3_amd64.deb
-64dafc67c8e18880bec89bd4d4b2c43d63716310f30ef580e6d64aae3969b2c4  iris-browser_156.0.8073.0-3_amd64.snap
-e1508feef7943764f8f4419092d4c30e93727d5a9cff06d9bc1180316ec58dcf  iris-156.0.8073.0-3-pqc-signed.apk
+fa1333fd994300fe97e6858874ed2aa6a6b7c9d63e74922ed42539d323e4d753  iris-browser-stable_156.0.8078.11-1_amd64.deb
+db8c2f78fbe26c76cda85f3aacccb474d7c724bb02e19cbc3db8005930830c9e  iris-browser_156.0.8078.11_amd64.snap
+d5e2f3e3ebbcbc65c8071092322b94ab25b355851cfbe502d347a741f44a38c8  iris-156.0.8078.11-1-pqc-signed.apk
 ```
 
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
@@ -27,7 +27,7 @@ sure the keys are mine. My keys are also in `keys/`:
 Iris is a set of small, guarded patch scripts applied to an upstream Chromium checkout, plus build configs.
 
 1. Get Chromium (`depot_tools`, `fetch chromium`) and check out the base commit
-   `90b94f20cbf6d512624a5ab4ef5920311d50c7ec` (Chromium 156.0.8073.0).
+   `fcb358d535effda2ded753c907011e6cdeda089e` (Chromium 156.0.8078.11).
 2. The ad-block ruleset is included in `adblock/dist/`. `adblock/build-ruleset.sh` rebuilds it from fresh lists.
 3. Apply everything: `patches/apply-all.sh ~/path/to/chromium/src`. Each script checks the code it changes and
    stops with an error if upstream has drifted; re-running is safe.
@@ -75,6 +75,7 @@ GitHub's *Report a vulnerability* (Security tab) rather than a public issue.
   (`website/fonts/OFL.txt`).
 - IBM Plex Sans font (built-in pages): IBM Corp., SIL Open Font License 1.1.
 - Catppuccin colour palette: the Catppuccin project, MIT.
+- 48 light colour palettes: the Gogh colour schemes (github.com/Gogh-Co/Gogh) and their authors, MIT or Apache-2.0.
 - Iris patches and tooling: GPL-2.0-or-later (`LICENSE`). "Or later" because Chromium contains Apache-2.0
   components, which are compatible with GPL-3.0 but not GPL-2.0-only.
 

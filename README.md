@@ -1,6 +1,6 @@
 <p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>
 
-Iris started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for the modern age, and an open-source alternative if privacy & security matter to you.
+Iris is named after the Greek goddess of the rainbow, the messenger who carried words between the gods and people. A browser does the same job: everything you send and receive passes through it. Iris started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for a time when AI makes attacks faster and cheaper to run, and attackers can hunt for flaws at a scale people can't match. So Iris cuts the attack surface, isolates every site, uses memory-safe code where it can, and adds post-quantum encryption. It's open source, for anyone who cares about privacy and security.
 
 ## Download
 
@@ -62,6 +62,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Google sign-in widgets on other sites, until you allow them
 - Background networking, field-trial experiments, usage statistics and crash reports
 + DuckDuckGo as the default search engine, and a new tab page that stays local
++ 28 search engines to choose from in every country, privacy-first, all of them reachable over TLS 1.3
 ```
 
 ### Web APIs
@@ -88,12 +89,14 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + App lock: a passphrase before the browser opens
 + Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule
 + Extension auto-updates off unless you switch them on
++ The app-lock screen follows your theme
++ A shorter Settings: Safety Hub trimmed, no Translate, no Enhanced protection, a simpler autofill page
 + Forget a site: its cookies and data deleted when you close the browser [Ubuntu]
 + A JavaScript on/off switch, globally and per site
 + Per-site controls for JavaScript, cookies and images
-+ A different browser identity for any site, from the lock icon
++ A different browser identity for any site, from the lock icon: 13 to pick from, including Firefox, Chrome, Edge, Safari and Samsung Internet on desktop, Android and iPhone
 + Cookies, saved logins and bookmarks encrypted with your passphrase when the app lock is on, open tabs too on Ubuntu
-+ Catppuccin Mocha theme and dark mode by default, with 59 colour palettes, and a glass look on Ubuntu
++ Catppuccin Mocha theme and dark mode by default, with 114 colour palettes (57 light, 57 dark), and a glass look on Ubuntu
 ```
 
 ### Network & TLS
@@ -101,6 +104,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 ```diff
 + TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange
 + CNSA 2.0 cipher and key-exchange preferences
++ Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only (Settings → Privacy and security → Security; some sites won't load)
 + Merkle Tree Certificate verification, ready for post-quantum certificates
 + Connection details in the lock icon: TLS version, cipher, key exchange and ECH
 + Cookies only sent back to the scheme and port that set them
@@ -124,6 +128,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Full RELRO, non-executable stack and position-independent executables
 + PartitionAlloc hardening in every process; internal safety checks kept on in release
 + Memory-safe Rust decoders for JPEG, ICO and BMP images
++ Profile-guided optimisation for a faster browser
 - Hardware video decode, SwiftShader, remote desktop, VR/AR, Widevine DRM and the on-device AI model, all left out of the build
 - Printing and local-network device discovery
 - Page previews, media remoting, enterprise file scanning, the Bluetooth and printing system libraries and the AV1 encoder, left out of the build
@@ -155,6 +160,8 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Offers to save passwords, addresses and cards (use a dedicated password manager)
 + Saved passwords filled in only after you pick the account
 - First-run welcome and import prompts [Ubuntu]
+- Remote debugging, and the --load-extension launch flag
+- XSLT (an old attack surface)
 ```
 
 ### Android only
@@ -167,6 +174,9 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Trust in user-installed CA certificates (blocks TLS interception)
 - Android and Google cloud backups of browser data
 - The first-run setup flow and DRM preprovisioning at startup
+- Google services pages, Safety check, Developer options, and Settings search
+- The home-screen feed, tips card and loading spinner
++ Fewer permissions and open doors: no Gemini trigger or NFC tag handling, and your bookmarks and history aren't shared with other apps
 ```
 
 ## What you give up
@@ -194,12 +204,12 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 156.0.8073.0-3 files:
+SHA-256 of the 156.0.8078.11-1 files:
 
 ```
-d51cc47a5011dda505ef78e871facddee92864f06cd5324e919bb36ae40635a5  iris-browser-stable_156.0.8073.0-3_amd64.deb
-64dafc67c8e18880bec89bd4d4b2c43d63716310f30ef580e6d64aae3969b2c4  iris-browser_156.0.8073.0-3_amd64.snap
-e1508feef7943764f8f4419092d4c30e93727d5a9cff06d9bc1180316ec58dcf  iris-156.0.8073.0-3-pqc-signed.apk
+fa1333fd994300fe97e6858874ed2aa6a6b7c9d63e74922ed42539d323e4d753  iris-browser-stable_156.0.8078.11-1_amd64.deb
+db8c2f78fbe26c76cda85f3aacccb474d7c724bb02e19cbc3db8005930830c9e  iris-browser_156.0.8078.11_amd64.snap
+d5e2f3e3ebbcbc65c8071092322b94ab25b355851cfbe502d347a741f44a38c8  iris-156.0.8078.11-1-pqc-signed.apk
 ```
 
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
@@ -213,7 +223,7 @@ sure the keys are mine. My keys are also in `keys/`:
 Iris is a set of small, guarded patch scripts applied to an upstream Chromium checkout, plus build configs.
 
 1. Get Chromium (`depot_tools`, `fetch chromium`) and check out the base commit
-   `90b94f20cbf6d512624a5ab4ef5920311d50c7ec` (Chromium 156.0.8073.0).
+   `fcb358d535effda2ded753c907011e6cdeda089e` (Chromium 156.0.8078.11).
 2. The ad-block ruleset is included in `adblock/dist/`. `adblock/build-ruleset.sh` rebuilds it from fresh lists.
 3. Apply everything: `patches/apply-all.sh ~/path/to/chromium/src`. Each script checks the code it changes and
    stops with an error if upstream has drifted; re-running is safe.
@@ -261,6 +271,7 @@ GitHub's *Report a vulnerability* (Security tab) rather than a public issue.
   (`website/fonts/OFL.txt`).
 - IBM Plex Sans font (built-in pages): IBM Corp., SIL Open Font License 1.1.
 - Catppuccin colour palette: the Catppuccin project, MIT.
+- 48 light colour palettes: the Gogh colour schemes (github.com/Gogh-Co/Gogh) and their authors, MIT or Apache-2.0.
 - Iris patches and tooling: GPL-2.0-or-later (`LICENSE`). "Or later" because Chromium contains Apache-2.0
   components, which are compatible with GPL-3.0 but not GPL-2.0-only.
 

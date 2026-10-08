@@ -177,7 +177,7 @@
     <div class="hero">
       <div>
         <h1><span class="iris">Iris</span>, <span class="nw">built on Chromium.</span><br><span class="h1-soft">Made for security and privacy.</span></h1>
-        <p class="lede"><span class="iris">Iris</span> started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for the modern age, and an open-source alternative if privacy &amp; security matter to you.</p>
+        <p class="lede"><span class="iris">Iris</span> is named after the Greek goddess of the rainbow, the messenger who carried words between the gods and people. A browser does the same job: everything you send and receive passes through it. <span class="iris">Iris</span> started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for a time when AI makes attacks faster and cheaper to run, and attackers can hunt for flaws at a scale people can't match. So <span class="iris">Iris</span> cuts the attack surface, isolates every site, uses memory-safe code where it can, and adds post-quantum encryption. It's open source, for anyone who cares about privacy and security.</p>
         <div class="cta">
           <a class="btn btn-ghost" href="https://github.com/jegly/iris">View source</a>
         </div>
@@ -187,7 +187,7 @@
 
     <section id="download" aria-labelledby="download-h">
       <div class="section-head">
-        <h2 id="download-h">Download <span class="pill">156.0.8073.0-3</span></h2>
+        <h2 id="download-h">Download <span class="pill">156.0.8078.11-1</span></h2>
       </div>
       <div class="downloads">
         <article class="dl" id="dl-deb">
@@ -268,6 +268,7 @@
             <li class="rm"><span class="sign">−</span><span>Google sign-in widgets on other sites, until you allow them</span></li>
             <li class="rm"><span class="sign">−</span><span>Background networking, field-trial experiments, usage statistics and crash reports</span></li>
             <li class="add"><span class="sign">+</span><span>DuckDuckGo as the default search engine, and a new tab page that stays local</span></li>
+            <li class="add"><span class="sign">+</span><span>28 search engines to choose from in every country, privacy-first, all of them reachable over TLS 1.3</span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -294,12 +295,14 @@
             <li class="add"><span class="sign">+</span><span>App lock: a passphrase before the browser opens</span></li>
             <li class="add"><span class="sign">+</span><span>Automatic data shredding you can switch on: cookies, site data and cache cleared on a schedule</span></li>
             <li class="add"><span class="sign">+</span><span>Extension auto-updates off unless you switch them on</span></li>
+            <li class="add"><span class="sign">+</span><span>The app-lock screen follows your theme</span></li>
+            <li class="add"><span class="sign">+</span><span>A shorter Settings: Safety Hub trimmed, no Translate, no Enhanced protection, a simpler autofill page</span></li>
             <li class="add"><span class="sign">+</span><span>Forget a site: its cookies and data deleted when you close the browser <span class="plat">Ubuntu</span></span></li>
             <li class="add"><span class="sign">+</span><span>A JavaScript on/off switch, globally and per site</span></li>
             <li class="add"><span class="sign">+</span><span>Per-site controls for JavaScript, cookies and images</span></li>
-            <li class="add"><span class="sign">+</span><span>A different browser identity for any site, from the lock icon</span></li>
+            <li class="add"><span class="sign">+</span><span>A different browser identity for any site, from the lock icon: 13 to pick from, including Firefox, Chrome, Edge, Safari and Samsung Internet on desktop, Android and iPhone</span></li>
             <li class="add"><span class="sign">+</span><span>Cookies, saved logins and bookmarks encrypted with your passphrase when the app lock is on, open tabs too on Ubuntu</span></li>
-            <li class="add"><span class="sign">+</span><span>Catppuccin Mocha theme and dark mode by default, with 59 colour palettes, and a glass look on Ubuntu</span></li>
+            <li class="add"><span class="sign">+</span><span>Catppuccin Mocha theme and dark mode by default, with 114 colour palettes (57 light, 57 dark), and a glass look on Ubuntu</span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -307,6 +310,7 @@
           <ul>
             <li class="add"><span class="sign">+</span><span>TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange</span></li>
             <li class="add"><span class="sign">+</span><span>CNSA 2.0 cipher and key-exchange preferences</span></li>
+            <li class="add"><span class="sign">+</span><span>Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only <span class="why">(Settings → Privacy and security → Security; some sites won't load)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Merkle Tree Certificate verification, ready for post-quantum certificates</span></li>
             <li class="add"><span class="sign">+</span><span>Connection details in the lock icon: TLS version, cipher, key exchange and ECH</span></li>
             <li class="add"><span class="sign">+</span><span>Cookies only sent back to the scheme and port that set them</span></li>
@@ -330,6 +334,7 @@
             <li class="add"><span class="sign">+</span><span>Full RELRO, non-executable stack and position-independent executables</span></li>
             <li class="add"><span class="sign">+</span><span>PartitionAlloc hardening in every process; internal safety checks kept on in release</span></li>
             <li class="add"><span class="sign">+</span><span>Memory-safe Rust decoders for JPEG, ICO and BMP images</span></li>
+            <li class="add"><span class="sign">+</span><span>Profile-guided optimisation for a faster browser</span></li>
             <li class="rm"><span class="sign">−</span><span>Hardware video decode, SwiftShader, remote desktop, VR/AR, Widevine DRM and the on-device AI model, all left out of the build</span></li>
             <li class="rm"><span class="sign">−</span><span>Printing and local-network device discovery</span></li>
             <li class="rm"><span class="sign">−</span><span>Page previews, media remoting, enterprise file scanning, the Bluetooth and printing system libraries and the AV1 encoder, left out of the build</span></li>
@@ -361,6 +366,8 @@
             <li class="rm"><span class="sign">−</span><span>Offers to save passwords, addresses and cards <span class="why">(use a dedicated password manager)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Saved passwords filled in only after you pick the account</span></li>
             <li class="rm"><span class="sign">−</span><span>First-run welcome and import prompts <span class="plat">Ubuntu</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Remote debugging, and the <code>--load-extension</code> launch flag</span></li>
+            <li class="rm"><span class="sign">−</span><span>XSLT <span class="why">(an old attack surface)</span></span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -373,6 +380,9 @@
             <li class="rm"><span class="sign">−</span><span>Trust in user-installed CA certificates <span class="why">(blocks TLS interception)</span></span></li>
             <li class="rm"><span class="sign">−</span><span>Android and Google cloud backups of browser data</span></li>
             <li class="rm"><span class="sign">−</span><span>The first-run setup flow and DRM preprovisioning at startup</span></li>
+            <li class="rm"><span class="sign">−</span><span>Google services pages, Safety check, Developer options, and Settings search</span></li>
+            <li class="rm"><span class="sign">−</span><span>The home-screen feed, tips card and loading spinner</span></li>
+            <li class="add"><span class="sign">+</span><span>Fewer permissions and open doors: no Gemini trigger or NFC tag handling, and your bookmarks and history aren't shared with other apps</span></li>
           </ul>
         </div>
       </div>
