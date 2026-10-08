@@ -117,6 +117,21 @@ edit(fv, '#include "chrome/browser/ui/color/iris_glass_mixer.h"  // Iris\n',
      '#include "chrome/browser/ui/color/iris_glass_mixer.h"  // Iris\n'
      '#include "chrome/browser/ui/views/frame/top_container_view.h"  // Iris\n',
      'top_container_view.h"  // Iris', "frame: include top container")
+# Fix 2 (jegly 2026-10-08, phase 2 test: "flickering in settings"): with Iris's own pages see-through, the page area
+# is translucent too, so the whole window is reported as translucent while glass is on (websites still paint opaque).
+s_fv = open(fv).read()
+_old_ret = ("    return height + 40;\n")
+if _old_ret in s_fv:
+    s_fv = s_fv.replace(
+        "  // Iris: see-through glass window (apply-glass-window.sh). Report the top\n"
+        "  // bar as translucent, or the compositor skips what is behind it and the\n"
+        "  // bar flickers. 40 DIP slack covers a bookmarks bar shown later.\n",
+        "  // Iris: see-through glass window (apply-glass-window.sh). Report the window\n"
+        "  // as translucent (top bar and, for Iris's own pages, the page area), or the\n"
+        "  // compositor skips what is behind it and it flickers. Whole window\n"
+        "  // translucent; websites still paint opaque.\n", 1)
+    s_fv = s_fv.replace(_old_ret, "    return std::max(height, this->height());\n", 1)
+    open(fv, "w").write(s_fv); print("OK   %s : whole window translucent while glass is on" % fv)
 t2 = "chrome/browser/themes/theme_service.cc"
 edit(t2, "      ui::ColorProviderManager::Get().ResetColorProviderCache();\n      self->NotifyThemeChanged();\n",
      "      ui::ColorProviderManager::Get().ResetColorProviderCache();\n"
