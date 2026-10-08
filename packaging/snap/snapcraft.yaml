@@ -68,7 +68,7 @@ apps:
 slots:
   mpris:
     interface: mpris
-    name: chromium            # Chromium registers org.mpris.MediaPlayer2.chromium.instance<pid> (same as Chromium's snap)
+    name: iris-browser        # Iris registers org.mpris.MediaPlayer2.iris-browser.instance<pid> (apply-mpris-name.sh); store reviewer asked for the snap's own name (2026-10-09)
 
 plugs:
   # Shared GTK themes / icons / cursors, like Chromium's snap (gtk-common-themes is base-independent data)

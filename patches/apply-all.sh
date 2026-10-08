@@ -27,6 +27,7 @@ PATCHES=(
   apply-default-search          # DuckDuckGo default (IRIS_SEARCH_ENGINE to swap)
   apply-search-list-ddg         # DDG selectable in every region
   apply-popup-hardening         # block popups without a trusted user gesture
+  apply-mpris-name              # MPRIS D-Bus name iris-browser (matches the snap slot; Snap Store reviewer)
   apply-download-quarantine     # downloads never auto-open
   apply-jitless-runtime         # JIT off for web content -> WebAssembly global absent
   apply-content-settings-group4 # Idle Detection + Web MIDI BLOCK
