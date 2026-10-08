@@ -26,6 +26,7 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref(kClearClipboardPref, false);
   registry->RegisterBooleanPref(kBlockWebFontsPref, false);
   registry->RegisterBooleanPref(kBlockAutoplayPref, false);
+  registry->RegisterBooleanPref(kHideInstallButtonPref, false);
 }
 
 IrisShredder::IrisShredder(Profile* profile) : profile_(profile) {
