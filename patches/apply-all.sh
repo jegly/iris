@@ -37,6 +37,7 @@ PATCHES=(
   apply-webrtc-off              # RTCPeerConnection gated behind IrisWebRTC (off)
   apply-rebrand-android         # Android app name/icons (needs branding/icon/generated-android/)
   apply-doh-secure              # DoH secure mode, Quad9 default, 15-resolver picker (Google hidden)
+  apply-doh-more                # 7 more verified DoH providers (AdGuard x2, Control D x2, Applied Privacy, Digitale Gesellschaft, Wikimedia DNS)
   apply-privacy-batch1          # window.name, FedCM, compression dicts, preloading, text fragments, SXG, translate, autofill server, feed
   apply-fingerprint-apis        # speechSynthesis, fetchLater, getBattery, getGamepads, sendBeacon, userAgentData off
   apply-compiler-hardening      # strong protector, stack-clash, Android SCS+strong (FULL REBUILD)

@@ -11,8 +11,9 @@
 #    upstream shows only 5 providers globally, and Quad9's entry is OFF in code (Google enables it via field
 #    trial "Enabled_20260203"; Iris has no field trials). Iris list (all display_globally):
 #      Quad9 (default) · Quad9 unfiltered · Cloudflare · Cloudflare malware · Cloudflare family ·
-#      CleanBrowsing security/family/adult · DNS4EU Protective · CZ.NIC ODVR · DNS.SB · NextDNS ·
-#      OpenDNS · OpenDNS FamilyShield · IIJ   (= 15)  + the built-in "Custom" field.
+#      CleanBrowsing security/family/adult · DNS4EU Protective · CZ.NIC ODVR · NextDNS ·
+#      OpenDNS · OpenDNS FamilyShield · IIJ   (= 14; DNS.SB hidden 2026-10-08, jegly) + the built-in "Custom" field.
+#    More providers: apply-doh-more.sh.
 #    Google DNS hidden (de-Googled). Quad9 ECS variant (Quad9Cdn) left hidden (sends client subnet).
 #    Mullvad not offered (jegly: Mullvad has stopped its DNS service).
 #    DohProviderEntry DCHECKs honoured: displayed entries need ui_name + privacy_policy; global entries must
@@ -59,7 +60,7 @@ plan = {
   "Dns4eu":             (False, None, None, True),
   "Cznic":              (False, None, None, True),
   "Iij":                (False, None, None, True),
-  "Dnssb":              (False, None, None, True),
+  "Dnssb":              (False, None, None, False),  # hidden (jegly 2026-10-08)
   "NextDns":            (False, None, None, True),
   "Google":             (False, None, None, False),   # hide
 }
