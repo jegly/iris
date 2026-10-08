@@ -125,6 +125,7 @@ PATCHES=(
   apply-search-engines-world    # 33 search engines worldwide in every country (after search-list-ddg/default-search)
   apply-search-no-mailru        # Mail.ru out of the search list (TLS 1.2 only): 32 engines
   apply-search-no-tls12-only    # Baidu, 360, Nona, Cốc Cốc out of the search list (no TLS 1.3): 28 engines
+  apply-search-engines-trim     # search list round 3: -9 "random" engines, +DuckDuckGo Lite (20 engines)
   apply-flags-default-state     # chrome://flags: 'Default (Enabled)' / 'Default (Disabled)' shows what Default means
   apply-android-settings-trim   # Android: Google services items, Safety check, Developer options gone (after no-google-settings)
   apply-android-home-clean      # Android home: no Google feed (spinner), no tip cards / tip notifications
