@@ -14,6 +14,8 @@
 #              (ERR_SSL_VERSION_OR_CIPHER_MISMATCH).
 # The server log ("Shared groups", ciphers) is printed in the page itself (-www).
 # Verified 2026-10-03 with OpenSSL 3.5.5 (mlkem1024 mode also against Iris 156.0.8073.0-3: MLKEM1024).
+# The "Strict post-quantum encryption" setting this script tests is compiled into Iris since release 0.0.0.4
+# (patches/apply-strict-pq-tls.sh; desktop: Settings -> Privacy and security -> Iris hardening -> Network).
 set -euo pipefail
 MODE="${1:-}"
 PORT="${2:-8443}"
