@@ -75,7 +75,7 @@ f, lst, marker = sys.argv[1:4]
 s = open(f).read()
 i = s.find(marker)
 m = re.compile(r'switches::kDisableBlinkFeatures,\s*"([^"]*)"').search(s, i)
-if not m or m.start() - i > 2000: sys.stderr.write("ERROR: Iris kDisableBlinkFeatures literal not found\n"); sys.exit(1)
+if not m or m.start() - i > 8000: sys.stderr.write("ERROR: Iris kDisableBlinkFeatures literal not found\n"); sys.exit(1)
 if m.group(1) == lst: print("SKIP already applied (list current): " + f); sys.exit(0)
 open(f, "w").write(s[:m.start(1)] + lst + s[m.end(1):])
 print("OK   %s : blink list upgraded (%d -> %d features)" % (f, len(m.group(1).split(",")), len(lst.split(","))))

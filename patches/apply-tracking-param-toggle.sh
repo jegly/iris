@@ -68,6 +68,6 @@ edit(J, "        irisCategory.addPreference(irisJitEverywhere);\n",
      "irisStripTracking =", "Android switch")
 edit(J, '{"Ads and trackers", "iris_block_ads", "iris_adblock_extra"}',
      '{"Ads and trackers", "iris_block_ads", "iris_adblock_extra", "iris_strip_tracking"}',
-     '"iris_strip_tracking"}', "Android group")
+     ', "iris_strip_tracking"', "Android group")
 PY
 echo "=== tracking-parameter switch complete ==="
