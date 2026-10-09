@@ -39,6 +39,7 @@
 /adblock/lists/extra-merged.txt
 !/adblock/dist/
 !/test/
+!/screenshots/
 !/keys/
 /keys/*
 !/keys/jegly-mldsa87.pub.pem
