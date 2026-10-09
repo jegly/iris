@@ -36,6 +36,7 @@ PATCHES=(
   apply-default-switches        # launcher switches compiled in (Android has no launcher)
   apply-flags-group5            # jegly's flags: Rusty ICO/JPEG, Android site-per-process, 3 Google svcs off
   apply-webrtc-off              # RTCPeerConnection gated behind IrisWebRTC (off)
+  apply-webrtc-media-off        # also remove navigator.mediaDevices / getUserMedia / webkitGetUserMedia (needs webrtc-off)
   apply-rebrand-android         # Android app name/icons (needs branding/icon/generated-android/)
   apply-doh-secure              # DoH secure mode, Quad9 default, 15-resolver picker (Google hidden)
   apply-doh-more                # 7 more verified DoH providers (AdGuard x2, Control D x2, Applied Privacy, Digitale Gesellschaft, Wikimedia DNS)
