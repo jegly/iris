@@ -21,7 +21,7 @@
 #include "ui/base/metadata/metadata_header_macros.h"
 #include "ui/views/view.h"
 
-class Browser;
+class BrowserWindowInterface;
 class ToolbarButton;
 
 class IrisToolbarButtons : public views::View,
@@ -36,7 +36,7 @@ class IrisToolbarButtons : public views::View,
   static constexpr char kNewIdentityPref[] = "iris.ui.toolbar_new_identity";
   static constexpr char kLockPref[] = "iris.ui.toolbar_lock";
 
-  explicit IrisToolbarButtons(Browser* browser);
+  explicit IrisToolbarButtons(BrowserWindowInterface* browser);
   IrisToolbarButtons(const IrisToolbarButtons&) = delete;
   IrisToolbarButtons& operator=(const IrisToolbarButtons&) = delete;
   ~IrisToolbarButtons() override;
@@ -69,7 +69,7 @@ class IrisToolbarButtons : public views::View,
   void OnLockPressed();
   void DisarmNewIdentity();
 
-  raw_ptr<Browser> browser_;
+  raw_ptr<BrowserWindowInterface> browser_;
   raw_ptr<ToolbarButton> shield_ = nullptr;
   raw_ptr<ToolbarButton> javascript_ = nullptr;
   raw_ptr<ToolbarButton> new_identity_ = nullptr;

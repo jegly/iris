@@ -21,9 +21,10 @@
 #include "chrome/browser/iris/iris_fingerprint_host.h"  // nogncheck
 #include "chrome/browser/lifetime/application_lifetime.h"
 #include "chrome/browser/profiles/profile.h"
-#include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/chrome_pages.h"
+#include "chrome/browser/ui/views/location_bar/location_bar_bubble_delegate_view.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_button.h"
 #include "chrome/common/url_constants.h"
@@ -72,23 +73,24 @@ void ReloadTab(content::WebContents* web_contents) {
 }  // namespace
 
 // The panel that opens from the shield button.
-class IrisShieldBubble : public views::BubbleDialogDelegateView,
+class IrisShieldBubble : public LocationBarBubbleDelegateView,
                          public iris::ShieldStats::Observer {
-  METADATA_HEADER(IrisShieldBubble, views::BubbleDialogDelegateView)
+  METADATA_HEADER(IrisShieldBubble, LocationBarBubbleDelegateView)
 
  public:
   static void Show(views::View* anchor,
-                   Browser* browser,
+                   BrowserWindowInterface* browser,
                    content::WebContents* web_contents) {
-    auto bubble = std::make_unique<IrisShieldBubble>(
-        views::BubbleAnchor(anchor), browser, web_contents);
-    views::BubbleDialogDelegateView::CreateBubble(std::move(bubble))->Show();
+    auto bubble = std::make_unique<IrisShieldBubble>(anchor, browser, web_contents);
+    IrisShieldBubble* raw_bubble = bubble.get();
+    views::BubbleDialogDelegateView::CreateBubble(std::move(bubble));
+    raw_bubble->ShowForReason(LocationBarBubbleDelegateView::USER_GESTURE);
   }
 
-  IrisShieldBubble(views::BubbleAnchor anchor,
-                   Browser* browser,
+  IrisShieldBubble(views::View* anchor,
+                   BrowserWindowInterface* browser,
                    content::WebContents* web_contents)
-      : BubbleDialogDelegateView(anchor, views::BubbleBorder::TOP_RIGHT),
+      : LocationBarBubbleDelegateView(anchor, web_contents),
         browser_(browser),
         web_contents_(web_contents->GetWeakPtr()),
         stats_(iris::ShieldStats::FromWebContents(web_contents)) {
@@ -118,7 +120,7 @@ class IrisShieldBubble : public views::BubbleDialogDelegateView,
     ads_switch_->SetEnabled(web);
     if (web) {
       HostContentSettingsMap* map =
-          HostContentSettingsMapFactory::GetForProfile(browser->profile());
+          HostContentSettingsMapFactory::GetForProfile(browser->GetProfile());
       ads_switch_->SetChecked(
           map->GetContentSetting(url, url, ContentSettingsType::ADS) !=
           CONTENT_SETTING_ALLOW);
@@ -137,7 +139,7 @@ class IrisShieldBubble : public views::BubbleDialogDelegateView,
     fingerprint_box_->SetEnabled(web);
     if (web) {
       const std::string preset =
-          iris::GetFingerprintReadsPreset(browser->profile(), url);
+          iris::GetFingerprintReadsPreset(browser->GetProfile(), url);
       fingerprint_box_->SetSelectedIndex(preset == "real"    ? 1
                                          : preset == "blank" ? 2
                                                              : 0);
@@ -185,7 +187,7 @@ class IrisShieldBubble : public views::BubbleDialogDelegateView,
     }
     const GURL url = web_contents_->GetLastCommittedURL();
     HostContentSettingsMap* map =
-        HostContentSettingsMapFactory::GetForProfile(browser_->profile());
+        HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
     // Blocking is the default: "on" removes the exception, "off" allows ads here.
     map->SetContentSettingDefaultScope(
         url, GURL(), ContentSettingsType::ADS,
@@ -198,11 +200,10 @@ class IrisShieldBubble : public views::BubbleDialogDelegateView,
     if (!web_contents_ || !fingerprint_box_->GetSelectedIndex()) {
       return;
     }
-    static constexpr const char* kPresets[] = {"protected", "real", "blank"};
     const size_t index = *fingerprint_box_->GetSelectedIndex();
-    iris::SetFingerprintReadsPreset(browser_->profile(),
-                                    web_contents_->GetLastCommittedURL(),
-                                    kPresets[index < 3 ? index : 0]);
+    iris::SetFingerprintReadsPreset(
+        browser_->GetProfile(), web_contents_->GetLastCommittedURL(),
+        index == 1 ? "real" : index == 2 ? "blank" : "protected");
     ReloadTab(web_contents_.get());
   }
 
@@ -211,7 +212,7 @@ class IrisShieldBubble : public views::BubbleDialogDelegateView,
     GetWidget()->Close();
   }
 
-  raw_ptr<Browser> browser_;
+  raw_ptr<BrowserWindowInterface> browser_;
   base::WeakPtr<content::WebContents> web_contents_;
   raw_ptr<iris::ShieldStats> stats_;
   raw_ptr<views::Label> total_ = nullptr;
@@ -227,7 +228,7 @@ END_METADATA
 
 // IrisToolbarButtons ---------------------------------------------------------
 
-IrisToolbarButtons::IrisToolbarButtons(Browser* browser) : browser_(browser) {
+IrisToolbarButtons::IrisToolbarButtons(BrowserWindowInterface* browser) : browser_(browser) {
   SetLayoutManager(std::make_unique<views::BoxLayout>(
       views::BoxLayout::Orientation::kHorizontal));
 
@@ -250,8 +251,8 @@ IrisToolbarButtons::IrisToolbarButtons(Browser* browser) : browser_(browser) {
   lock_ = make_button(&IrisToolbarButtons::OnLockPressed, kIrisLockIcon,
                       u"Lock and close Iris");
 
-  browser_->tab_strip_model()->AddObserver(this);
-  pref_registrar_.Init(browser_->profile()->GetPrefs());
+  browser_->GetTabStripModel()->AddObserver(this);
+  pref_registrar_.Init(browser_->GetProfile()->GetPrefs());
   for (const char* pref :
        {kShieldPref, kJavaScriptPref, kNewIdentityPref, kLockPref}) {
     pref_registrar_.Add(pref,
@@ -266,7 +267,7 @@ IrisToolbarButtons::~IrisToolbarButtons() {
   if (stats_) {
     stats_->RemoveObserver(this);
   }
-  browser_->tab_strip_model()->RemoveObserver(this);
+  browser_->GetTabStripModel()->RemoveObserver(this);
 }
 
 void IrisToolbarButtons::AddedToWidget() {
@@ -299,7 +300,7 @@ void IrisToolbarButtons::BindToActiveTab() {
     stats_ = nullptr;
   }
   content::WebContents* web_contents =
-      browser_->tab_strip_model()->GetActiveWebContents();
+      browser_->GetTabStripModel()->GetActiveWebContents();
   Observe(web_contents);
   if (web_contents) {
     stats_ = iris::ShieldStats::FromWebContents(web_contents);
@@ -316,7 +317,7 @@ void IrisToolbarButtons::UpdateAll() {
 }
 
 void IrisToolbarButtons::UpdateVisibility() {
-  PrefService* prefs = browser_->profile()->GetPrefs();
+  PrefService* prefs = browser_->GetProfile()->GetPrefs();
   shield_->SetVisible(prefs->GetBoolean(kShieldPref));
   javascript_->SetVisible(prefs->GetBoolean(kJavaScriptPref));
   new_identity_->SetVisible(prefs->GetBoolean(kNewIdentityPref));
@@ -337,7 +338,7 @@ void IrisToolbarButtons::UpdateShield() {
 
 void IrisToolbarButtons::UpdateJavaScript() {
   content::WebContents* web_contents =
-      browser_->tab_strip_model()->GetActiveWebContents();
+      browser_->GetTabStripModel()->GetActiveWebContents();
   const GURL url =
       web_contents ? web_contents->GetLastCommittedURL() : GURL();
   const bool web = url.SchemeIsHTTPOrHTTPS();
@@ -347,7 +348,7 @@ void IrisToolbarButtons::UpdateJavaScript() {
     return;
   }
   HostContentSettingsMap* map =
-      HostContentSettingsMapFactory::GetForProfile(browser_->profile());
+      HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
   const bool allowed =
       map->GetContentSetting(url, url, ContentSettingsType::JAVASCRIPT) !=
       CONTENT_SETTING_BLOCK;
@@ -368,7 +369,7 @@ void IrisToolbarButtons::UpdateJavaScript() {
 
 void IrisToolbarButtons::OnShieldPressed() {
   content::WebContents* web_contents =
-      browser_->tab_strip_model()->GetActiveWebContents();
+      browser_->GetTabStripModel()->GetActiveWebContents();
   if (web_contents) {
     IrisShieldBubble::Show(shield_, browser_, web_contents);
   }
@@ -376,7 +377,7 @@ void IrisToolbarButtons::OnShieldPressed() {
 
 void IrisToolbarButtons::OnJavaScriptPressed() {
   content::WebContents* web_contents =
-      browser_->tab_strip_model()->GetActiveWebContents();
+      browser_->GetTabStripModel()->GetActiveWebContents();
   if (!web_contents) {
     return;
   }
@@ -385,7 +386,7 @@ void IrisToolbarButtons::OnJavaScriptPressed() {
     return;
   }
   HostContentSettingsMap* map =
-      HostContentSettingsMapFactory::GetForProfile(browser_->profile());
+      HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
   const bool allowed =
       map->GetContentSetting(url, url, ContentSettingsType::JAVASCRIPT) !=
       CONTENT_SETTING_BLOCK;
@@ -414,7 +415,7 @@ void IrisToolbarButtons::OnNewIdentityPressed() {
   }
   DisarmNewIdentity();
 
-  Profile* profile = browser_->profile();
+  Profile* profile = browser_->GetProfile();
   profile->GetBrowsingDataRemover()->Remove(
       base::Time(), base::Time::Max(),
       chrome_browsing_data_remover::DATA_TYPE_SITE_DATA |
@@ -425,7 +426,7 @@ void IrisToolbarButtons::OnNewIdentityPressed() {
           content::BrowsingDataRemover::ORIGIN_TYPE_PROTECTED_WEB);
   iris::RerollFingerprintSeed();
 
-  TabStripModel* model = browser_->tab_strip_model();
+  TabStripModel* model = browser_->GetTabStripModel();
   chrome::AddAndReturnTabAt(browser_, GURL(chrome::kChromeUINewTabURL), -1,
                             true);
   for (int i = model->count() - 2; i >= 0; --i) {
