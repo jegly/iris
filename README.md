@@ -510,4 +510,4 @@ GitHub's *Report a vulnerability* (Security tab) rather than a public issue.
 - Iris patches and tooling: GPL-2.0-or-later (`LICENSE`). "Or later" because Chromium contains Apache-2.0
   components, which are compatible with GPL-3.0 but not GPL-2.0-only.
 
-Iris is made by [jegly](https://github.com/jegly). It is based on Chromium and not affiliated with Google.
+Iris is made by [jegly](https://github.com/jegly) & Claude. It is based on Chromium and not affiliated with Google.
