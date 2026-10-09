@@ -4,7 +4,7 @@
 # The shield panel (iris_toolbar_buttons.cc) now has: ads and trackers, cross-site cookies, JavaScript, WebGL, Google
 # sign-in prompts, "forget this site", canvas/audio reading, browser identity and the TLS connection details. So on
 # DESKTOP the Page Info popup no longer shows:
-#   - the "Intrusive ads", "WebGL" and "Google sign-in prompts" permission rows   (PageInfo::ShouldShowPermission)
+#   - the "Intrusive ads", "JavaScript", "WebGL" and "Google sign-in prompts" rows (PageInfo::ShouldShowPermission)
 #   - the "Browser identity" row                                                 (page_info_main_view.cc)
 #   - the "Forget this site" toggle on the cookies page                         (page_info_cookies_content_view.cc)
 #   - the TLS "Connection details" block on "Connection is secure"              (page_info_security_content_view.cc)
@@ -38,6 +38,13 @@ edit("components/page_info/page_info.cc",
      "#endif\n\n"
      "  // Iris: its per-site switches are always offered on the site's Page Info.\n",
      "apply-pageinfo-move-to-shield.sh", "hide ads / WebGL / sign-in rows (desktop)")
+# JavaScript too: Chromium adds a JavaScript row once a site has its own setting; the shield and the </> button own it.
+edit("components/page_info/page_info.cc",
+     "  if (info.type == ContentSettingsType::ADS ||\n      info.type == ContentSettingsType::IRIS_WEBGL ||\n",
+     "  if (info.type == ContentSettingsType::ADS ||\n"
+     "      info.type == ContentSettingsType::JAVASCRIPT ||  // Iris: in the shield\n"
+     "      info.type == ContentSettingsType::IRIS_WEBGL ||\n",
+     "ContentSettingsType::JAVASCRIPT ||  // Iris: in the shield", "hide JavaScript row (desktop)")
 V = "chrome/browser/ui/views/page_info/"
 # The hidden blocks are compiled out with #if 0 (an "if (false ...)" is rejected by -Wunreachable-code). The original
 # lines stay inside, so the markers of apply-page-info-identity / apply-forget-site / apply-page-info-tls still match.
