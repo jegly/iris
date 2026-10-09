@@ -93,6 +93,13 @@ GitHub's *Report a vulnerability* (Security tab) rather than a public issue.
 - IBM Plex Sans font (built-in pages): IBM Corp., SIL Open Font License 1.1.
 - Catppuccin colour palette: the Catppuccin project, MIT.
 - 48 light colour palettes: the Gogh colour schemes (github.com/Gogh-Co/Gogh) and their authors, MIT or Apache-2.0.
+- Tabler Icons (toolbar icons): Paweł Kuna and contributors, MIT (github.com/tabler/tabler-icons).
+- Ideas and approaches, reimplemented in Iris's own patches:
+  - Vanadium (GrapheneOS): build hardening flags, privacy defaults and Android credential handling.
+  - Cromite and Trivalent: built-in ad blocking, secure DNS by default, removed fingerprinting APIs, distrust of
+    user-installed certificates and full URLs.
+  - Brave: the shield with a per-page blocked count.
+  - Tor Browser: the 100 ms timer precision used by "Coarser timers".
 - Iris patches and tooling: GPL-2.0-or-later (`LICENSE`). "Or later" because Chromium contains Apache-2.0
   components, which are compatible with GPL-3.0 but not GPL-2.0-only.
 
