@@ -76,5 +76,23 @@ html = "    <!-- Iris: toolbar buttons (apply-toolbar-buttons.sh; English-only) 
 edit(A, "    <div id=\"toolbarRow\" class=\"settings-row\">\n",
      html + "    <div id=\"toolbarRow\" class=\"settings-row\">\n",
      "irisToolbarShieldToggle", "Appearance toggles")
+# Lock button mode (jegly 2026-10-09): "Lock without closing Iris" hides the windows until the passphrase is entered
+# (IrisScreenLock in iris_toolbar_buttons.cc, Linux) instead of quitting. Pref iris.ui.lock_keep_open, default off.
+edit("chrome/browser/extensions/api/settings_private/prefs_util.cc",
+     "  (*s_allowlist)[\"iris.ui.toolbar_lock\"] = settings_api::PrefType::kBoolean;\n",
+     "  (*s_allowlist)[\"iris.ui.toolbar_lock\"] = settings_api::PrefType::kBoolean;\n"
+     "  (*s_allowlist)[\"iris.ui.lock_keep_open\"] = settings_api::PrefType::kBoolean;\n",
+     "\"iris.ui.lock_keep_open\"", "allowlist: lock mode")
+edit(A, "        sub-label=\"Locks and closes Iris. Only shown while the app lock is on.\">\n"
+        "    </settings-toggle-button>\n",
+     "        sub-label=\"Locks Iris. Only shown while the app lock is on.\">\n"
+     "    </settings-toggle-button>\n"
+     "    <settings-toggle-button id=\"irisLockKeepOpenToggle\" class=\"hr\"\n"
+     "        pref-key=\"iris.ui.lock_keep_open\"\n"
+     "        label=\"Lock without closing Iris\"\n"
+     "        sub-label=\"The lock button hides all Iris windows until you enter your passphrase, instead of closing Iris. "
+     "Faster to come back to, but your data stays unlocked in memory while Iris runs; closing Iris is the stronger lock.\">\n"
+     "    </settings-toggle-button>\n",
+     "irisLockKeepOpenToggle", "Appearance: lock mode")
 PY
 echo "=== toolbar buttons complete ==="

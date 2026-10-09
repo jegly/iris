@@ -38,6 +38,9 @@ class IrisToolbarButtons : public views::View,
   static constexpr char kJavaScriptPref[] = "iris.ui.toolbar_javascript";
   static constexpr char kNewIdentityPref[] = "iris.ui.toolbar_new_identity";
   static constexpr char kLockPref[] = "iris.ui.toolbar_lock";
+  // Lock button: hide the windows until the passphrase is entered, instead of
+  // quitting Iris (Linux; the unlock window is Linux-only).
+  static constexpr char kLockKeepOpenPref[] = "iris.ui.lock_keep_open";
 
   explicit IrisToolbarButtons(BrowserWindowInterface* browser);
   IrisToolbarButtons(const IrisToolbarButtons&) = delete;

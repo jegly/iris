@@ -64,6 +64,26 @@ bool IrisUnlockDialog::Run(TryUnlock try_unlock, int palette, int color_scheme) 
   return unlocked;
 }
 
+// static
+void IrisUnlockDialog::ShowWhileRunning(TryUnlock try_unlock,
+                                        int palette,
+                                        int color_scheme,
+                                        base::OnceCallback<void(bool)> done) {
+  views::Widget* widget = views::DialogDelegate::CreateDialogWidget(
+      new IrisUnlockDialog(std::move(try_unlock), std::move(done)), nullptr,
+      nullptr);
+  if (color_scheme == 1) {
+    widget->SetColorModeOverride(ui::ColorProviderKey::ColorMode::kLight);
+  } else if (color_scheme == 2) {
+    widget->SetColorModeOverride(ui::ColorProviderKey::ColorMode::kDark);
+  }
+  if (palette >= 0 && static_cast<size_t>(palette) < ui::iris::kPaletteCount) {
+    widget->SetUserColorOverride(
+        ui::iris::IrisPaletteSeed(static_cast<size_t>(palette)));
+  }
+  widget->Show();
+}
+
 IrisUnlockDialog::IrisUnlockDialog(TryUnlock try_unlock,
                                    base::OnceCallback<void(bool)> done)
     : try_unlock_(std::move(try_unlock)), done_(std::move(done)) {

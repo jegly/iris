@@ -30,6 +30,14 @@ class IrisUnlockDialog : public views::DialogDelegate {
   // Local State (iris_app_lock::kLockPalettePref / kLockColorSchemePref).
   static bool Run(TryUnlock try_unlock, int palette = -1, int color_scheme = 2);
 
+  // The same window while Iris is running (toolbar "Lock" with "keep Iris open"):
+  // shown without blocking; `done` gets true after the right passphrase, false
+  // when the user quits or closes the window.
+  static void ShowWhileRunning(TryUnlock try_unlock,
+                               int palette,
+                               int color_scheme,
+                               base::OnceCallback<void(bool)> done);
+
   IrisUnlockDialog(TryUnlock try_unlock, base::OnceCallback<void(bool)> done);
   IrisUnlockDialog(const IrisUnlockDialog&) = delete;
   IrisUnlockDialog& operator=(const IrisUnlockDialog&) = delete;

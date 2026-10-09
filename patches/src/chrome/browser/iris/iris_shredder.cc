@@ -36,6 +36,7 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref("iris.ui.toolbar_javascript", true);
   registry->RegisterBooleanPref("iris.ui.toolbar_new_identity", true);
   registry->RegisterBooleanPref("iris.ui.toolbar_lock", true);
+  registry->RegisterBooleanPref("iris.ui.lock_keep_open", false);
   // Traffic-light window buttons (apply-traffic-lights.sh; names in
   // chrome/browser/ui/views/frame/iris_traffic_light_button.h).
   registry->RegisterBooleanPref("iris.ui.traffic_lights", true);

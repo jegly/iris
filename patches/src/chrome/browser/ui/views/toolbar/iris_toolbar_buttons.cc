@@ -15,6 +15,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/time/time.h"
+#include "build/build_config.h"
 #include "chrome/app/vector_icons/vector_icons.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/browsing_data/chrome_browsing_data_remover_constants.h"
@@ -36,6 +37,13 @@
 #include "ui/views/layout/fill_layout.h"
 #include "ui/views/controls/scroll_view.h"
 #include "chrome/browser/iris/iris_app_lock.h"  // nogncheck
+#include "base/no_destructor.h"
+#include "chrome/browser/ui/browser_window/public/browser_collection_observer.h"
+#include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
+#include "ui/base/base_window.h"
+#if BUILDFLAG(IS_LINUX)
+#include "chrome/browser/ui/views/iris/iris_unlock_dialog.h"  // nogncheck
+#endif
 #include "chrome/browser/iris/iris_fingerprint_host.h"  // nogncheck
 #include "chrome/browser/iris/iris_user_agent.h"  // nogncheck
 #include "chrome/browser/lifetime/application_lifetime.h"
@@ -74,6 +82,75 @@
 #include "url/gurl.h"
 
 namespace {
+
+#if BUILDFLAG(IS_LINUX)
+// "Lock" with "Lock without closing Iris" on: every Iris window is hidden until
+// the passphrase is entered again in the "Iris is locked" window. Windows that
+// open meanwhile (for example by starting Iris again) are hidden too. The data
+// key stays in memory while Iris runs; "Lock and close" is the stronger lock.
+class IrisScreenLock : public BrowserCollectionObserver {
+ public:
+  static void Lock() {
+    static base::NoDestructor<IrisScreenLock> instance;
+    instance->Start();
+  }
+
+  // BrowserCollectionObserver:
+  void OnBrowserCreated(BrowserWindowInterface* browser) override {
+    Hide(browser);
+  }
+  void OnBrowserActivated(BrowserWindowInterface* browser) override {
+    Hide(browser);
+  }
+
+ private:
+  static void Hide(BrowserWindowInterface* browser) {
+    if (browser && browser->GetWindow()) {
+      browser->GetWindow()->Hide();
+    }
+  }
+
+  void Start() {
+    PrefService* local_state = g_browser_process->local_state();
+    if (locked_ || !local_state) {
+      return;
+    }
+    locked_ = true;
+    GlobalBrowserCollection* browsers = GlobalBrowserCollection::GetInstance();
+    browsers->ForEach([](BrowserWindowInterface* browser) {
+      Hide(browser);
+      return true;
+    });
+    browsers->AddObserver(this);
+    IrisUnlockDialog::ShowWhileRunning(
+        base::BindRepeating([](const std::u16string& passphrase) {
+          return iris_app_lock::Unlock(g_browser_process->local_state(),
+                                       passphrase);
+        }),
+        local_state->GetInteger(iris_app_lock::kLockPalettePref),
+        local_state->GetInteger(iris_app_lock::kLockColorSchemePref),
+        base::BindOnce(&IrisScreenLock::Done, base::Unretained(this)));
+  }
+
+  void Done(bool unlocked) {
+    GlobalBrowserCollection* browsers = GlobalBrowserCollection::GetInstance();
+    browsers->RemoveObserver(this);
+    locked_ = false;
+    if (!unlocked) {
+      chrome::AttemptUserExit();
+      return;
+    }
+    browsers->ForEach([](BrowserWindowInterface* browser) {
+      if (browser->GetWindow()) {
+        browser->GetWindow()->Show();
+      }
+      return true;
+    });
+  }
+
+  bool locked_ = false;
+};
+#endif  // BUILDFLAG(IS_LINUX)
 
 constexpr base::TimeDelta kArmedFor = base::Seconds(4);
 
@@ -620,7 +697,8 @@ IrisToolbarButtons::IrisToolbarButtons(BrowserWindowInterface* browser) : browse
   browser_->GetTabStripModel()->AddObserver(this);
   pref_registrar_.Init(browser_->GetProfile()->GetPrefs());
   for (const char* pref :
-       {kShieldPref, kJavaScriptPref, kNewIdentityPref, kLockPref}) {
+       {kShieldPref, kJavaScriptPref, kNewIdentityPref, kLockPref,
+        kLockKeepOpenPref}) {
     pref_registrar_.Add(pref,
                         base::BindRepeating(&IrisToolbarButtons::UpdateVisibility,
                                             base::Unretained(this)));
@@ -687,6 +765,11 @@ void IrisToolbarButtons::UpdateVisibility() {
   shield_->SetVisible(prefs->GetBoolean(kShieldPref));
   javascript_->SetVisible(prefs->GetBoolean(kJavaScriptPref));
   new_identity_->SetVisible(prefs->GetBoolean(kNewIdentityPref));
+  const std::u16string lock_name = prefs->GetBoolean(kLockKeepOpenPref)
+                                       ? u"Lock Iris"
+                                       : u"Lock and close Iris";
+  lock_->SetTooltipText(lock_name);
+  lock_->GetViewAccessibility().SetName(lock_name);
   lock_->SetVisible(prefs->GetBoolean(kLockPref) &&
                     g_browser_process->local_state() &&
                     iris_app_lock::IsEnabled(g_browser_process->local_state()));
@@ -819,6 +902,12 @@ void IrisToolbarButtons::DisarmNewIdentity() {
 }
 
 void IrisToolbarButtons::OnLockPressed() {
+#if BUILDFLAG(IS_LINUX)
+  if (browser_->GetProfile()->GetPrefs()->GetBoolean(kLockKeepOpenPref)) {
+    IrisScreenLock::Lock();
+    return;
+  }
+#endif
   chrome::AttemptUserExit();
 }
 
