@@ -13,6 +13,8 @@
 #define CHROME_BROWSER_UI_VIEWS_TOOLBAR_IRIS_TOOLBAR_BUTTONS_H_
 
 #include "base/memory/raw_ptr.h"
+#include "base/memory/weak_ptr.h"
+#include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "chrome/browser/iris/iris_shield_stats.h"  // nogncheck
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
@@ -20,6 +22,7 @@
 #include "content/public/browser/web_contents_observer.h"
 #include "ui/base/metadata/metadata_header_macros.h"
 #include "ui/views/view.h"
+#include "ui/views/view_tracker.h"
 
 class BrowserWindowInterface;
 class ToolbarButton;
@@ -64,6 +67,7 @@ class IrisToolbarButtons : public views::View,
   void BindToActiveTab();
 
   void OnShieldPressed();
+  void OnShieldBubbleClosed();
   void OnJavaScriptPressed();
   void OnNewIdentityPressed();
   void OnLockPressed();
@@ -78,6 +82,9 @@ class IrisToolbarButtons : public views::View,
   bool new_identity_armed_ = false;
   base::OneShotTimer disarm_timer_;
   PrefChangeRegistrar pref_registrar_;
+  views::ViewTracker shield_bubble_;
+  base::TimeTicks shield_bubble_closed_at_;
+  base::WeakPtrFactory<IrisToolbarButtons> weak_factory_{this};
 };
 
 #endif  // CHROME_BROWSER_UI_VIEWS_TOOLBAR_IRIS_TOOLBAR_BUTTONS_H_

@@ -50,6 +50,7 @@
 #include "ui/views/controls/link.h"
 #include "ui/views/layout/box_layout.h"
 #include "ui/views/style/typography.h"
+#include "ui/views/view_tracker.h"
 #include "ui/views/widget/widget.h"
 #include "url/gurl.h"
 
@@ -78,13 +79,17 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   METADATA_HEADER(IrisShieldBubble, LocationBarBubbleDelegateView)
 
  public:
-  static void Show(views::View* anchor,
-                   BrowserWindowInterface* browser,
-                   content::WebContents* web_contents) {
-    auto bubble = std::make_unique<IrisShieldBubble>(anchor, browser, web_contents);
+  static IrisShieldBubble* Show(views::View* anchor,
+                                BrowserWindowInterface* browser,
+                                content::WebContents* web_contents,
+                                base::OnceClosure on_closed) {
+    auto bubble = std::make_unique<IrisShieldBubble>(anchor, browser,
+                                                     web_contents);
     IrisShieldBubble* raw_bubble = bubble.get();
+    raw_bubble->on_closed_ = std::move(on_closed);
     views::BubbleDialogDelegateView::CreateBubble(std::move(bubble));
     raw_bubble->ShowForReason(LocationBarBubbleDelegateView::USER_GESTURE);
+    return raw_bubble;
   }
 
   IrisShieldBubble(views::View* anchor,
@@ -163,6 +168,9 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
     if (stats_) {
       stats_->RemoveObserver(this);
     }
+    if (on_closed_) {
+      std::move(on_closed_).Run();
+    }
   }
 
   // iris::ShieldStats::Observer:
@@ -221,6 +229,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   raw_ptr<views::Label> fingerprints_ = nullptr;
   raw_ptr<views::Checkbox> ads_switch_ = nullptr;
   raw_ptr<views::Combobox> fingerprint_box_ = nullptr;
+  base::OnceClosure on_closed_;
 };
 
 BEGIN_METADATA(IrisShieldBubble)
@@ -357,11 +366,7 @@ void IrisToolbarButtons::UpdateJavaScript() {
     javascript_->SetTooltipText(
         u"JavaScript is on for this site. Click to turn it off.");
   } else {
-    std::optional<SkColor> color;
-    if (GetWidget()) {
-      color = GetColorProvider()->GetColor(ui::kColorAlertHighSeverity);
-    }
-    javascript_->SetHighlight(u"off", color);
+    javascript_->SetHighlight(u"off", std::nullopt);
     javascript_->SetTooltipText(
         u"JavaScript is off for this site. Click to turn it on.");
   }
@@ -370,9 +375,28 @@ void IrisToolbarButtons::UpdateJavaScript() {
 void IrisToolbarButtons::OnShieldPressed() {
   content::WebContents* web_contents =
       browser_->GetTabStripModel()->GetActiveWebContents();
-  if (web_contents) {
-    IrisShieldBubble::Show(shield_, browser_, web_contents);
+  if (!web_contents) {
+    return;
   }
+  // A second click on the shield closes the panel. Pressing the button also
+  // deactivates (and so already closes) the panel before this click arrives,
+  // so a panel that closed a moment ago counts as "still open".
+  if (shield_bubble_.view()) {
+    shield_bubble_.view()->GetWidget()->Close();
+    return;
+  }
+  if (base::TimeTicks::Now() - shield_bubble_closed_at_ <
+      base::Milliseconds(400)) {
+    return;
+  }
+  shield_bubble_.SetView(IrisShieldBubble::Show(
+      shield_, browser_, web_contents,
+      base::BindOnce(&IrisToolbarButtons::OnShieldBubbleClosed,
+                     weak_factory_.GetWeakPtr())));
+}
+
+void IrisToolbarButtons::OnShieldBubbleClosed() {
+  shield_bubble_closed_at_ = base::TimeTicks::Now();
 }
 
 void IrisToolbarButtons::OnJavaScriptPressed() {
@@ -400,11 +424,7 @@ void IrisToolbarButtons::OnJavaScriptPressed() {
 void IrisToolbarButtons::OnNewIdentityPressed() {
   if (!new_identity_armed_) {
     new_identity_armed_ = true;
-    std::optional<SkColor> color;
-    if (GetWidget()) {
-      color = GetColorProvider()->GetColor(ui::kColorAlertHighSeverity);
-    }
-    new_identity_->SetHighlight(u"Click again", color);
+    new_identity_->SetHighlight(u"Sure?", std::nullopt);
     new_identity_->SetTooltipText(
         u"Click again to erase site data, cache, history and downloads, "
         u"close the other tabs and start fresh.");
