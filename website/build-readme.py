@@ -31,7 +31,10 @@ def md_inline(fragment: str) -> str:
 out = []
 out.append('<p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>\n')
 
-# The website's hero paragraph is not copied into the README (jegly 2026-10-09).
+# README intro: GitHub-only text (website/readme-intro.md), not the website's hero paragraph (jegly 2026-10-09).
+intro_path = HERE / "readme-intro.md"
+if intro_path.exists():
+    out.append(intro_path.read_text().strip() + "\n")
 
 # GitHub-only security philosophy + comparison chart, right after the intro (website/readme-top.md)
 top_path = HERE / "readme-top.md"
