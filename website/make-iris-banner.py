@@ -2,6 +2,8 @@
 # Iris README banner (website/iris-banner.svg). Orb + "Iris" (DotGothic16 outlines, taken from website/readme-banner.svg) +
 # subtitle + feature badges + a faint real night sky over a subtle 80s grid, Catppuccin Mocha.
 # Usage (from website/): python3 make-iris-banner.py readme-banner.svg iris-banner.svg
+# Snap Store banner (3:1): IRIS_BANNER_WIDTH=1440 python3 make-iris-banner.py readme-banner.svg snap.svg, then render it
+# at 2x, e.g. chrome --headless --force-device-scale-factor=2 --window-size=1440,480 --screenshot=snap.png file://.../snap.svg
 import math, re, sys
 src, out_path = sys.argv[1], sys.argv[2]
 STYLE = sys.argv[3] if len(sys.argv) > 3 else "mauve"  # 80s grid: "mauve" (default) or "neon-green"
@@ -10,7 +12,8 @@ g = re.search(r'<g fill="#CDD6F4" transform="translate\(72 178\)">(.*?)</g>', s,
 paths = re.findall(r'<path transform="translate\(([\d.]+) 0\) scale\(([\d.]+) ([-\d.]+)\)" d="([^"]*)"/>', g)[:4]
 iris = "".join(f'<path transform="translate({x} 0) scale({sx} {sy})" d="{d}"/>' for x, sx, sy, d in paths)
 
-W, H = 1280, 480
+import os
+W, H = int(os.environ.get("IRIS_BANNER_WIDTH", "1280")), 480  # README: 1280 (8:3); Snap Store banner: 1440 (3:1)
 HORIZON = 214  # 80s grid horizon
 CRUST, BASE, SURF = "#11111b", "#1e1e2e", "#313244"
 TEXT, SUB = "#cdd6f4", "#a6adc8"
