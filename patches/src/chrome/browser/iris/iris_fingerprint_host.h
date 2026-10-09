@@ -34,6 +34,9 @@ void SetFingerprintReadsPreset(content::BrowserContext* context,
                                const GURL& url,
                                std::string_view preset);
 
+// "New identity" (toolbar): draws a new random secret, so every site's canvas/audio seed changes (apply-toolbar-buttons.sh).
+void RerollFingerprintSeed();
+
 }  // namespace iris
 
 #endif  // CHROME_BROWSER_IRIS_IRIS_FINGERPRINT_HOST_H_

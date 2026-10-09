@@ -30,6 +30,11 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref(kStripTrackingParamsPref, true);
   registry->RegisterBooleanPref(kBlockDownloadsPref, false);
   registry->RegisterBooleanPref(kBlockThirdPartyPref, false);
+  // Toolbar buttons (apply-toolbar-buttons.sh; names in chrome/browser/ui/views/toolbar/iris_toolbar_buttons.h).
+  registry->RegisterBooleanPref("iris.ui.toolbar_shield", true);
+  registry->RegisterBooleanPref("iris.ui.toolbar_javascript", true);
+  registry->RegisterBooleanPref("iris.ui.toolbar_new_identity", true);
+  registry->RegisterBooleanPref("iris.ui.toolbar_lock", true);
   // Traffic-light window buttons (apply-traffic-lights.sh; names in
   // chrome/browser/ui/views/frame/iris_traffic_light_button.h).
   registry->RegisterBooleanPref("iris.ui.traffic_lights", true);

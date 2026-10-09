@@ -8,6 +8,7 @@
 #include "base/rand_util.h"
 #include "base/values.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+#include "chrome/browser/iris/iris_shield_stats.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/prefs/pref_service.h"
 #include "components/content_settings/core/browser/host_content_settings_map.h"
@@ -28,11 +29,14 @@ bool IsValidPreset(std::string_view preset) {
   return preset == "protected" || preset == "blank" || preset == "real";
 }
 
+std::string& SessionSecret() {
+  static base::NoDestructor<std::string> secret(base::RandBytesAsString(32));
+  return *secret;
+}
+
 uint64_t SeedFor(content::BrowserContext* context, const GURL& top) {
-  static const base::NoDestructor<std::string> kSessionSecret(
-      base::RandBytesAsString(32));
   const std::string material =
-      *kSessionSecret + "|" + net::SchemefulSite(top).Serialize() + "|" +
+      SessionSecret() + "|" + net::SchemefulSite(top).Serialize() + "|" +
       (context->IsOffTheRecord() ? "otr" : "reg");
   const std::string digest = crypto::SHA256HashString(material);
   return base::U64FromLittleEndian(base::as_byte_span(digest).first<8u>());
@@ -59,6 +63,8 @@ class FingerprintHost final
     } else if (preset == "real") {
       mode = blink::mojom::IrisFingerprintMode::kReal;
     }
+    // Counted by the toolbar shield (apply-shield-stats.sh).
+    ShieldStats::NoteFingerprintProtected(&rfh);
     std::move(callback).Run(mode, SeedFor(context, top));
   }
 
@@ -116,6 +122,10 @@ base::Value PresetToSettingValue(std::string_view preset) {
 }
 
 }  // namespace
+
+void RerollFingerprintSeed() {
+  SessionSecret() = base::RandBytesAsString(32);
+}
 
 std::string GetFingerprintReadsPreset(content::BrowserContext* context,
                                       const GURL& url) {
