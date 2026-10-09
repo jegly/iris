@@ -2,6 +2,7 @@
 
 #include "chrome/browser/ui/views/toolbar/iris_toolbar_buttons.h"
 
+#include <array>
 #include <memory>
 #include <string>
 #include <utility>
@@ -250,10 +251,10 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
         views::BoxLayout::CrossAxisAlignment::kStart);
     total_ = card->AddChildView(std::make_unique<views::Label>(u"0"));
     Enlarge(total_, 22);
-    total_->SetEnabledColorId(ui::kColorSysOnTonalContainer);
+    total_->SetEnabledColor(ui::kColorSysOnTonalContainer);
     auto* caption = card->AddChildView(
         std::make_unique<views::Label>(u"blocked on this page"));
-    caption->SetEnabledColorId(ui::kColorSysOnTonalContainer);
+    caption->SetEnabledColor(ui::kColorSysOnTonalContainer);
 
     auto* tiles = AddChildView(std::make_unique<views::View>());
     auto* tiles_layout = tiles->SetLayoutManager(
@@ -421,7 +422,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
     const std::string identity =
         iris::GetUserAgentPreset(browser_->GetProfile(), url_);
     size_t identity_index = 0;
-    for (size_t i = 0; i < std::size(kIdentities); ++i) {
+    for (size_t i = 0; i < kIdentities.size(); ++i) {
       if (identity == kIdentities[i].id) {
         identity_index = i;
       }
@@ -506,7 +507,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
 
   void OnIdentity() {
     const std::optional<size_t> index = identity_box_->GetSelectedIndex();
-    if (!index || *index >= std::size(kIdentities)) {
+    if (!index || *index >= kIdentities.size()) {
       return;
     }
     iris::SetUserAgentPreset(browser_->GetProfile(), url_,
@@ -535,7 +536,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
     const char* id;
     const char16_t* name;
   };
-  static constexpr Identity kIdentities[] = {
+  static constexpr auto kIdentities = std::to_array<Identity>({
       {"", u"Iris default"},
       {"firefox_linux", u"Firefox, Linux"},
       {"firefox_windows", u"Firefox, Windows"},
@@ -550,7 +551,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
       {"safari_mac", u"Safari, macOS"},
       {"safari_ios", u"Safari, iPhone"},
       {"samsung_android", u"Samsung Internet"},
-  };
+  });
 
   raw_ptr<BrowserWindowInterface> browser_;
   base::WeakPtr<content::WebContents> web_contents_;
