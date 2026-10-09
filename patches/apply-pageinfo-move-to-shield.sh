@@ -7,7 +7,7 @@
 #   - the "Intrusive ads", "JavaScript", "WebGL" and "Google sign-in prompts" rows (PageInfo::ShouldShowPermission)
 #   - the "Browser identity" row                                                 (page_info_main_view.cc)
 #   - the "Forget this site" toggle on the cookies page                         (page_info_cookies_content_view.cc)
-#   - the TLS "Connection details" block on "Connection is secure"              (page_info_security_content_view.cc)
+#   (The TLS "Connection details" block on "Connection is secure" stays; the shield shows it too.)
 # Chromium's own items stay (certificate, cookies and site data, permissions such as camera, Site settings).
 # ANDROID IS UNCHANGED: components/page_info is shared, so the row filter is under #if !BUILDFLAG(IS_ANDROID); the other
 # three files are desktop-only views. Android has no shield panel, so its Page Info keeps these rows.
@@ -71,23 +71,19 @@ hide(V + "page_info_main_view.cc",
      "    site_settings_view_->AddChildView(std::make_unique<IrisIdentityButton>(\n"
      "        presenter_->iris_web_contents(), presenter_->site_url()));\n"
      "  }\n", "hide browser identity row")
-hide(V + "page_info_security_content_view.cc",
-     "  if (identity_info.certificate) {\n    std::u16string iris_tls =",
-     "  if (identity_info.certificate) {\n"
-     "    std::u16string iris_tls =\n"
-     "        iris::GetTlsDetailsText(presenter_->iris_web_contents());\n"
-     "    if (!iris_tls.empty()) {\n"
-     "      iris_tls_view_ = AddChildView(std::make_unique<SecurityInformationView>(\n"
-     "          ChromeLayoutProvider::Get()\n"
-     "              ->GetInsetsMetric(views::INSETS_DIALOG)\n"
-     "              .left()));\n"
-     "      iris_tls_view_->SetIcon(\n"
-     "          PageInfoViewFactory::GetImageModel(vector_icons::kShieldIcon));\n"
-     "      iris_tls_view_->SetSummary(u\"Connection details\",\n"
-     "                                 views::style::STYLE_BODY_3_MEDIUM);\n"
-     "      iris_tls_view_->SetDetails(iris_tls);\n"
-     "    }\n"
-     "  }\n", "hide TLS details block")
+# TLS connection details stay in Page Info as well (jegly 2026-10-09: "i want the connection details back where it
+# was before + having it in shield aswell"). Undo the earlier hiding in trees that still have it.
+SEC = V + "page_info_security_content_view.cc"
+s2 = open(SEC).read()
+TAG = "#if 0  // Iris: moved to the toolbar shield panel (apply-pageinfo-move-to-shield.sh)\n"
+k = s2.find(TAG + "  if (identity_info.certificate) {\n    std::u16string iris_tls =")
+if k >= 0:
+    e = s2.find("#endif\n", k)
+    if e < 0: die(SEC + ": #endif after the hidden TLS block not found")
+    s2 = s2[:k] + s2[k + len(TAG):e] + s2[e + len("#endif\n"):]
+    open(SEC, "w").write(s2); print("OK   %s : TLS details shown again" % SEC)
+else:
+    print("SKIP already applied: %s (TLS details shown)" % SEC)
 C = V + "page_info_cookies_content_view.cc"
 s = open(C).read()
 v1 = "  if (false) {  // moved to the toolbar shield panel (apply-pageinfo-move-to-shield.sh)\n    AddIrisForgetSiteRow();  // Iris (B6)\n  }\n"

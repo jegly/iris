@@ -29,9 +29,9 @@ int LastCommittedEntryId(content::WebContents* web_contents) {
 }
 
 // "Name (0x1301)"; just the hex value when BoringSSL has no name for it.
+// The name only, no TLS code point (jegly 2026-10-09: no hex codes in the UI).
 std::string NameAndValue(const char* name, uint16_t value) {
-  std::string hex = base::StringPrintf("0x%04x", value);
-  return name ? base::StrCat({name, " (", hex, ")"}) : hex;
+  return name ? std::string(name) : std::string("unknown");
 }
 
 }  // namespace

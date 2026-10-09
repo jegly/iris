@@ -30,6 +30,8 @@
 #include "ui/views/controls/button/toggle_button.h"
 #include "ui/views/controls/image_view.h"
 #include "ui/views/controls/separator.h"
+#include "components/vector_icons/vector_icons.h"
+#include "ui/views/controls/button/image_button_factory.h"
 #include "ui/views/view_class_properties.h"
 #include "ui/views/layout/fill_layout.h"
 #include "ui/views/controls/scroll_view.h"
@@ -121,7 +123,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
         web_(url_.SchemeIsHTTPOrHTTPS()) {
     SetButtons(static_cast<int>(ui::mojom::DialogButton::kNone));
     set_margins(gfx::Insets::VH(12, 14));
-    set_fixed_width(332);
+    set_fixed_width(kWidth);
     SetLayoutManager(std::make_unique<views::FillLayout>());
     auto* scroll = AddChildView(std::make_unique<views::ScrollView>());
     scroll->SetHorizontalScrollBarMode(
@@ -157,7 +159,10 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   void OnShieldStatsChanged() override { UpdateCounts(); }
 
  private:
+  static constexpr int kWidth = 360;
   static constexpr int kMaxHeight = 600;
+  // Room for text inside the margins and a possible scroll bar.
+  static constexpr int kTextWidth = kWidth - 28 - 16;
 
   static void Bold(views::Label* label, int size_delta) {
     label->SetFontList(label->font_list().Derive(
@@ -169,6 +174,8 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
     auto* label = parent->AddChildView(std::make_unique<views::Label>(
         text, views::style::CONTEXT_LABEL, views::style::STYLE_SECONDARY));
     label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    label->SetMultiLine(true);
+    label->SetMaximumWidth(kTextWidth);
     return label;
   }
 
@@ -189,6 +196,8 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
         views::BoxLayout::CrossAxisAlignment::kCenter);
     auto* label = row->AddChildView(std::make_unique<views::Label>(text));
     label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    label->SetMultiLine(true);
+    label->SetMaximumWidth(kTextWidth - 52);
     layout->SetFlexForView(label, 1);
     auto* toggle = row->AddChildView(std::make_unique<views::ToggleButton>(
         base::BindRepeating(
@@ -210,6 +219,8 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
         views::BoxLayout::CrossAxisAlignment::kCenter);
     auto* label = row->AddChildView(std::make_unique<views::Label>(text));
     label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    label->SetMultiLine(true);
+    label->SetMaximumWidth(kTextWidth / 2);
     layout->SetFlexForView(label, 1);
     std::vector<ui::SimpleComboboxModel::Item> model_items;
     for (const std::u16string& item : items) {
@@ -239,7 +250,8 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
     auto* host = column->AddChildView(std::make_unique<views::Label>(
         web_ ? base::UTF8ToUTF16(url_.host()) : u"This page"));
     host->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    host->SetElideBehavior(gfx::ELIDE_HEAD);
+    host->SetMultiLine(true);
+    host->SetMaximumWidth(kTextWidth - 90);
     Bold(host, 1);
     status_ = AddSecondary(column, u"");
     master_ = header->AddChildView(std::make_unique<views::ToggleButton>(
@@ -272,6 +284,8 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
     caption->SetEnabledColor(ui::kColorSysOnTonalContainer);
     breakdown_ = column->AddChildView(std::make_unique<views::Label>());
     breakdown_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    breakdown_->SetMultiLine(true);
+    breakdown_->SetMaximumWidth(kTextWidth - 80);
     breakdown_->SetEnabledColor(ui::kColorSysOnTonalContainer);
     lifetime_ = AddSecondary(body_, u"");
   }
@@ -317,23 +331,6 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
                             base::Unretained(this)));
   }
 
-  // "Name: value (0x1234)" lines from iris::GetTlsDetailsText -> the value of the line starting with `prefix`,
-  // without the code point.
-  static std::u16string TlsValue(const std::vector<std::u16string>& lines,
-                                 std::u16string_view prefix) {
-    for (const std::u16string& line : lines) {
-      if (line.starts_with(prefix)) {
-        std::u16string value = line.substr(prefix.size());
-        const size_t code = value.find(u" (0x");
-        if (code != std::u16string::npos) {
-          value.resize(code);
-        }
-        return value;
-      }
-    }
-    return std::u16string();
-  }
-
   void BuildConnection(content::WebContents* web_contents) {
     AddSection(u"Connection");
     const std::vector<std::u16string> lines = base::SplitString(
@@ -343,37 +340,10 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
       AddSecondary(body_, web_ ? u"Not encrypted" : u"No connection details");
       return;
     }
-    // One summary line, the full list on demand.
-    std::vector<std::u16string> parts;
-    for (std::u16string_view prefix :
-         {std::u16string_view(u"Protocol: "),
-          std::u16string_view(u"Key exchange: ")}) {
-      std::u16string value = TlsValue(lines, prefix);
-      if (!value.empty()) {
-        parts.push_back(std::move(value));
-      }
-    }
-    const std::u16string ech = TlsValue(lines, u"Encrypted Client Hello: ");
-    if (!ech.empty()) {
-      parts.push_back(u"ECH " + ech);
-    }
-    auto* row = body_->AddChildView(std::make_unique<views::View>());
-    auto* layout = row->SetLayoutManager(std::make_unique<views::BoxLayout>(
-        views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 8));
-    auto* summary = AddSecondary(row, base::JoinString(parts, u" · "));
-    summary->SetElideBehavior(gfx::ELIDE_TAIL);
-    layout->SetFlexForView(summary, 1);
-    details_link_ = row->AddChildView(std::make_unique<views::Link>(u"Details"));
-    details_link_->SetCallback(base::BindRepeating(
-        &IrisShieldBubble::ToggleDetails, base::Unretained(this)));
-    details_ = body_->AddChildView(std::make_unique<views::View>());
-    details_->SetLayoutManager(std::make_unique<views::BoxLayout>(
-        views::BoxLayout::Orientation::kVertical));
+    // Every line, always visible, wrapped (no "Details" button).
     for (const std::u16string& line : lines) {
-      auto* label = AddSecondary(details_, line);
-      label->SetMultiLine(true);
+      AddSecondary(body_, line);
     }
-    details_->SetVisible(false);
   }
 
   void BuildFooter() {
@@ -387,19 +357,15 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
         base::BindRepeating(&IrisShieldBubble::OnReset, base::Unretained(this)),
         u"Reset this site"));
     reset->SetEnabled(web_);
-    auto* link = footer->AddChildView(
-        std::make_unique<views::Link>(u"Iris hardening settings"));
-    link->SetCallback(base::BindRepeating(&IrisShieldBubble::OpenSettings,
-                                          base::Unretained(this)));
-    layout->SetFlexForView(link, 1);
-    link->SetHorizontalAlignment(gfx::ALIGN_RIGHT);
-  }
-
-  void ToggleDetails() {
-    const bool show = !details_->GetVisible();
-    details_->SetVisible(show);
-    details_link_->SetText(show ? u"Hide" : u"Details");
-    SizeToContents();
+    auto* spacer = footer->AddChildView(std::make_unique<views::View>());
+    layout->SetFlexForView(spacer, 1);
+    auto* gear = footer->AddChildView(
+        views::CreateVectorImageButtonWithNativeTheme(
+            base::BindRepeating(&IrisShieldBubble::OpenSettings,
+                                base::Unretained(this)),
+            vector_icons::kSettingsIcon, 20));
+    gear->SetTooltipText(u"Iris hardening settings");
+    gear->GetViewAccessibility().SetName(u"Iris hardening settings");
   }
 
   // --- state ---------------------------------------------------------------
@@ -620,8 +586,6 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   raw_ptr<views::ToggleButton> forget_toggle_ = nullptr;
   raw_ptr<views::Combobox> fingerprint_box_ = nullptr;
   raw_ptr<views::Combobox> identity_box_ = nullptr;
-  raw_ptr<views::Link> details_link_ = nullptr;
-  raw_ptr<views::View> details_ = nullptr;
   base::OnceClosure on_closed_;
 };
 
