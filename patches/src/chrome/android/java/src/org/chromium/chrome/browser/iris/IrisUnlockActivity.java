@@ -3,12 +3,15 @@
 package org.chromium.chrome.browser.iris;
 
 import android.app.Activity;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.text.InputType;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -21,7 +24,10 @@ import android.window.OnBackInvokedDispatcher;
 
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
+import org.chromium.chrome.R;
 import org.chromium.chrome.browser.init.ChromeBrowserInitializer;
+import org.chromium.chrome.browser.night_mode.NightModeUtils;
+import org.chromium.chrome.browser.night_mode.ThemeType;
 
 import javax.crypto.Cipher;
 
@@ -44,20 +50,35 @@ public class IrisUnlockActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
 
+        // Same colours as the rest of Iris: the chosen palette (Settings > Appearance), light or dark.
+        boolean night = isNightMode();
+        int overlay = IrisPalettes.overlayFor(night);
+        if (overlay != 0) getTheme().applyStyle(overlay, true);
+        int surface = themeColor(R.attr.colorSurface, night ? 0xFF1E1E2E : 0xFFFFFFFF);
+        int onSurface = themeColor(R.attr.colorOnSurface, night ? 0xFFCDD6F4 : 0xFF1B1B1F);
+        int primary = themeColor(R.attr.colorPrimary, 0xFF6750A4);
+        int onPrimary = themeColor(R.attr.colorOnPrimary, 0xFFFFFFFF);
+        getWindow().getDecorView().setBackgroundColor(surface);
+
         int pad = (int) (24 * getResources().getDisplayMetrics().density);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
         layout.setPadding(pad, pad, pad, pad);
+        layout.setBackgroundColor(surface);
 
         TextView title = new TextView(this);
         title.setText("Iris is locked");
         title.setTextSize(24);
         title.setGravity(Gravity.CENTER);
+        title.setTextColor(onSurface);
         layout.addView(title);
 
         EditText passphrase = new EditText(this);
         passphrase.setHint("Passphrase");
+        passphrase.setTextColor(onSurface);
+        passphrase.setHintTextColor((onSurface & 0x00FFFFFF) | 0x80000000);
+        passphrase.setBackgroundTintList(ColorStateList.valueOf(primary));
         passphrase.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         passphrase.setImeOptions(EditorInfo.IME_ACTION_DONE);
         passphrase.setOnEditorActionListener(
@@ -72,6 +93,7 @@ public class IrisUnlockActivity extends Activity {
         Button unlock = new Button(this);
         unlock.setText("Unlock");
         unlock.setEnabled(false);
+        styleButton(unlock, primary, onPrimary);
         unlock.setOnClickListener(v -> unlockWithPassphrase());
         layout.addView(unlock);
         mUnlock = unlock;
@@ -79,12 +101,14 @@ public class IrisUnlockActivity extends Activity {
         Button fingerprint = new Button(this);
         fingerprint.setText("Use fingerprint");
         fingerprint.setVisibility(View.GONE);
+        styleButton(fingerprint, primary, onPrimary);
         fingerprint.setOnClickListener(v -> unlockWithFingerprint());
         layout.addView(fingerprint);
         mFingerprint = fingerprint;
 
         TextView message = new TextView(this);
         message.setGravity(Gravity.CENTER);
+        message.setTextColor(onSurface);
         message.setText("Starting…");
         layout.addView(message);
         mMessage = message;
@@ -99,6 +123,36 @@ public class IrisUnlockActivity extends Activity {
 
         // The passphrase is checked by the browser's native app lock: wait until it has started.
         ChromeBrowserInitializer.getInstance().runNowOrAfterFullBrowserStarted(this::onBrowserReady);
+    }
+
+    private boolean isNightMode() {
+        int theme = NightModeUtils.getThemeSetting();
+        if (theme == ThemeType.DARK) return true;
+        if (theme == ThemeType.LIGHT) return false;
+        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    private int themeColor(int attr, int fallback) {
+        TypedValue value = new TypedValue();
+        if (getTheme().resolveAttribute(attr, value, true)
+                && value.type >= TypedValue.TYPE_FIRST_COLOR_INT
+                && value.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+            return value.data;
+        }
+        return fallback;
+    }
+
+    private static void styleButton(Button button, int background, int text) {
+        int dim = (background & 0x00FFFFFF) | 0x61000000; // 38% when disabled
+        button.setBackgroundTintList(
+                new ColorStateList(
+                        new int[][] {{-android.R.attr.state_enabled}, {}},
+                        new int[] {dim, background}));
+        button.setTextColor(
+                new ColorStateList(
+                        new int[][] {{-android.R.attr.state_enabled}, {}},
+                        new int[] {(text & 0x00FFFFFF) | 0x99000000, text}));
     }
 
     private void onBrowserReady() {
