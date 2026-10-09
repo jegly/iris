@@ -151,6 +151,8 @@ PATCHES=(
   apply-shield-sources          # shield counter 1/4: expose ads-blocked total + blocked-cookie count (Chromium already collects them)
   apply-iris-hardening-page     # all Iris switches on one "Iris hardening" sub-page (desktop) / topic groups (Android) + hide the Install button
   apply-tracking-param-toggle   # "Remove tracking from links" switch (default on) + more tracking params (www list)
+  apply-popup-allow-once-desktop # desktop: blocked pop-up bubble gets "Allow once" (open them now, setting unchanged)
+  apply-block-downloads         # "Block all downloads" switch (off by default; desktop + Android)
   apply-webgl-wording           # clarify "Allow WebGL" vs "Turn WebGL off completely" (Android + desktop)
   apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance
   apply-glass-window            # desktop: see-through glass window (title bar, tabs, toolbar) + opacity slider in Appearance, off by default

@@ -28,6 +28,7 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref(kBlockAutoplayPref, false);
   registry->RegisterBooleanPref(kHideInstallButtonPref, false);
   registry->RegisterBooleanPref(kStripTrackingParamsPref, true);
+  registry->RegisterBooleanPref(kBlockDownloadsPref, false);
   // Traffic-light window buttons (apply-traffic-lights.sh; names in
   // chrome/browser/ui/views/frame/iris_traffic_light_button.h).
   registry->RegisterBooleanPref("iris.ui.traffic_lights", true);

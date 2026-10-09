@@ -56,6 +56,7 @@ class IrisShredder : public KeyedService {
   static constexpr char kHideInstallButtonPref[] = "iris.ui.hide_install_button";
   static constexpr char kStripTrackingParamsPref[] =
       "iris.privacy.strip_tracking_params";
+  static constexpr char kBlockDownloadsPref[] = "iris.privacy.block_downloads";
   static void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
 
   explicit IrisShredder(Profile* profile);
