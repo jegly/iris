@@ -41,6 +41,23 @@ Iris is a set of small, guarded patch scripts applied to an upstream Chromium ch
 `build/args-dev.gn` is a faster non-official config for development. To check a build, run `python3 test/serve.py`
 and open the self-test page in Iris.
 
+<details>
+<summary><strong>Building for macOS, Windows or iOS</strong></summary>
+
+Iris is built and tested on Ubuntu and Android only. The patches are plain Chromium source changes, so most of them should apply on other platforms too, but nobody has built or tested Iris there yet.
+
+**macOS:** install Xcode, then follow Chromium's [Mac build guide](https://chromium.googlesource.com/chromium/src/+/main/docs/mac_build_instructions.md) to get the source. Check out the base commit above, run `patches/apply-all.sh`, start from `build/args-dev.gn` (drop the Linux-only lines), and build with `autoninja -C out/Mac chrome`.
+
+**Windows:** install Visual Studio 2022 with the C++ desktop tools and the Windows SDK, then follow Chromium's [Windows build guide](https://chromium.googlesource.com/chromium/src/+/main/docs/windows_build_instructions.md). The patch scripts need bash and Python, so run them from WSL or Git Bash. Build with `autoninja -C out\Win chrome`.
+
+**iOS:** Apple requires every iOS browser to use WebKit, so Chromium on iOS doesn't use Blink, and most of Iris's engine hardening can't apply there. An iOS build would mainly get the interface and network changes.
+
+**Using a coding agent:** you can also point an AI coding agent (such as Claude Code) at this repository and ask it to build Iris for your platform. It can read the patch scripts, see which ones are Linux- or Android-specific, and adapt the build. Expect to review what it changes.
+
+**Contributions welcome.** If you get Iris building on macOS, Windows or another platform, please open an issue or a pull request with what you changed, so others can use it too.
+
+</details>
+
 ## Repository layout
 
 | Path | Contents |
