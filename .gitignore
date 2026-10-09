@@ -43,6 +43,7 @@
 /keys/*
 !/keys/jegly-mldsa87.pub.pem
 !/keys/jegly.asc
+!/keys/android-signing-certs.txt
 __pycache__/
 *.pyc
 

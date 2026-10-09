@@ -1,0 +1,16 @@
+Iris for Android (package io.jegly.iris) - APK signing certificates
+Signed by jegly. Read from iris-156.0.8078.11-2-pqc-signed.apk with:
+  apksigner verify --print-certs -v iris-*.apk
+Every Iris APK update is signed with these same keys; a different fingerprint means the APK is not from jegly.
+
+APK Signature Scheme v3.2, hybrid post-quantum (Android 16 / API 36 and newer):
+  ML-DSA signer     certificate SHA-256  5f99de5b3195753d4fe8ddabebd2fb27356b2109d6fbb2471fcbbdf21a9e76a6
+                    public key  SHA-256  aa6d6b5b96acfa1e3f52423d2081c5b097d1196503c4f68916f60d567c828bd3
+  EC P-384 signer   certificate SHA-256  fa8f4a07e6a4f2b7dc6e5ab31fc05592b1414ab9436d1e2e39b35ce3bb2e33a2
+                    public key  SHA-256  b1b0e2fde20e6374bf9efcbef594e32c5b82b173fd3fa9411bf11c88551a0a1c
+
+APK Signature Scheme v3.0 (older Android versions):
+  RSA 2048 signer   certificate SHA-256  98d324d4106a368c62729a0a24d9ac9a6b47f8ac4c6585348531f0ee4eb6a04c
+                    public key  SHA-256  24bd5f4b81977704457cb3535572c5107e0010dfec5258f7ccad7ab0e8aed3e0
+
+Certificate subject for all three: CN=Jegly
