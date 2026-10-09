@@ -159,6 +159,7 @@ PATCHES=(
   apply-shield-stats            # shield counter 2/4: per-tab ShieldStats (ads + cookies + fingerprint reads)
   apply-toolbar-icons           # new toolbar icons: refresh-dot (reload), x (stop), bookmark-plus (star), gear (menu) + shield/JS/flame/lock for the Iris buttons
   apply-toolbar-buttons         # desktop toolbar: shield (blocked count + panel), JavaScript, New identity, Lock buttons + Appearance switches
+  apply-pageinfo-move-to-shield # desktop Page Info: Iris rows (ads, WebGL, sign-in, identity, forget, TLS details) now live in the shield panel; Android unchanged
   apply-jpegxl-on               # JPEG XL images explicitly on (decoder + feature already default; added to compiled-in --enable-features)
   apply-webgl-wording           # clarify "Allow WebGL" vs "Turn WebGL off completely" (Android + desktop)
   apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance

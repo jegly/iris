@@ -43,6 +43,8 @@ class ShieldStats : public content::WebContentsObserver,
   int cookies() const;
   int fingerprints() const { return static_cast<int>(fingerprint_sites_.size()); }
   int total() const { return ads() + cookies() + fingerprints(); }
+  // Everything the shield has counted in this profile since it was created.
+  int lifetime() const;
 
   void AddObserver(Observer* observer);
   void RemoveObserver(Observer* observer);
@@ -62,6 +64,7 @@ class ShieldStats : public content::WebContentsObserver,
   void NotifyChanged();
 
   std::set<std::string> fingerprint_sites_;
+  int counted_ = 0;  // part of total() already added to the lifetime count
   base::OneShotTimer refresh_timer_;
   base::ObserverList<Observer> observers_;
 

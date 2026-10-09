@@ -17,8 +17,19 @@
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/browsing_data/chrome_browsing_data_remover_constants.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+#include "chrome/browser/content_settings/cookie_settings_factory.h"
+#include "chrome/browser/iris/iris_tls_info.h"  // nogncheck
+#include "components/content_settings/core/browser/cookie_settings.h"
+#include "base/strings/string_split.h"
+#include "ui/base/models/image_model.h"
+#include "ui/views/background.h"
+#include "ui/views/controls/button/md_text_button.h"
+#include "ui/views/controls/button/toggle_button.h"
+#include "ui/views/controls/image_view.h"
+#include "ui/views/controls/separator.h"
 #include "chrome/browser/iris/iris_app_lock.h"  // nogncheck
 #include "chrome/browser/iris/iris_fingerprint_host.h"  // nogncheck
+#include "chrome/browser/iris/iris_user_agent.h"  // nogncheck
 #include "chrome/browser/lifetime/application_lifetime.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -73,7 +84,7 @@ void ReloadTab(content::WebContents* web_contents) {
 
 }  // namespace
 
-// The panel that opens from the shield button.
+// The panel that opens from the shield button: one place for everything Iris does for the current site.
 class IrisShieldBubble : public LocationBarBubbleDelegateView,
                          public iris::ShieldStats::Observer {
   METADATA_HEADER(IrisShieldBubble, LocationBarBubbleDelegateView)
@@ -98,70 +109,27 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
       : LocationBarBubbleDelegateView(anchor, web_contents),
         browser_(browser),
         web_contents_(web_contents->GetWeakPtr()),
-        stats_(iris::ShieldStats::FromWebContents(web_contents)) {
+        stats_(iris::ShieldStats::FromWebContents(web_contents)),
+        url_(web_contents->GetLastCommittedURL()),
+        web_(url_.SchemeIsHTTPOrHTTPS()) {
     SetButtons(static_cast<int>(ui::mojom::DialogButton::kNone));
     set_margins(gfx::Insets(16));
+    set_fixed_width(348);
     SetLayoutManager(std::make_unique<views::BoxLayout>(
-        views::BoxLayout::Orientation::kVertical, gfx::Insets(), 8));
+        views::BoxLayout::Orientation::kVertical, gfx::Insets(), 10));
 
-    AddChildView(std::make_unique<views::Label>(
-        u"Iris shield", views::style::CONTEXT_DIALOG_TITLE));
-    total_ = AddChildView(std::make_unique<views::Label>());
-    total_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    ads_ = AddChildView(std::make_unique<views::Label>());
-    ads_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    cookies_ = AddChildView(std::make_unique<views::Label>());
-    cookies_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-    fingerprints_ = AddChildView(std::make_unique<views::Label>());
-    fingerprints_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-
-    const GURL url = web_contents->GetLastCommittedURL();
-    const bool web = url.SchemeIsHTTPOrHTTPS();
-
-    ads_switch_ = AddChildView(std::make_unique<views::Checkbox>(
-        u"Block ads and trackers on this site",
-        base::BindRepeating(&IrisShieldBubble::OnAdsChanged,
-                            base::Unretained(this))));
-    ads_switch_->SetEnabled(web);
-    if (web) {
-      HostContentSettingsMap* map =
-          HostContentSettingsMapFactory::GetForProfile(browser->GetProfile());
-      ads_switch_->SetChecked(
-          map->GetContentSetting(url, url, ContentSettingsType::ADS) !=
-          CONTENT_SETTING_ALLOW);
-    }
-
-    AddChildView(std::make_unique<views::Label>(
-        u"Canvas and audio reading on this site"));
-    std::vector<ui::SimpleComboboxModel::Item> items;
-    items.emplace_back(u"Protected (small random changes)");
-    items.emplace_back(u"Real (nothing changed)");
-    items.emplace_back(u"Blank (empty data)");
-    fingerprint_box_ = AddChildView(std::make_unique<views::Combobox>(
-        std::make_unique<ui::SimpleComboboxModel>(std::move(items))));
-    fingerprint_box_->GetViewAccessibility().SetName(
-        u"Canvas and audio reading");
-    fingerprint_box_->SetEnabled(web);
-    if (web) {
-      const std::string preset =
-          iris::GetFingerprintReadsPreset(browser->GetProfile(), url);
-      fingerprint_box_->SetSelectedIndex(preset == "real"    ? 1
-                                         : preset == "blank" ? 2
-                                                             : 0);
-    }
-    fingerprint_box_->SetCallback(base::BindRepeating(
-        &IrisShieldBubble::OnFingerprintChanged, base::Unretained(this)));
-
-    auto* link = AddChildView(
-        std::make_unique<views::Link>(u"Iris hardening settings"));
-    link->SetCallback(base::BindRepeating(&IrisShieldBubble::OpenSettings,
-                                          base::Unretained(this)));
-    link->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    BuildHeader(web_contents);
+    BuildCounts();
+    BuildSiteControls();
+    BuildConnection(web_contents);
+    BuildSummary();
+    BuildFooter();
 
     if (stats_) {
       stats_->AddObserver(this);
     }
     UpdateCounts();
+    SyncControls();
   }
 
   ~IrisShieldBubble() override {
@@ -177,42 +145,385 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   void OnShieldStatsChanged() override { UpdateCounts(); }
 
  private:
+  using Style = views::style::TextStyle;
+
+  static void Enlarge(views::Label* label, int size_delta) {
+    label->SetFontList(label->font_list().Derive(
+        size_delta, gfx::Font::NORMAL, gfx::Font::Weight::BOLD));
+  }
+
+  views::Label* AddSecondary(views::View* parent, const std::u16string& text) {
+    auto* label = parent->AddChildView(std::make_unique<views::Label>(
+        text, views::style::CONTEXT_LABEL, views::style::STYLE_SECONDARY));
+    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    label->SetMultiLine(true);
+    return label;
+  }
+
+  void AddSection(const std::u16string& title) {
+    AddChildView(std::make_unique<views::Separator>());
+    auto* label = AddChildView(std::make_unique<views::Label>(
+        title, views::style::CONTEXT_LABEL, views::style::STYLE_SECONDARY));
+    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    Enlarge(label, 0);
+  }
+
+  // A label on the left, a switch on the right.
+  views::ToggleButton* AddToggleRow(const std::u16string& text,
+                                    base::RepeatingClosure callback) {
+    auto* row = AddChildView(std::make_unique<views::View>());
+    auto* layout = row->SetLayoutManager(std::make_unique<views::BoxLayout>(
+        views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 8));
+    layout->set_cross_axis_alignment(
+        views::BoxLayout::CrossAxisAlignment::kCenter);
+    auto* label = row->AddChildView(std::make_unique<views::Label>(text));
+    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    label->SetMultiLine(true);
+    layout->SetFlexForView(label, 1);
+    auto* toggle = row->AddChildView(std::make_unique<views::ToggleButton>(
+        base::BindRepeating(
+            [](base::RepeatingClosure closure) { closure.Run(); },
+            std::move(callback))));
+    toggle->GetViewAccessibility().SetName(text);
+    toggle->SetEnabled(web_);
+    return toggle;
+  }
+
+  // A label on the left, a drop-down on the right.
+  views::Combobox* AddComboRow(const std::u16string& text,
+                               const std::vector<std::u16string>& items,
+                               base::RepeatingClosure callback) {
+    auto* row = AddChildView(std::make_unique<views::View>());
+    auto* layout = row->SetLayoutManager(std::make_unique<views::BoxLayout>(
+        views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 8));
+    layout->set_cross_axis_alignment(
+        views::BoxLayout::CrossAxisAlignment::kCenter);
+    auto* label = row->AddChildView(std::make_unique<views::Label>(text));
+    label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    label->SetMultiLine(true);
+    layout->SetFlexForView(label, 1);
+    std::vector<ui::SimpleComboboxModel::Item> model_items;
+    for (const std::u16string& item : items) {
+      model_items.emplace_back(item);
+    }
+    auto* box = row->AddChildView(std::make_unique<views::Combobox>(
+        std::make_unique<ui::SimpleComboboxModel>(std::move(model_items))));
+    box->GetViewAccessibility().SetName(text);
+    box->SetEnabled(web_);
+    box->SetCallback(std::move(callback));
+    return box;
+  }
+
+  void BuildHeader(content::WebContents* web_contents) {
+    auto* header = AddChildView(std::make_unique<views::View>());
+    auto* layout = header->SetLayoutManager(std::make_unique<views::BoxLayout>(
+        views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 12));
+    layout->set_cross_axis_alignment(
+        views::BoxLayout::CrossAxisAlignment::kCenter);
+    header->AddChildView(std::make_unique<views::ImageView>(
+        ui::ImageModel::FromVectorIcon(kIrisShieldIcon, ui::kColorSysPrimary,
+                                       34)));
+    auto* column = header->AddChildView(std::make_unique<views::View>());
+    column->SetLayoutManager(std::make_unique<views::BoxLayout>(
+        views::BoxLayout::Orientation::kVertical));
+    layout->SetFlexForView(column, 1);
+    const std::u16string host =
+        web_ ? base::UTF8ToUTF16(url_.host()) : u"This page";
+    column->AddChildView(std::make_unique<views::Label>(
+        host, views::style::CONTEXT_DIALOG_TITLE));
+    status_ = AddSecondary(column, u"");
+    master_ = header->AddChildView(std::make_unique<views::ToggleButton>(
+        base::BindRepeating(&IrisShieldBubble::OnMaster,
+                            base::Unretained(this))));
+    master_->GetViewAccessibility().SetName(u"Shield for this site");
+    master_->SetEnabled(web_);
+  }
+
+  void BuildCounts() {
+    auto* card = AddChildView(std::make_unique<views::View>());
+    card->SetBackground(views::CreateRoundedRectBackground(
+        ui::kColorSysTonalContainer, 12));
+    auto* card_layout = card->SetLayoutManager(
+        std::make_unique<views::BoxLayout>(
+            views::BoxLayout::Orientation::kVertical, gfx::Insets(14), 0));
+    card_layout->set_cross_axis_alignment(
+        views::BoxLayout::CrossAxisAlignment::kStart);
+    total_ = card->AddChildView(std::make_unique<views::Label>(u"0"));
+    Enlarge(total_, 22);
+    total_->SetEnabledColorId(ui::kColorSysOnTonalContainer);
+    auto* caption = card->AddChildView(
+        std::make_unique<views::Label>(u"blocked on this page"));
+    caption->SetEnabledColorId(ui::kColorSysOnTonalContainer);
+
+    auto* tiles = AddChildView(std::make_unique<views::View>());
+    auto* tiles_layout = tiles->SetLayoutManager(
+        std::make_unique<views::BoxLayout>(
+            views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 8));
+    auto make_tile = [&](const std::u16string& caption_text,
+                         raw_ptr<views::Label>& number) {
+      auto* tile = tiles->AddChildView(std::make_unique<views::View>());
+      tile->SetBackground(views::CreateRoundedRectBackground(
+          ui::kColorSysSurface2, 10));
+      auto* layout = tile->SetLayoutManager(std::make_unique<views::BoxLayout>(
+          views::BoxLayout::Orientation::kVertical, gfx::Insets(10), 0));
+      layout->set_cross_axis_alignment(
+          views::BoxLayout::CrossAxisAlignment::kStart);
+      number = tile->AddChildView(std::make_unique<views::Label>(u"0"));
+      Enlarge(number, 6);
+      auto* text = AddSecondary(tile, caption_text);
+      text->SetMultiLine(false);
+      tiles_layout->SetFlexForView(tile, 1);
+    };
+    make_tile(u"Ads, trackers", ads_);
+    make_tile(u"Cookies", cookies_);
+    make_tile(u"Fingerprints", fingerprints_);
+  }
+
+  void BuildSiteControls() {
+    AddSection(u"This site");
+    ads_toggle_ = AddToggleRow(
+        u"Block ads and trackers",
+        base::BindRepeating(&IrisShieldBubble::OnAds, base::Unretained(this)));
+    cookie_toggle_ = AddToggleRow(
+        u"Block cross-site cookies",
+        base::BindRepeating(&IrisShieldBubble::OnCookies,
+                            base::Unretained(this)));
+    js_toggle_ = AddToggleRow(
+        u"JavaScript",
+        base::BindRepeating(&IrisShieldBubble::OnJavaScript,
+                            base::Unretained(this)));
+    webgl_toggle_ = AddToggleRow(
+        u"WebGL (3D graphics)",
+        base::BindRepeating(&IrisShieldBubble::OnWebGL, base::Unretained(this)));
+    signin_toggle_ = AddToggleRow(
+        u"Google sign-in prompts",
+        base::BindRepeating(&IrisShieldBubble::OnSignIn,
+                            base::Unretained(this)));
+    forget_toggle_ = AddToggleRow(
+        u"Forget this site when I close Iris",
+        base::BindRepeating(&IrisShieldBubble::OnForget,
+                            base::Unretained(this)));
+    fingerprint_box_ = AddComboRow(
+        u"Canvas and audio reading",
+        {u"Protected", u"Real", u"Blank"},
+        base::BindRepeating(&IrisShieldBubble::OnFingerprint,
+                            base::Unretained(this)));
+    std::vector<std::u16string> names;
+    for (const Identity& identity : kIdentities) {
+      names.emplace_back(identity.name);
+    }
+    identity_box_ = AddComboRow(
+        u"Browser identity", names,
+        base::BindRepeating(&IrisShieldBubble::OnIdentity,
+                            base::Unretained(this)));
+  }
+
+  void BuildConnection(content::WebContents* web_contents) {
+    AddSection(u"Connection");
+    const std::u16string details = iris::GetTlsDetailsText(web_contents);
+    if (details.empty()) {
+      AddSecondary(this, web_ ? u"Not encrypted" : u"No connection details");
+      return;
+    }
+    for (const std::u16string& line : base::SplitString(
+             details, u"\n", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY)) {
+      AddSecondary(this, line);
+    }
+  }
+
+  void BuildSummary() {
+    AddSection(u"Also on");
+    PrefService* prefs = browser_->GetProfile()->GetPrefs();
+    AddSecondary(this, prefs->GetBoolean("iris.privacy.block_third_party")
+                           ? u"Third-party requests: blocked"
+                           : u"Third-party requests: allowed (Iris hardening)");
+    AddSecondary(this, prefs->GetBoolean("iris.privacy.strip_tracking_params")
+                           ? u"Tracking parameters in links: removed"
+                           : u"Tracking parameters in links: kept");
+    lifetime_ = AddSecondary(this, u"");
+  }
+
+  void BuildFooter() {
+    auto* footer = AddChildView(std::make_unique<views::View>());
+    auto* layout = footer->SetLayoutManager(std::make_unique<views::BoxLayout>(
+        views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 12));
+    layout->set_cross_axis_alignment(
+        views::BoxLayout::CrossAxisAlignment::kCenter);
+    auto* reset = footer->AddChildView(std::make_unique<views::MdTextButton>(
+        base::BindRepeating(&IrisShieldBubble::OnReset, base::Unretained(this)),
+        u"Reset this site"));
+    reset->SetEnabled(web_);
+    auto* link = footer->AddChildView(
+        std::make_unique<views::Link>(u"Iris hardening settings"));
+    link->SetCallback(base::BindRepeating(&IrisShieldBubble::OpenSettings,
+                                          base::Unretained(this)));
+    layout->SetFlexForView(link, 1);
+    link->SetHorizontalAlignment(gfx::ALIGN_RIGHT);
+  }
+
+  // --- state ---------------------------------------------------------------
+
+  HostContentSettingsMap* Map() {
+    return HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
+  }
+
+  scoped_refptr<content_settings::CookieSettings> Cookies() {
+    return CookieSettingsFactory::GetForProfile(browser_->GetProfile());
+  }
+
+  ContentSetting Get(ContentSettingsType type) {
+    return Map()->GetContentSetting(url_, url_, type);
+  }
+
+  void Set(ContentSettingsType type, ContentSetting setting) {
+    Map()->SetContentSettingDefaultScope(url_, GURL(), type, setting);
+  }
+
+  std::string Fingerprint() {
+    return iris::GetFingerprintReadsPreset(browser_->GetProfile(), url_);
+  }
+
   void UpdateCounts() {
     if (!stats_) {
       return;
     }
-    total_->SetText(base::NumberToString16(stats_->total()) +
-                    u" blocked on this page");
-    ads_->SetText(u"Ads and trackers: " + base::NumberToString16(stats_->ads()));
-    cookies_->SetText(u"Cookies: " + base::NumberToString16(stats_->cookies()));
-    fingerprints_->SetText(u"Fingerprint reads protected: " +
-                           base::NumberToString16(stats_->fingerprints()));
+    total_->SetText(base::NumberToString16(stats_->total()));
+    ads_->SetText(base::NumberToString16(stats_->ads()));
+    cookies_->SetText(base::NumberToString16(stats_->cookies()));
+    fingerprints_->SetText(base::NumberToString16(stats_->fingerprints()));
+    lifetime_->SetText(u"Blocked since you started using Iris: " +
+                       base::NumberToString16(stats_->lifetime()));
   }
 
-  void OnAdsChanged() {
-    if (!web_contents_) {
+  void SyncControls() {
+    if (!web_) {
+      status_->SetText(u"Shield does not apply to this page");
       return;
     }
-    const GURL url = web_contents_->GetLastCommittedURL();
-    HostContentSettingsMap* map =
-        HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
-    // Blocking is the default: "on" removes the exception, "off" allows ads here.
-    map->SetContentSettingDefaultScope(
-        url, GURL(), ContentSettingsType::ADS,
-        ads_switch_->GetChecked() ? CONTENT_SETTING_DEFAULT
-                                  : CONTENT_SETTING_ALLOW);
-    ReloadTab(web_contents_.get());
+    const bool ads_on = Get(ContentSettingsType::ADS) != CONTENT_SETTING_ALLOW;
+    master_->SetIsOn(ads_on);
+    status_->SetText(ads_on ? u"Shield is on for this site"
+                            : u"Shield is off for this site");
+    ads_toggle_->SetIsOn(ads_on);
+    cookie_toggle_->SetIsOn(!Cookies()->IsThirdPartyAccessAllowed(url_));
+    js_toggle_->SetIsOn(Get(ContentSettingsType::JAVASCRIPT) !=
+                        CONTENT_SETTING_BLOCK);
+    webgl_toggle_->SetIsOn(Get(ContentSettingsType::IRIS_WEBGL) ==
+                           CONTENT_SETTING_ALLOW);
+    signin_toggle_->SetIsOn(Get(ContentSettingsType::IRIS_GOOGLE_SIGNIN) ==
+                            CONTENT_SETTING_ALLOW);
+    forget_toggle_->SetIsOn(Get(ContentSettingsType::COOKIES) ==
+                            CONTENT_SETTING_SESSION_ONLY);
+    const std::string fingerprint = Fingerprint();
+    fingerprint_box_->SetSelectedIndex(fingerprint == "real"    ? 1
+                                       : fingerprint == "blank" ? 2
+                                                                : 0);
+    const std::string identity =
+        iris::GetUserAgentPreset(browser_->GetProfile(), url_);
+    size_t identity_index = 0;
+    for (size_t i = 0; i < std::size(kIdentities); ++i) {
+      if (identity == kIdentities[i].id) {
+        identity_index = i;
+      }
+    }
+    identity_box_->SetSelectedIndex(identity_index);
   }
 
-  void OnFingerprintChanged() {
-    if (!web_contents_ || !fingerprint_box_->GetSelectedIndex()) {
-      return;
+  void Changed(bool reload = true) {
+    SyncControls();
+    if (reload) {
+      ReloadTab(web_contents_.get());
     }
-    const size_t index = *fingerprint_box_->GetSelectedIndex();
+  }
+
+  // --- actions -------------------------------------------------------------
+
+  void OnMaster() {
+    if (master_->GetIsOn()) {
+      Set(ContentSettingsType::ADS, CONTENT_SETTING_DEFAULT);
+      Cookies()->ResetThirdPartyCookieSetting(url_);
+      iris::SetFingerprintReadsPreset(browser_->GetProfile(), url_,
+                                      "protected");
+    } else {
+      Set(ContentSettingsType::ADS, CONTENT_SETTING_ALLOW);
+      Cookies()->SetThirdPartyCookieSetting(url_, CONTENT_SETTING_ALLOW);
+      iris::SetFingerprintReadsPreset(browser_->GetProfile(), url_, "real");
+    }
+    Changed();
+  }
+
+  void OnAds() {
+    Set(ContentSettingsType::ADS, ads_toggle_->GetIsOn()
+                                      ? CONTENT_SETTING_DEFAULT
+                                      : CONTENT_SETTING_ALLOW);
+    Changed();
+  }
+
+  void OnCookies() {
+    if (cookie_toggle_->GetIsOn()) {
+      Cookies()->ResetThirdPartyCookieSetting(url_);
+    } else {
+      Cookies()->SetThirdPartyCookieSetting(url_, CONTENT_SETTING_ALLOW);
+    }
+    Changed();
+  }
+
+  void OnJavaScript() {
+    Set(ContentSettingsType::JAVASCRIPT, js_toggle_->GetIsOn()
+                                             ? CONTENT_SETTING_ALLOW
+                                             : CONTENT_SETTING_BLOCK);
+    Changed();
+  }
+
+  void OnWebGL() {
+    Set(ContentSettingsType::IRIS_WEBGL, webgl_toggle_->GetIsOn()
+                                             ? CONTENT_SETTING_ALLOW
+                                             : CONTENT_SETTING_DEFAULT);
+    Changed();
+  }
+
+  void OnSignIn() {
+    Set(ContentSettingsType::IRIS_GOOGLE_SIGNIN, signin_toggle_->GetIsOn()
+                                                     ? CONTENT_SETTING_ALLOW
+                                                     : CONTENT_SETTING_DEFAULT);
+    Changed();
+  }
+
+  void OnForget() {
+    Set(ContentSettingsType::COOKIES, forget_toggle_->GetIsOn()
+                                          ? CONTENT_SETTING_SESSION_ONLY
+                                          : CONTENT_SETTING_DEFAULT);
+    Changed(/*reload=*/false);
+  }
+
+  void OnFingerprint() {
+    const std::optional<size_t> index = fingerprint_box_->GetSelectedIndex();
     iris::SetFingerprintReadsPreset(
-        browser_->GetProfile(), web_contents_->GetLastCommittedURL(),
-        index == 1 ? "real" : index == 2 ? "blank" : "protected");
-    ReloadTab(web_contents_.get());
+        browser_->GetProfile(), url_,
+        index == 1u ? "real" : index == 2u ? "blank" : "protected");
+    Changed();
+  }
+
+  void OnIdentity() {
+    const std::optional<size_t> index = identity_box_->GetSelectedIndex();
+    if (!index || *index >= std::size(kIdentities)) {
+      return;
+    }
+    iris::SetUserAgentPreset(browser_->GetProfile(), url_,
+                             kIdentities[*index].id);
+    Changed();
+  }
+
+  void OnReset() {
+    Set(ContentSettingsType::ADS, CONTENT_SETTING_DEFAULT);
+    Set(ContentSettingsType::JAVASCRIPT, CONTENT_SETTING_DEFAULT);
+    Set(ContentSettingsType::IRIS_WEBGL, CONTENT_SETTING_DEFAULT);
+    Set(ContentSettingsType::IRIS_GOOGLE_SIGNIN, CONTENT_SETTING_DEFAULT);
+    Set(ContentSettingsType::COOKIES, CONTENT_SETTING_DEFAULT);
+    Cookies()->ResetThirdPartyCookieSetting(url_);
+    iris::SetFingerprintReadsPreset(browser_->GetProfile(), url_, "protected");
+    iris::SetUserAgentPreset(browser_->GetProfile(), url_, "");
+    Changed();
   }
 
   void OpenSettings() {
@@ -220,15 +531,47 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
     GetWidget()->Close();
   }
 
+  struct Identity {
+    const char* id;
+    const char16_t* name;
+  };
+  static constexpr Identity kIdentities[] = {
+      {"", u"Iris default"},
+      {"firefox_linux", u"Firefox, Linux"},
+      {"firefox_windows", u"Firefox, Windows"},
+      {"firefox_mac", u"Firefox, macOS"},
+      {"firefox_android", u"Firefox, Android"},
+      {"chrome_windows", u"Chrome, Windows"},
+      {"chrome_mac", u"Chrome, macOS"},
+      {"chrome_linux", u"Chrome, Linux"},
+      {"chrome_android", u"Chrome, Android"},
+      {"chrome_ios", u"Chrome, iPhone"},
+      {"edge_windows", u"Edge, Windows"},
+      {"safari_mac", u"Safari, macOS"},
+      {"safari_ios", u"Safari, iPhone"},
+      {"samsung_android", u"Samsung Internet"},
+  };
+
   raw_ptr<BrowserWindowInterface> browser_;
   base::WeakPtr<content::WebContents> web_contents_;
   raw_ptr<iris::ShieldStats> stats_;
+  GURL url_;
+  bool web_;
+  raw_ptr<views::Label> status_ = nullptr;
+  raw_ptr<views::ToggleButton> master_ = nullptr;
   raw_ptr<views::Label> total_ = nullptr;
   raw_ptr<views::Label> ads_ = nullptr;
   raw_ptr<views::Label> cookies_ = nullptr;
   raw_ptr<views::Label> fingerprints_ = nullptr;
-  raw_ptr<views::Checkbox> ads_switch_ = nullptr;
+  raw_ptr<views::Label> lifetime_ = nullptr;
+  raw_ptr<views::ToggleButton> ads_toggle_ = nullptr;
+  raw_ptr<views::ToggleButton> cookie_toggle_ = nullptr;
+  raw_ptr<views::ToggleButton> js_toggle_ = nullptr;
+  raw_ptr<views::ToggleButton> webgl_toggle_ = nullptr;
+  raw_ptr<views::ToggleButton> signin_toggle_ = nullptr;
+  raw_ptr<views::ToggleButton> forget_toggle_ = nullptr;
   raw_ptr<views::Combobox> fingerprint_box_ = nullptr;
+  raw_ptr<views::Combobox> identity_box_ = nullptr;
   base::OnceClosure on_closed_;
 };
 

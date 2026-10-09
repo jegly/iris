@@ -30,6 +30,7 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref(kStripTrackingParamsPref, true);
   registry->RegisterBooleanPref(kBlockDownloadsPref, false);
   registry->RegisterBooleanPref(kBlockThirdPartyPref, false);
+  registry->RegisterIntegerPref("iris.shield.lifetime_blocked", 0);  // apply-shield-stats.sh
   // Toolbar buttons (apply-toolbar-buttons.sh; names in chrome/browser/ui/views/toolbar/iris_toolbar_buttons.h).
   registry->RegisterBooleanPref("iris.ui.toolbar_shield", true);
   registry->RegisterBooleanPref("iris.ui.toolbar_javascript", true);
