@@ -19,7 +19,7 @@ fi
 exec "$IRIS_BIN" \
   --disable-background-networking \
   --disable-features=WebGPUService \
-  --disable-blink-features=WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia,XSLT,EnableXSLTForCAPAlerts \
+  --disable-blink-features=WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia,XSLT,EnableXSLTForCAPAlerts,FileSystem,GeolocationElement \
   "$@"
 
 # NOTES:
