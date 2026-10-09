@@ -54,6 +54,8 @@ class IrisShredder : public KeyedService {
   static constexpr char kBlockAutoplayPref[] = "iris.privacy.block_autoplay";
   // apply-iris-hardening-page.sh: hide the address bar "Install" chip.
   static constexpr char kHideInstallButtonPref[] = "iris.ui.hide_install_button";
+  static constexpr char kStripTrackingParamsPref[] =
+      "iris.privacy.strip_tracking_params";
   static void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
 
   explicit IrisShredder(Profile* profile);

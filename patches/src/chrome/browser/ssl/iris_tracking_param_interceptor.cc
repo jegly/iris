@@ -13,6 +13,8 @@
 #include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "base/time/time.h"
+#include "chrome/browser/profiles/profile.h"
+#include "components/prefs/pref_service.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "net/http/http_response_headers.h"
@@ -26,10 +28,12 @@ namespace {
 // Parameters that only identify an ad click or a campaign, never page content.
 // Any parameter starting with "utm_" is removed as well.
 constexpr auto kTrackingParams = base::MakeFixedFlatSet<std::string_view>({
-    "_hsenc",  "_hsmi",       "dclid",      "fbclid",     "gbraid",
-    "gclid",   "gclsrc",      "igshid",     "li_fat_id",  "mc_eid",
-    "mkt_tok", "msclkid",     "oly_anon_id", "oly_enc_id", "rb_clickid",
-    "ttclid",  "twclid",      "vero_id",    "wbraid",     "yclid",
+    "__hssc",       "__hstc",     "_hsenc",    "_hsmi",       "_openstat",
+    "dclid",        "fbclid",     "gbraid",    "gclid",       "gclsrc",
+    "hsctatracking", "igshid",    "li_fat_id", "mc_cid",      "mc_eid",
+    "mkt_tok",      "msclkid",    "oly_anon_id", "oly_enc_id", "originalsub",
+    "rb_clickid",   "ref_src",    "ref_url",   "s_kwcid",     "ttclid",
+    "twclid",       "vero_id",    "wbraid",    "yclid",
 });
 
 bool IsTrackingParam(std::string_view key) {
@@ -105,8 +109,13 @@ void IrisTrackingParamInterceptor::MaybeCreateLoader(
     content::BrowserContext* browser_context,
     LoaderCallback callback) {
   std::optional<GURL> clean_url;
-  if (tentative_resource_request.method ==
-      net::HttpRequestHeaders::kGetMethod) {
+  // Settings -> Iris hardening -> "Remove tracking from links" (on by default).
+  Profile* profile = Profile::FromBrowserContext(browser_context);
+  const bool enabled =
+      !profile || profile->GetPrefs()->GetBoolean(
+                      "iris.privacy.strip_tracking_params");
+  if (enabled && tentative_resource_request.method ==
+                     net::HttpRequestHeaders::kGetMethod) {
     clean_url = StripTrackingParams(tentative_resource_request.url);
   }
   if (!clean_url) {

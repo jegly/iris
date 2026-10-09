@@ -150,6 +150,7 @@ PATCHES=(
   apply-privacy-toggles-3       # toggles: block ads (on), web fonts, referrers, QUIC, autoplay, clipboard, JIT everywhere, WebGL/Google sign-in defaults
   apply-shield-sources          # shield counter 1/4: expose ads-blocked total + blocked-cookie count (Chromium already collects them)
   apply-iris-hardening-page     # all Iris switches on one "Iris hardening" sub-page (desktop) / topic groups (Android) + hide the Install button
+  apply-tracking-param-toggle   # "Remove tracking from links" switch (default on) + more tracking params (www list)
   apply-webgl-wording           # clarify "Allow WebGL" vs "Turn WebGL off completely" (Android + desktop)
   apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance
   apply-glass-window            # desktop: see-through glass window (title bar, tabs, toolbar) + opacity slider in Appearance, off by default
