@@ -3,6 +3,7 @@
 #include "chrome/browser/iris/iris_tls_info.h"
 
 #include <string>
+#include <string_view>
 
 #include "base/strings/strcat.h"
 #include "base/strings/stringprintf.h"
@@ -96,6 +97,16 @@ std::u16string GetTlsDetailsText(content::WebContents* web_contents) {
       {"Protocol: ", version ? version : "unknown", "\nCipher suite: ",
        NameAndValue(cipher ? SSL_CIPHER_standard_name(cipher) : nullptr,
                     cipher_suite)});
+  // The hash / key-derivation function is part of the TLS 1.3 cipher suite name
+  // (..._SHA256 or ..._SHA384): it is what HKDF uses to derive the session keys.
+  if (cipher) {
+    const std::string_view suite = SSL_CIPHER_standard_name(cipher);
+    if (suite.ends_with("SHA384")) {
+      base::StrAppend(&text, {"\nHash / key derivation: SHA-384 (HKDF)"});
+    } else if (suite.ends_with("SHA256")) {
+      base::StrAppend(&text, {"\nHash / key derivation: SHA-256 (HKDF)"});
+    }
+  }
   if (ssl.key_exchange_group) {
     base::StrAppend(&text, {"\nKey exchange: ",
                             NameAndValue(SSL_get_curve_name(ssl.key_exchange_group),
