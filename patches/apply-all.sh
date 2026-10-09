@@ -156,6 +156,7 @@ PATCHES=(
   apply-block-downloads         # "Block all downloads" switch (off by default; desktop + Android)
   apply-block-third-party       # "Block third-party requests" switch (off by default; Blink hook + IrisFingerprintHost.GetBlockThirdParty; needs apply-fingerprint)
   apply-shield-stats            # shield counter 2/4: per-tab ShieldStats (ads + cookies + fingerprint reads); must stay AFTER apply-block-third-party (both touch iris_fingerprint_host.cc)
+  apply-toolbar-icons           # new toolbar icons: refresh-dot (reload), x (stop), bookmark-plus (star), gear (menu) + shield/JS/flame/lock for the Iris buttons
   apply-jpegxl-on               # JPEG XL images explicitly on (decoder + feature already default; added to compiled-in --enable-features)
   apply-webgl-wording           # clarify "Allow WebGL" vs "Turn WebGL off completely" (Android + desktop)
   apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance
