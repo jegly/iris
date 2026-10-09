@@ -14,7 +14,8 @@ Removed or switched off, the high-complexity and high-risk web functionality:
 
 - **JIT compilation disabled** (can be allowed per site)
 - **WebAssembly disabled** (can be allowed per site)
-- **WebRTC disabled**
+- **WebRTC disabled**, and with it camera and microphone access for websites
+- **Geolocation, MediaRecorder, WebCodecs and WebTransport removed**
 - **WebGPU disabled**
 - **WebXR and WebNN disabled**
 - **WebUSB, WebHID, Web Serial and Bluetooth APIs disabled**
@@ -29,7 +30,7 @@ Hardened, so what is left is harder to exploit:
 - **Strict site and origin isolation**
 - **Hardened renderer and process configuration** (JIT-less renderers, a sandboxed network service)
 - **Control-flow and memory-corruption mitigations**
-- **Aggressive permission restrictions**: camera, microphone, location and more stay blocked until you allow a site
+- **Aggressive permission restrictions**: notifications, clipboard and more stay blocked until you allow a site
 - **TLS 1.3 minimum and hardened cryptographic defaults**
 
 Added, to protect your privacy and your data:
@@ -106,6 +107,9 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **JIT JavaScript disabled** | 🟢 | 🔴 |
 | **WebAssembly disabled** | 🟢 | 🔴 |
 | **WebRTC disabled** | 🟢 | 🔴 |
+| **Camera / microphone API removed** | 🟢 | 🔴 |
+| **Geolocation API removed** | 🟢 | 🔴 |
+| **WebCodecs / WebTransport removed** | 🟢 | 🔴 |
 | **WebGPU disabled by default** | 🟢 | 🔴 |
 | **WebXR / WebNN disabled** | 🟢 | 🔴 |
 | **USB / HID / Serial / Bluetooth / NFC APIs removed** | 🟢 | 🔴 |
@@ -117,6 +121,7 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **CFI / compiler hardening** | 🟢 | 🟢 |
 | **Memory-safe image decoders** | 🟢 | 🟡 |
 | **Built-in ad blocking** | 🟢 | 🟡 |
+| **Per-page blocked count and site panel** | 🟢 | 🟡 |
 | **Built-in tracker blocking** | 🟢 | 🟡 |
 | **Third-party cookies blocked** | 🟢 | 🟡 |
 | **Fingerprinting protection** | 🟢 | 🟡 |
@@ -125,6 +130,7 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **Hardware fingerprint reduction** | 🟢 | 🟡 |
 | **Bounce-tracking protection** | 🟢 | 🟡 |
 | **Tracking-parameter stripping** | 🟢 | 🟡 |
+| **Block all third-party requests (option)** | 🟢 | 🟡 |
 | **Global Privacy Control** | 🟢 | 🟡 |
 | **Google telemetry removed** | 🟢 | 🟡 |
 | **Google sign-in / sync removed** | 🟢 | 🟡 |
@@ -139,7 +145,6 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **Automatic data shredding** | 🟢 | 🟡 |
 | **Per-site JavaScript control** | 🟢 | 🟡 |
 | **Per-site browser identity** | 🟢 | 🔴 |
-| **Camera/mic blocked until permission** | 🟢 | 🟢 |
 | **Unused permissions automatically revoked** | 🟢 | 🟡 |
 | **Tor routing built in** | 🔴 | 🔴 |
 | **Anonymous network identity** | 🔴 | 🟡 |

@@ -26,7 +26,8 @@ Removed or switched off, the high-complexity and high-risk web functionality:
 
 - **JIT compilation disabled** (can be allowed per site)
 - **WebAssembly disabled** (can be allowed per site)
-- **WebRTC disabled**
+- **WebRTC disabled**, and with it camera and microphone access for websites
+- **Geolocation, MediaRecorder, WebCodecs and WebTransport removed**
 - **WebGPU disabled**
 - **WebXR and WebNN disabled**
 - **WebUSB, WebHID, Web Serial and Bluetooth APIs disabled**
@@ -41,7 +42,7 @@ Hardened, so what is left is harder to exploit:
 - **Strict site and origin isolation**
 - **Hardened renderer and process configuration** (JIT-less renderers, a sandboxed network service)
 - **Control-flow and memory-corruption mitigations**
-- **Aggressive permission restrictions**: camera, microphone, location and more stay blocked until you allow a site
+- **Aggressive permission restrictions**: notifications, clipboard and more stay blocked until you allow a site
 - **TLS 1.3 minimum and hardened cryptographic defaults**
 
 Added, to protect your privacy and your data:
@@ -118,6 +119,9 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **JIT JavaScript disabled** | 🟢 | 🔴 |
 | **WebAssembly disabled** | 🟢 | 🔴 |
 | **WebRTC disabled** | 🟢 | 🔴 |
+| **Camera / microphone API removed** | 🟢 | 🔴 |
+| **Geolocation API removed** | 🟢 | 🔴 |
+| **WebCodecs / WebTransport removed** | 🟢 | 🔴 |
 | **WebGPU disabled by default** | 🟢 | 🔴 |
 | **WebXR / WebNN disabled** | 🟢 | 🔴 |
 | **USB / HID / Serial / Bluetooth / NFC APIs removed** | 🟢 | 🔴 |
@@ -129,6 +133,7 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **CFI / compiler hardening** | 🟢 | 🟢 |
 | **Memory-safe image decoders** | 🟢 | 🟡 |
 | **Built-in ad blocking** | 🟢 | 🟡 |
+| **Per-page blocked count and site panel** | 🟢 | 🟡 |
 | **Built-in tracker blocking** | 🟢 | 🟡 |
 | **Third-party cookies blocked** | 🟢 | 🟡 |
 | **Fingerprinting protection** | 🟢 | 🟡 |
@@ -137,6 +142,7 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **Hardware fingerprint reduction** | 🟢 | 🟡 |
 | **Bounce-tracking protection** | 🟢 | 🟡 |
 | **Tracking-parameter stripping** | 🟢 | 🟡 |
+| **Block all third-party requests (option)** | 🟢 | 🟡 |
 | **Global Privacy Control** | 🟢 | 🟡 |
 | **Google telemetry removed** | 🟢 | 🟡 |
 | **Google sign-in / sync removed** | 🟢 | 🟡 |
@@ -151,7 +157,6 @@ The last six rows are things Iris deliberately leaves out, so a 🔴 there is a 
 | **Automatic data shredding** | 🟢 | 🟡 |
 | **Per-site JavaScript control** | 🟢 | 🟡 |
 | **Per-site browser identity** | 🟢 | 🔴 |
-| **Camera/mic blocked until permission** | 🟢 | 🟢 |
 | **Unused permissions automatically revoked** | 🟢 | 🟡 |
 | **Tor routing built in** | 🔴 | 🔴 |
 | **Anonymous network identity** | 🔴 | 🟡 |
@@ -210,6 +215,8 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 
 ```diff
 + Ad and tracker blocking on every site (EasyList + EasyPrivacy built in, with a per-site switch)
++ Extra filter lists for more ad and tracker blocking, one switch
++ Block third-party requests: a switch that stops pages loading anything from other sites (off by default; breaks many sites)
 - Topics, Protected Audience and Shared Storage (Privacy Sandbox ad APIs)
 - Third-party cookies
 - <a ping>, sendBeacon() and fetchLater() (click and exit pings)
@@ -254,16 +261,20 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Google sign-in widgets on other sites, until you allow them
 - Background networking, field-trial experiments, usage statistics and crash reports
 + DuckDuckGo as the default search engine, and a new tab page that stays local
-+ 28 search engines to choose from in every country, privacy-first, all of them reachable over TLS 1.3
++ 20 search engines to choose from in every country, privacy-first, all of them reachable over TLS 1.3
 ```
 
 ### Web APIs
 
 ```diff
 - JavaScript JIT and WebAssembly for websites (can be allowed per site)
-- WebRTC, WebGPU, WebXR and WebNN
+- WebRTC, and camera and microphone access for websites (getUserMedia)
+- MediaRecorder and captureStream() on canvas and video
+- WebCodecs encoders and decoders, and WebTransport
+- The Geolocation API and the <geolocation> element
+- WebGPU, WebXR and WebNN
 - WebUSB, WebHID, Serial, Bluetooth, NFC and Direct Sockets
-- File System Access pickers and wake lock
+- File System Access pickers, the old webkitRequestFileSystem API, and wake lock
 - Push messaging, background fetch, Web Share, contacts and WebOTP
 - Presentation, remote playback, app badging and vibration
 - Device posture, compute pressure, storage buckets and digital credentials
@@ -283,12 +294,19 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Extension auto-updates off unless you switch them on
 + The app-lock screen follows your theme
 + A shorter Settings: Safety Hub trimmed, no Translate, no Enhanced protection, a simpler autofill page
++ A shield in the toolbar with the number of ads, trackers, cookies and fingerprinting attempts blocked on the page. Its panel holds every Iris setting for the site: ads, cross-site cookies, JavaScript, WebGL, Google sign-in prompts, canvas and audio reading, browser identity and the connection details [Ubuntu]
++ Toolbar buttons for JavaScript on the current site, a new identity (erases site data, cache and history, closes the other tabs and starts fresh) and locking Iris; each can be hidden [Ubuntu]
 + Forget a site: its cookies and data deleted when you close the browser [Ubuntu]
 + A JavaScript on/off switch, globally and per site
 + Per-site controls for JavaScript, cookies and images
-+ A different browser identity for any site, from the lock icon: 13 to pick from, including Firefox, Chrome, Edge, Safari and Samsung Internet on desktop, Android and iPhone
++ A different browser identity for any site, from the shield: 13 to pick from, including Firefox, Chrome, Edge, Safari and Samsung Internet on desktop, Android and iPhone
 + Cookies, saved logins and bookmarks encrypted with your passphrase when the app lock is on, open tabs too on Ubuntu
-+ Catppuccin Mocha theme and dark mode by default, with 114 colour palettes (57 light, 57 dark), and a glass look on Ubuntu
++ All of Iris's own switches on one "Iris hardening" page in Settings [Ubuntu]
++ Switches to block web fonts, autoplay, all downloads and QUIC, to stop sending the Referer, and to clear copied text after 30 seconds
++ Tracking parameters removed from links, with a switch to keep them
++ Blocked pop-ups can be opened once, without allowing the site
++ A light theme by default (Monokai Pro Light) and Catppuccin Mocha in dark mode, with 114 colour palettes (57 light, 57 dark)
++ Round traffic-light window buttons and an optional see-through glass window [Ubuntu]
 ```
 
 ### Network & TLS
@@ -298,9 +316,9 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + CNSA 2.0 cipher and key-exchange preferences
 + Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only (Settings → Privacy and security → Security; some sites won't load)
 + Merkle Tree Certificate verification, ready for post-quantum certificates
-+ Connection details in the lock icon: TLS version, cipher, key exchange and ECH
++ Connection details: TLS version, cipher, hash, key exchange, server signature and ECH (in the shield on Ubuntu, in the lock icon on Android)
 + Cookies only sent back to the scheme and port that set them
-+ Encrypted DNS in secure mode: Quad9 by default, 15 resolvers to choose from
++ Encrypted DNS in secure mode: Quad9 by default, 21 resolvers to choose from
 + HTTPS-Only mode: a warning before any http:// page
 + Full URLs in the address bar, www. and m. included
 + Websites can't reach your router, printer or localhost (Chromium default, kept)
@@ -319,7 +337,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Array-bounds traps and defined integer overflow (Chromium default, kept)
 + Full RELRO, non-executable stack and position-independent executables
 + PartitionAlloc hardening in every process; internal safety checks kept on in release
-+ Memory-safe Rust decoders for JPEG, ICO and BMP images
++ Memory-safe Rust decoders for JPEG, JPEG XL, ICO and BMP images
 + Profile-guided optimisation for a faster browser
 - Hardware video decode, SwiftShader, remote desktop, VR/AR, Widevine DRM and the on-device AI model, all left out of the build
 - Printing and local-network device discovery
@@ -341,7 +359,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 ### Defaults & permissions
 
 ```diff
-+ Camera, microphone, location, notifications and clipboard blocked until you allow a site
++ Notifications, clipboard and more than 30 other site permissions start as Not allowed until you allow a site
 + Web MIDI, idle detection, motion and light sensors and background sync blocked until you allow a site
 + Permission prompts only after a click; unused site permissions revoked automatically
 + Popups only from real clicks; downloads never open by themselves
@@ -375,8 +393,9 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 
 Hardening has a cost. These are the ones you are most likely to notice.
 
-- **Browser video calls.** WebRTC is off, so Meet, Zoom and Discord calls in the browser won't work. Use their desktop or mobile apps.
-- **Heavy web apps.** Without JIT, WebAssembly and WebGL, some apps (maps, design tools, games, in-browser editors) are slower or need to be allowed per site.
+- **Video calls, camera and microphone.** WebRTC and camera and microphone access are gone, so video and voice calls, voice messages and QR-code scanners in the browser won't work. Use their desktop or mobile apps.
+- **Location.** Websites can't ask for your location. Maps and store finders fall back to a place you type in.
+- **Heavy web apps.** Without JIT, WebAssembly and WebGL, some apps (maps, design tools, games, in-browser editors) are slower or need to be allowed per site. Browser video editors that need WebCodecs won't work.
 - **Streaming DRM video.** Widevine isn't included, so Netflix, Disney+ and Spotify's web player won't play protected content.
 - **Old sites and Wi-Fi sign-in pages.** Sites that only support TLS 1.2 or plain HTTP show a warning or won't connect. Encrypted DNS never falls back to plain DNS, so some hotel and airport Wi-Fi sign-in pages won't load until you switch secure DNS off.
 - **Printing.** Printing is switched off, including "Save as PDF". To keep a copy of a page, save it or take a screenshot.
