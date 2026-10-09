@@ -140,6 +140,7 @@ PATCHES=(
   apply-extensions-on-click     # new extensions: site access "on click" unless ticked at install
   apply-email-verification-off  # no automatic email verification (Email Verification Protocol off)
   apply-site-settings-defaults  # Auto-verify BLOCK, Protected content ASK (Android), JS optimisation BLOCK (after iris-permissions)
+  apply-site-settings-defaults2 # more Site settings default to Not allowed (storage access, local network, downloads, device APIs, ...)
   apply-webui-font              # built-in pages: IBM Plex Sans text, DotGothic16 headers (bundled fonts)
   apply-deb-rebrand             # .deb identity iris-browser (jjjegly@gmail.com, github.com/jegly/iris) + desktop/icon/profile dir names
   apply-adblock                 # LAST: needs adblock/dist/ruleset.pb (adblock/build-ruleset.sh); EasyList+EasyPrivacy on all sites

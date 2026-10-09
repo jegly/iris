@@ -73,3 +73,6 @@ cc_wrapper = "ccache"
 #   enable_mdns / enable_service_discovery -> local_discovery assert.
 #   enable_extensions          -> already false on Android by default (no need to set).
 # ===================================================================
+
+# Release 0.0.0.6 (2026-10-09, jegly "bump the version"): versionCode above 0.0.0.4/0.0.0.5 (807801104) so phones treat it as an update.
+android_override_version_code = "807801114"
