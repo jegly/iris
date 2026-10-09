@@ -29,7 +29,7 @@ def md_inline(fragment: str) -> str:
 
 
 out = []
-out.append('<p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>\n')
+out.append('<p align="center"><img src="website/iris-banner.svg" alt="Iris: a hardened, privacy-first browser built on Chromium" width="100%"></p>\n')
 
 # README intro: GitHub-only text (website/readme-intro.md), not the website's hero paragraph (jegly 2026-10-09).
 intro_path = HERE / "readme-intro.md"

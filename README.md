@@ -1,4 +1,4 @@
-<p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>
+<p align="center"><img src="website/iris-banner.svg" alt="Iris: a hardened, privacy-first browser built on Chromium" width="100%"></p>
 
 Iris is a security-hardened, privacy-focused browser engineered to reduce attack surface, enforce isolation boundaries, and defend against an increasingly scalable threat landscape.
 
