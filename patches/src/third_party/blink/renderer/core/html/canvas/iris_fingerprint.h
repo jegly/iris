@@ -54,6 +54,10 @@ class CORE_EXPORT IrisFingerprint final
   // one value in eight; zero values (silence) stay zero.
   static void ProtectBytes(ExecutionContext*, base::span<uint8_t> bytes);
 
+  // "Block third-party requests": whether this document's third-party subresource requests are refused (asked from the
+  // browser once, then cached for the document).
+  static bool ShouldBlockThirdParty(ExecutionContext*);
+
   void Trace(Visitor*) const override;
 
  private:
@@ -63,6 +67,8 @@ class CORE_EXPORT IrisFingerprint final
   mojom::blink::IrisFingerprintMode mode_ =
       mojom::blink::IrisFingerprintMode::kProtected;
   uint64_t seed_ = 0;
+  bool block_third_party_loaded_ = false;
+  bool block_third_party_ = false;
 };
 
 }  // namespace blink

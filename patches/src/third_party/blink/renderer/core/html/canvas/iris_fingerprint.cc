@@ -77,6 +77,29 @@ void IrisFingerprint::EnsureLoaded() {
 }
 
 // static
+// static
+bool IrisFingerprint::ShouldBlockThirdParty(ExecutionContext* context) {
+  IrisFingerprint* fp = For(context);
+  if (!fp) {
+    return false;
+  }
+  if (!fp->block_third_party_loaded_) {
+    fp->block_third_party_loaded_ = true;
+    auto* window = DynamicTo<LocalDOMWindow>(fp->GetSupplementable());
+    LocalFrame* frame = window ? window->GetFrame() : nullptr;
+    if (frame) {
+      mojo::Remote<mojom::blink::IrisFingerprintHost> host;
+      frame->GetBrowserInterfaceBroker().GetInterface(
+          host.BindNewPipeAndPassReceiver());
+      bool block = false;
+      if (host->GetBlockThirdParty(&block)) {
+        fp->block_third_party_ = block;
+      }
+    }
+  }
+  return fp->block_third_party_;
+}
+
 void IrisFingerprint::ProtectRGBA8(ExecutionContext* context,
                                    base::span<uint8_t> rgba) {
   IrisFingerprint* fp = For(context);

@@ -8,6 +8,8 @@
 #include "base/rand_util.h"
 #include "base/values.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+#include "chrome/browser/profiles/profile.h"
+#include "components/prefs/pref_service.h"
 #include "components/content_settings/core/browser/host_content_settings_map.h"
 #include "components/content_settings/core/common/content_settings_types.h"
 #include "content/public/browser/browser_context.h"
@@ -58,6 +60,26 @@ class FingerprintHost final
       mode = blink::mojom::IrisFingerprintMode::kReal;
     }
     std::move(callback).Run(mode, SeedFor(context, top));
+  }
+
+  void GetBlockThirdParty(GetBlockThirdPartyCallback callback) override {
+    content::RenderFrameHost& rfh = render_frame_host();
+    content::BrowserContext* context = rfh.GetBrowserContext();
+    const GURL top = rfh.GetOutermostMainFrame()->GetLastCommittedURL();
+    bool block = false;
+    if (Profile* profile = Profile::FromBrowserContext(context)) {
+      block = profile->GetPrefs()->GetBoolean("iris.privacy.block_third_party");
+    }
+    // One site can be exempted with "Allow ads" from the lock icon.
+    if (block) {
+      HostContentSettingsMap* map =
+          HostContentSettingsMapFactory::GetForProfile(context);
+      if (map && map->GetContentSetting(top, top, ContentSettingsType::ADS) ==
+                     CONTENT_SETTING_ALLOW) {
+        block = false;
+      }
+    }
+    std::move(callback).Run(block);
   }
 };
 

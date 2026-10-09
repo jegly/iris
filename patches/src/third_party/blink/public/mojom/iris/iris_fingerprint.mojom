@@ -13,4 +13,8 @@ interface IrisFingerprintHost {
   // Mode for the top-level site (Settings -> Site settings -> "Canvas and audio reading") and a seed that is
   // stable for that site until Iris restarts.
   [Sync] GetMode() => (IrisFingerprintMode mode, uint64 seed);
+
+  // Settings -> Iris hardening -> "Block third-party requests", for this document's top-level site (false when the
+  // switch is off or ads are allowed for the site). Asked at most once per document, on its first third-party request.
+  [Sync] GetBlockThirdParty() => (bool block);
 };
