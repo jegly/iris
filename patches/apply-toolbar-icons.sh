@@ -11,7 +11,7 @@
 #                          star_active_chrome_refresh_old.icon (filled bookmark = already bookmarked)
 #   main menu (gear)       chrome/app/vector_icons/browser_tools_{chrome_refresh,touch}_old.icon
 # ADDS (chrome/app/vector_icons/BUILD.gn -> kIris*Icon in vector_icons.h) for the Iris toolbar buttons:
-#   iris_shield, iris_shield_off, iris_javascript, iris_flame, iris_lock
+#   iris_shield, iris_shield_off, iris_javascript (a </> code icon, not the JS-in-a-shield logo: it looked like the ad-block shield), iris_flame, iris_lock
 # Back / forward / home keep their icons (not asked). Each replaced file must already exist (drift check).
 # STATUS 2026-10-09: copy-tested only, NOT compile-proven (icons are compiled to C++ at build time: a bad .icon fails there).
 # Guarded; idempotent; fails loudly on drift.
