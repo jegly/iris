@@ -1,7 +1,5 @@
 <p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>
 
-Iris is named after the Greek goddess of the rainbow, the messenger who carried words between the gods and people. A browser does the same job: everything you send and receive passes through it. Iris started with a look at the most hardened, privacy-focused browsers around. We took what worked, improved on it, and added what they were missing. It's a hardened browser for a time when AI makes attacks faster and cheaper to run, and attackers can hunt for flaws at a scale people can't match. So Iris cuts the attack surface, isolates every site, uses memory-safe code where it can, and adds post-quantum encryption. It's open source, for anyone who cares about privacy and security.
-
 ## Security Philosophy
 
 > **Iris is built to be substantially more hardened against browser-side exploitation than mainstream browsers, because it removes entire classes of web capabilities and attack surface rather than merely mitigating their abuse.**

@@ -31,9 +31,7 @@ def md_inline(fragment: str) -> str:
 out = []
 out.append('<p align="center"><img src="website/iris-banner.png" alt="Iris" width="100%"></p>\n')
 
-lede = re.search(r'<p class="lede">(.*?)</p>', page, re.S)
-if lede:
-    out.append(text(lede.group(1)) + "\n")
+# The website's hero paragraph is not copied into the README (jegly 2026-10-09).
 
 # GitHub-only security philosophy + comparison chart, right after the intro (website/readme-top.md)
 top_path = HERE / "readme-top.md"
