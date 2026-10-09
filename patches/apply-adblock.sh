@@ -84,7 +84,9 @@ edit(B,
      '#include "chrome/grit/browser_resources.h"  // Iris: IDR_IRIS_ADBLOCK_RULESET\n'
      '#include "ui/base/resource/resource_bundle.h"  // Iris\n',
      "IDR_IRIS_ADBLOCK_RULESET\n")
-edit(B,
+# apply-adblock-extra.sh later moves this block into PublishIrisAdblockRuleset(); then this step is done.
+if "PublishIrisAdblockRuleset" not in open(B).read():
+  edit(B,
      "          subresource_filter::SafeBrowsingRulesetPublisher::Factory());\n}\n",
      "          subresource_filter::SafeBrowsingRulesetPublisher::Factory());\n\n"
      "  // Iris: publish the bundled ad/tracker filter rules (EasyList + EasyPrivacy)\n"

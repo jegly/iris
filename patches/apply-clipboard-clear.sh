@@ -96,7 +96,8 @@ p = "chrome/app/settings_strings.grdp"
 s = open(p).read()
 old = "Cookies and site data after 24 hours, cached files after 12 hours, the downloads list after 7 days."
 new = "Cookies and site data after 24 hours, cached files after 12 hours, the downloads list after 7 days, and text copied in Iris from the clipboard after 30 seconds."
-if new in s: print("SKIP already applied: " + p + " (sub-label)")
+# apply-privacy-toggles-3.sh later splits the clipboard sentence into its own switch (text ends "and the downloads list after 7 days.")
+if new in s or "cached files after 12 hours, and the downloads list after 7 days." in s: print("SKIP already applied: " + p + " (sub-label)")
 elif s.count(old) == 1: open(p, "w").write(s.replace(old, new)); print("OK   " + p + " : sub-label mentions the clipboard")
 else: raise SystemExit("ERROR: " + p + ": shredding sub-label not found (run apply-iris-permissions.sh first)")
 PY
