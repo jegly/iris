@@ -134,6 +134,7 @@ PATCHES=(
   apply-android-no-settings-search # Android Settings: no search bar (fixes sub-page jump)
   apply-android-orb-favicon     # Android: no logo (transparent) instead of the Chromium logo for icon-less pages (new tab in the tab strip, Page Info, ...)
   apply-android-popup-allow-once # Android: blocked pop-up message = "Allow once" + "Always allow for this site" (blocked stays the default)
+  apply-android-no-google-services-footer # Android: no "go to Google Services" footer in Privacy and security
   apply-no-sharedarraybuffer    # SharedArrayBuffer off everywhere (side-channel timer)
   apply-no-crash-dumps          # Crashpad never writes minidumps to disk
   apply-extensions-on-click     # new extensions: site access "on click" unless ticked at install
