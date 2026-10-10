@@ -21,6 +21,10 @@ namespace {
 
 using ColorMap = base::flat_map<std::string, SkColor, std::less<>>;
 
+// Contrast floor for the dimmed URL parts and the security indicator (WCAG's
+// level for graphics and large text).
+constexpr float kMinIndicatorContrast = 3.0f;
+
 ColorMap& Colors() {
   static base::NoDestructor<ColorMap> colors;
   return *colors;
@@ -153,9 +157,26 @@ void AddIrisThemeMixer(ui::ColorProvider* provider,
     mixer[kColorLocationBarBackgroundHovered] =
         Over(ui::kColorSysOnSurface, kColorLocationBarBackground, 0x10);
   }
-  if (set(kOmniboxText, {kColorOmniboxText})) {
-    mixer[kColorOmniboxTextDimmed] =
-        Over(kColorOmniboxText, kColorLocationBarBackground, 0xA6);
+  // Address bar readability floor (anti-spoofing; jegly 2026-10-10): whatever
+  // colours are picked, the URL keeps Chromium's "readable" contrast (4.5:1)
+  // against the address bar, and its dimmed parts and the security indicator
+  // at least 3:1; a colour that is too close is blended until it reads. A
+  // shared theme code can therefore not hide the real address or the padlock.
+  const std::optional<SkColor> omnibox_text = GetCustomColor(kOmniboxText);
+  mixer[kColorOmniboxText] = ui::BlendForMinContrast(
+      omnibox_text ? ui::ColorTransform(*omnibox_text)
+                   : ui::FromTransformInput(),
+      kColorLocationBarBackground);
+  mixer[kColorOmniboxTextDimmed] = ui::BlendForMinContrast(
+      omnibox_text ? Over(kColorOmniboxText, kColorLocationBarBackground, 0xA6)
+                   : ui::FromTransformInput(),
+      kColorLocationBarBackground, std::nullopt, kMinIndicatorContrast);
+  for (ui::ColorId id :
+       {kColorOmniboxSecurityChipDefault, kColorOmniboxSecurityChipSecure,
+        kColorOmniboxSecurityChipDangerous}) {
+    mixer[id] = ui::BlendForMinContrast(ui::FromTransformInput(),
+                                        kColorLocationBarBackground,
+                                        std::nullopt, kMinIndicatorContrast);
   }
   if (set(kSuggestions, {kColorOmniboxResultsBackground})) {
     mixer[kColorOmniboxResultsBackgroundHovered] =

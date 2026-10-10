@@ -41,6 +41,7 @@ export interface ThemeItem {
 export interface ThemeGroup {
   title: string;
   items: ThemeItem[];
+  note?: string;
 }
 
 export interface SavedTheme {
@@ -89,6 +90,8 @@ export const THEME_GROUPS: ThemeGroup[] = [
   },
   {
     title: 'Address bar',
+    note: 'The address and the padlock always stay readable: if a colour is ' +
+        'too close to the address bar background, Iris adjusts it.',
     items: [
       {key: 'omnibox', label: 'Address bar',
        fallbackVar: '--color-sys-omnibox-container'},

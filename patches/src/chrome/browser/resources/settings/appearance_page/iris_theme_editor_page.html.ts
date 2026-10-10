@@ -35,6 +35,8 @@ export function getHtml(this: SettingsIrisThemeEditorPageElement) {
             @click="${this.onResetItemClick_}">Reset</cr-button>
       </div>
     `)}
+    ${group.note ? html`
+      <div class="cr-row"><div class="note">${group.note}</div></div>` : ''}
   `)}
 
   <div class="cr-row group-title">Websites</div>
