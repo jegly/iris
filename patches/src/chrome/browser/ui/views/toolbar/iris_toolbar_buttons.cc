@@ -659,6 +659,9 @@ class IrisShieldButton : public ToolbarButton {
         views::Label::GetDefaultFontList()
             .DeriveWithWeight(gfx::Font::Weight::BOLD)
             .DeriveWithHeightUpperBound(kBadgeHeight - 2));
+    // A Label's height follows the typography line height (~20 DIP), not
+    // its font: that made the badge a square over the whole icon.
+    badge_->SetLineHeight(kBadgeHeight);
     badge_->SetEnabledColor(ui::kColorSysOnPrimary);
     badge_->SetBackground(views::CreateRoundedRectBackground(
         ui::kColorSysPrimary, kBadgeHeight / 2));
