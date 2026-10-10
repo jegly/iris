@@ -173,6 +173,7 @@ PATCHES=(
   apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance
   apply-glass-window            # desktop: see-through glass window (title bar, tabs, toolbar) + opacity slider in Appearance, off by default
   apply-theme-editor            # Settings > Appearance > Theme editor: colours per part of the window, saved themes, theme codes (needs glass-window, traffic-lights, web-recolor prefs)
+  apply-omnibox-corner-fix      # address-bar dropdown: 2 px corner band, no toolbar-colour specks with contrasting themes
   apply-security-page-iris      # Security page: no Google Advanced Protection Program; "... other Iris security settings"
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
