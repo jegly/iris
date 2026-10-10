@@ -151,5 +151,13 @@ edit(p, "    assert(childViewId === 'fonts');\n"
      "        childViewId === 'fonts' ? '#customize-fonts-subpage-trigger'\n"
      "                                : '#irisThemeEditorTrigger');  // Iris\n",
      "childViewId === 'irisThemeEditor'", "associated control")
+# The Appearance section switches views per route; without this the link row changes the URL but shows nothing
+# (jegly's test 2026-10-10: "clicking on theme editor does nothing").
+edit(A + "appearance_page_index.ts",
+     "        case routes.FONTS:\n          this.$.viewManager.switchView(\n              'fonts', 'no-animation', 'no-animation');\n          break;\n",
+     "        case routes.FONTS:\n          this.$.viewManager.switchView(\n              'fonts', 'no-animation', 'no-animation');\n          break;\n"
+     "        case routes.IRIS_THEME_EDITOR:  // Iris\n          this.$.viewManager.switchView(\n"
+     "              'irisThemeEditor', 'no-animation', 'no-animation');\n          break;\n",
+     "case routes.IRIS_THEME_EDITOR:", "view switch")
 PY
 echo "=== Theme editor complete ==="
