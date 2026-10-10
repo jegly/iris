@@ -282,6 +282,8 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - WebCodecs encoders and decoders, and WebTransport
 - The Geolocation API and the <geolocation> element
 - WebGPU, WebXR and WebNN
+- Web MIDI, idle detection, motion and orientation sensors, the on-screen keyboard API and camera photo capture
+- Fenced frames, background sync and the JavaScript self-profiler
 - WebUSB, WebHID, Serial, Bluetooth, NFC and Direct Sockets
 - File System Access pickers, the old webkitRequestFileSystem API, and wake lock
 - Push messaging, background fetch, Web Share, contacts and WebOTP
@@ -316,6 +318,13 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Blocked pop-ups can be opened once, without allowing the site
 + A light theme by default (Monokai Pro Light) and Catppuccin Mocha in dark mode, with 114 colour palettes (57 light, 57 dark)
 + Round traffic-light window buttons and an optional see-through glass window [Ubuntu]
++ A theme editor: your own colour for each part of the window, saved themes, and theme codes to share [Ubuntu]
++ Websites drawn in your theme's colours, with a switch per site (off by default) [Ubuntu]
++ "Customize your toolbar" lists Iris's buttons, with new icons; Cast and Send to your devices are gone [Ubuntu]
++ The shield on Android too, with the same per-site settings as on Ubuntu
++ Website timers rounded to 1 ms (100 ms with "Coarser timers")
++ The app-lock key kept out of swap and crash dumps
++ A 3D offline game in place of the dinosaur, with a touch pad on Android
 ```
 
 ### Network & TLS
@@ -369,7 +378,6 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 
 ```diff
 + Notifications, clipboard and more than 30 other site permissions start as Not allowed until you allow a site
-+ Web MIDI, idle detection, motion and light sensors and background sync blocked until you allow a site
 + Permission prompts only after a click; unused site permissions revoked automatically
 + Popups only from real clicks; downloads never open by themselves
 + PDFs open in your system viewer instead of inside the browser
@@ -424,12 +432,12 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 156.0.8078.11-3 files:
+SHA-256 of the 156.0.8078.11-4 files:
 
 ```
-24a1aa924b0cfee0199fc4afb423773fc872e12539ff64d1070aa4b631a2e009  iris-browser-stable_156.0.8078.11-3_amd64.deb
-62f6b1156068db5bccf7858022b42a678aff83fd7ff43dd572ccb92ee33bb12b  iris-browser_156.0.8078.11-3_amd64.snap
-949c055e1e1eece907b02d8624fe0e1615ef52cdbac81f2b972736833608eedf  iris-156.0.8078.11-3-pqc-signed.apk
+8a4abb46341a8cf996c4d2276532ad23d8dfd15e2d0eb63d9b3dd93324351b70  iris-browser-stable_156.0.8078.11-4_amd64.deb
+75d6fe8f66a8954c74d937b478af1fbc9cfdd5c6cf1b2894ba99d0f7f37e00f7  iris-browser_156.0.8078.11-4_amd64.snap
+6e3e3b0e688eafc0a7b99ac756bf6d16aeee7d3c52e37af47f96ae350184cdac  iris-156.0.8078.11-4-pqc-signed.apk
 ```
 
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
