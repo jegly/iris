@@ -2,8 +2,16 @@
 
 #include "chrome/browser/iris/iris_app_lock.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
+
+#include "build/build_config.h"
+
+#if BUILDFLAG(IS_POSIX)
+#include <sys/mman.h>
+#include <unistd.h>
+#endif
 
 #include "base/base64.h"
 #include "base/check.h"
@@ -36,8 +44,29 @@ struct Derived {
   std::array<uint8_t, 32> verifier;  // stored, to check the passphrase
 };
 
+// Keeps the memory of the unlocked data key out of swap and out of core dumps
+// (0.0.0.7 memory hardening). Best effort: mlock can fail under
+// RLIMIT_MEMLOCK, and copies handed out by GetDataKey() are not covered.
+bool ProtectKeyMemory(const void* address, size_t size) {
+#if BUILDFLAG(IS_POSIX)
+  const uintptr_t page = static_cast<uintptr_t>(sysconf(_SC_PAGESIZE));
+  const uintptr_t begin = reinterpret_cast<uintptr_t>(address) & ~(page - 1);
+  const uintptr_t end = reinterpret_cast<uintptr_t>(address) + size;
+  void* start = reinterpret_cast<void*>(begin);
+  bool locked = mlock(start, end - begin) == 0;
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_ANDROID)
+  locked = madvise(start, end - begin, MADV_DONTDUMP) == 0 && locked;
+#endif
+  return locked;
+#else
+  return false;
+#endif
+}
+
 std::optional<DataKey>& UnlockedKey() {
   static std::optional<DataKey> key;
+  [[maybe_unused]] static const bool memory_protected =
+      ProtectKeyMemory(&key, sizeof(key));
   return key;
 }
 
@@ -171,6 +200,7 @@ bool Unlock(PrefService* local_state, std::u16string_view passphrase) {
     return false;
   }
   UnlockedKey() = *key;
+  OPENSSL_cleanse(key->data(), key->size());
   RunWaiters();
   return true;
 }
@@ -220,6 +250,7 @@ Result SetPassphrase(PrefService* local_state,
   }
   StoreLock(local_state, new_passphrase, key);
   UnlockedKey() = key;
+  OPENSSL_cleanse(key.data(), key.size());
   RunWaiters();
   return Result::kOk;
 }

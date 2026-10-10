@@ -9,6 +9,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/run_loop.h"
 #include "chrome/grit/generated_resources.h"
+#include "third_party/boringssl/src/include/openssl/mem.h"
 #include "ui/base/ime/text_input_type.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/mojom/dialog_button.mojom.h"
@@ -122,12 +123,18 @@ IrisUnlockDialog::IrisUnlockDialog(TryUnlock try_unlock,
 IrisUnlockDialog::~IrisUnlockDialog() = default;
 
 bool IrisUnlockDialog::Accept() {
-  if (try_unlock_.Run(std::u16string(field_->GetText()))) {
-    field_->SetText(std::u16string());
+  std::u16string passphrase(field_->GetText());
+  const bool unlocked = try_unlock_.Run(passphrase);
+  // Wipe this window's copies of the passphrase (0.0.0.7 memory hardening).
+  // Best effort: the field's text renderer and the input method may still
+  // hold copies until that memory is reused.
+  OPENSSL_cleanse(passphrase.data(), passphrase.size() * sizeof(char16_t));
+  field_->SetText(std::u16string());
+  field_->ClearEditHistory();
+  if (unlocked) {
     Finish(true);
     return true;
   }
-  field_->SetText(std::u16string());
   error_->SetText(l10n_util::GetStringUTF16(IDS_IRIS_UNLOCK_WRONG));
   field_->RequestFocus();
   return false;  // keep the window open
