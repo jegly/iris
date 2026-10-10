@@ -5,6 +5,8 @@
 #    notice + licence to ship with the fonts.
 #  - Catppuccin palette values (default theme, ui/color/iris_palettes.h): MIT.
 #  - The other picker palettes: credit to the original colour-scheme authors.
+#  - Tabler Icons (toolbar/panel icons, apply-toolbar-icons.sh): MIT (2026-10-10).
+#  - three.js r169 (inside the offline game, apply-iris-runner.sh): MIT (2026-10-10).
 # Assembled from the real licence files into chrome/installer/linux/common/iris-third-party-notices and installed
 # as /usr/share/doc/<package>/third-party-notices (same mechanism as the filter-list licence; the snap is built
 # from the .deb). Guarded; idempotent; fails loudly on drift. Must run after apply-adblock.sh.
@@ -72,6 +74,60 @@ SOFTWARE.
 ------------------------
 The other palettes in the colour picker are based on well-known terminal and editor
 colour schemes. Each keeps its original name; the schemes belong to their authors.
+
+
+5. Tabler Icons (toolbar and panel icons)
+-----------------------------------------
+https://tabler.io/icons (v3.34.0), converted to Chromium's vector icon format.
+
+MIT License
+
+Copyright (c) 2020-2024 Paweł Kuna
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+6. three.js (3D engine of the offline game)
+-------------------------------------------
+https://threejs.org (r169), built into the offline game.
+
+MIT License
+
+Copyright 2010-2024 Three.js Authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 EOF
 } > "$TMP"
 if cmp -s "$TMP" "$OUT"; then echo "SKIP up to date: $OUT"; rm -f "$TMP"; else mv "$TMP" "$OUT"; echo "OK   $OUT"; fi

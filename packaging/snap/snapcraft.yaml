@@ -20,6 +20,11 @@ confinement: strict
 base: core26
 compression: lzo              # faster first launch than xz (Canonical's choice)
 license: GPL-2.0-or-later     # Iris patches (jegly); Chromium components keep their own licenses
+# Store page links (2026-10-10). Contact goes to the issue tracker, not a personal address.
+website: https://github.com/jegly/iris
+source-code: https://github.com/jegly/iris
+issues: https://github.com/jegly/iris/issues
+contact: https://github.com/jegly/iris/issues
 
 apps:
   iris-browser:
