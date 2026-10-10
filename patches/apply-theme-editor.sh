@@ -159,5 +159,21 @@ edit(A + "appearance_page_index.ts",
      "        case routes.IRIS_THEME_EDITOR:  // Iris\n          this.$.viewManager.switchView(\n"
      "              'irisThemeEditor', 'no-animation', 'no-animation');\n          break;\n",
      "case routes.IRIS_THEME_EDITOR:", "view switch")
+# Built-in pages in LIGHT mode: Chromium hardcodes white cards and a grey page there, so the palette and the Theme
+# editor's Background never reached Settings (jegly 2026-10-10: "anyway to make the page thats white on settings change
+# colour"). Same idea as the dark-mode block of apply-catppuccin-default.sh: page = base container (a slightly darker
+# shade), cards and menus = base. Dark mode is unchanged (its block comes later in the file and wins there).
+edit("ui/webui/resources/cr_elements/cr_shared_vars.css",
+     "/* Iris: built-in pages follow the theme colours in dark mode (Catppuccin Mocha by\n",
+     "/* Iris: built-in pages follow the theme colours in light mode too\n"
+     " * (apply-theme-editor.sh): a slightly darker page, cards and menus in the\n"
+     " * theme background. */\n"
+     "html:not([webui-refresh-2026]) {\n"
+     "  --md-background-color: var(--color-sys-base-container, rgb(248, 249, 250));\n"
+     "  --cr-card-background-color: var(--color-sys-base, white);\n"
+     "  --cr-menu-background-color: var(--color-sys-base, white);\n"
+     "}\n\n"
+     "/* Iris: built-in pages follow the theme colours in dark mode (Catppuccin Mocha by\n",
+     "follow the theme colours in light mode too", "light-mode page colours")
 PY
 echo "=== Theme editor complete ==="

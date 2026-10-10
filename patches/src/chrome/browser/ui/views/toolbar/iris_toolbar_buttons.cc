@@ -2,6 +2,7 @@
 
 #include "chrome/browser/ui/views/toolbar/iris_toolbar_buttons.h"
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <string>
@@ -27,6 +28,7 @@
 #include "base/strings/string_util.h"
 #include "ui/base/models/image_model.h"
 #include "ui/views/background.h"
+#include "ui/views/border.h"
 #include "ui/views/controls/button/md_text_button.h"
 #include "ui/views/controls/button/toggle_button.h"
 #include "ui/views/controls/image_view.h"
@@ -639,6 +641,57 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
 BEGIN_METADATA(IrisShieldBubble)
 END_METADATA
 
+// The shield button: the page's blocked count is a small badge on the icon's
+// corner, so the button keeps the size of the other toolbar buttons (jegly
+// 2026-10-10: the highlight pill around the shield was too large).
+class IrisShieldButton : public ToolbarButton {
+  METADATA_HEADER(IrisShieldButton, ToolbarButton)
+
+ public:
+  explicit IrisShieldButton(PressedCallback callback)
+      : ToolbarButton(std::move(callback)) {
+    badge_ = AddChildView(std::make_unique<views::Label>());
+    badge_->SetFontList(views::Label::GetDefaultFontList().Derive(
+        -3, gfx::Font::NORMAL, gfx::Font::Weight::BOLD));
+    badge_->SetEnabledColor(ui::kColorSysOnPrimary);
+    badge_->SetBackground(
+        views::CreateRoundedRectBackground(ui::kColorSysPrimary, 7));
+    badge_->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(0, 3)));
+    badge_->SetCanProcessEventsWithinSubtree(false);
+    badge_->SetVisible(false);
+  }
+
+  // "" hides the badge.
+  void SetCount(const std::u16string& text) {
+    badge_->SetText(text);
+    badge_->SetVisible(!text.empty());
+    PositionBadge();
+  }
+
+  // views::View:
+  void OnBoundsChanged(const gfx::Rect& previous_bounds) override {
+    ToolbarButton::OnBoundsChanged(previous_bounds);
+    PositionBadge();
+  }
+
+ private:
+  void PositionBadge() {
+    if (!badge_->GetVisible()) {
+      return;
+    }
+    gfx::Size size = badge_->GetPreferredSize();
+    size.set_width(std::max(size.width(), size.height()));
+    const gfx::Rect area = GetContentsBounds();
+    badge_->SetBounds(area.right() - size.width() + 3, area.y() - 2,
+                      size.width(), size.height());
+  }
+
+  raw_ptr<views::Label> badge_ = nullptr;
+};
+
+BEGIN_METADATA(IrisShieldButton)
+END_METADATA
+
 // IrisToolbarButtons ---------------------------------------------------------
 
 IrisToolbarButtons::IrisToolbarButtons(BrowserWindowInterface* browser) : browser_(browser) {
@@ -655,8 +708,14 @@ IrisToolbarButtons::IrisToolbarButtons(BrowserWindowInterface* browser) : browse
     button->GetViewAccessibility().SetName(name);
     return AddChildView(std::move(button));
   };
-  shield_ = make_button(&IrisToolbarButtons::OnShieldPressed, kIrisShieldIcon,
-                        u"Iris shield");
+  {
+    auto shield = std::make_unique<IrisShieldButton>(base::BindRepeating(
+        &IrisToolbarButtons::OnShieldPressed, base::Unretained(this)));
+    shield->SetVectorIcon(kIrisShieldIcon);
+    shield->SetTooltipText(u"Iris shield");
+    shield->GetViewAccessibility().SetName(u"Iris shield");
+    shield_ = AddChildView(std::move(shield));
+  }
   javascript_ = make_button(&IrisToolbarButtons::OnJavaScriptPressed,
                             kIrisJavascriptIcon, u"JavaScript on this site");
   new_identity_ = make_button(&IrisToolbarButtons::OnNewIdentityPressed,
@@ -746,8 +805,8 @@ void IrisToolbarButtons::UpdateVisibility() {
 }
 
 void IrisToolbarButtons::UpdateShield() {
-  shield_->SetHighlight(stats_ ? CountText(stats_->total()) : std::u16string(),
-                        std::nullopt);
+  static_cast<IrisShieldButton*>(shield_.get())
+      ->SetCount(stats_ ? CountText(stats_->total()) : std::u16string());
   if (stats_) {
     shield_->SetTooltipText(
         u"Iris shield: " + base::NumberToString16(stats_->total()) +
