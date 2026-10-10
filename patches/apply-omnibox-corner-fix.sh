@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # Iris — no specks on the address-bar dropdown's top corners (jegly 2026-10-10: "see the 4 dots?"; verified against
-# 156.0.8078.11). While the dropdown is open, its top part is a transparent hole the real address bar shows through
-# (TopBackgroundView, rounded_omnibox_results_frame.cc), hidden at the edge by a 1 px band of the dropdown colour.
-# On the curved corners that band does not cover the address bar's antialiased edge pixels, so the toolbar colour
-# shows through as a few specks; invisible with similar colours, obvious with contrasting Theme editor colours.
-# Fix: a wider rounded band of the dropdown colour (same radius as the address bar) on top of the original. Same
-# colour as the address bar behind it, so the band itself is invisible.
-# History: 2 px (first try) left the specks a few px in on the corner curve -> 6 px (jegly 2026-10-10 "still 4
-# pixels"). Trees with an older width are upgraded in place.
+# 156.0.8078.11).
+# While the dropdown is open, its top part is a transparent hole the location bar shows through (TopBackgroundView,
+# rounded_omnibox_results_frame.cc). Upstream punches the hole at exactly the location bar's size and hides the edge
+# with a 1 px non-antialiased band; pixels on the hole's edge stay partly transparent, so the location bar's
+# antialiased edge over the toolbar shows through as specks (invisible with similar colours, obvious with contrasting
+# Theme editor colours). Measured with a red diagnostic band (jegly's screenshot 2026-10-10 23:06): the specks sit on
+# the hole's outermost ring, outside any band drawn inside it.
+# Fix: punch the hole 3 px smaller than the location bar (same pill shape). The dropdown's own opaque background then
+# covers the location bar's edge completely; the hole's own edge lies over the location bar's opaque inside, so its
+# antialiasing is invisible. History: 2 px and 6 px bands inside the hole (did not help; replaced here).
+# Needs apply-omnibox-native-popup.sh (otherwise the WebUI dropdown is used and this code is not).
 # STATUS 2026-10-10: copy-tested only, NOT compile-proven (rounded_omnibox_results_frame.o). Not seen.
 # Guarded; idempotent; fails loudly on drift.
 set -euo pipefail
@@ -15,35 +18,48 @@ SRC="${1:-$HOME/Documents/chromium/src}"
 cd "$SRC"
 python3 - <<'PY'
 import re, sys
-WIDTH = 6
 p = "chrome/browser/ui/views/omnibox/rounded_omnibox_results_frame.cc"
 s = open(p).read()
-anchor = ("    SetBackground(LocationBarView::CreateRoundRectBackground(\n"
-          "        SK_ColorTRANSPARENT, background_color, location_bar_->Bounds().size(),\n"
-          "        SkBlendMode::kSrc, false));\n")
-band = ("    // Iris: a %d px band, not 1 px, so the location bar's antialiased\n"
-        "    // corners cannot let the toolbar colour through with contrasting\n"
-        "    // theme colours (apply-omnibox-corner-fix.sh).\n"
-        "    SetBorder(views::CreateRoundedRectBorder(\n"
-        "        %d,\n"
-        "        LocationBarView::ComputeBorderRadius(location_bar_->Bounds().size()),\n"
-        "        background_color));\n") % (WIDTH, WIDTH)
-old_band = re.compile(r"    // Iris: a \d+ px band, not 1 px.*?\n        background_color\)\);\n", re.S)
-m = old_band.search(s)
-if m and m.group(0) == band:
-    print("SKIP already applied: %s (%d px corner band)" % (p, WIDTH))
-elif m:
-    s = s[:m.start()] + band + s[m.end():]
-    open(p, "w").write(s); print("OK   %s : corner band upgraded to %d px" % (p, WIDTH))
-elif s.count(anchor) == 1:
-    s = s.replace(anchor, anchor + band)
-    if '#include "ui/views/border.h"' not in s:
-        inc = '#include "ui/views/bubble/bubble_border.h"\n'
-        if s.count(inc) != 1:
+NEW = ("    // Iris: the hole is 3 px smaller than the location bar\n"
+       "    // (apply-omnibox-corner-fix.sh): the dropdown's own colour then covers\n"
+       "    // the location bar's antialiased edge, which otherwise lets the toolbar\n"
+       "    // colour through as specks with contrasting theme colours.\n"
+       "    constexpr int kIrisHoleInset = 3;\n"
+       "    const int radius =\n"
+       "        LocationBarView::ComputeBorderRadius(location_bar_->Bounds().size());\n"
+       "    SetBackground(views::CreateBackgroundFromPainter(\n"
+       "        views::Painter::CreateSolidRoundRectPainter(\n"
+       "            SK_ColorTRANSPARENT,\n"
+       "            radius > kIrisHoleInset ? radius - kIrisHoleInset : 0,\n"
+       "            gfx::Insets(kIrisHoleInset), SkBlendMode::kSrc,\n"
+       "            /*antialias=*/true)));\n")
+if NEW in s:
+    print("SKIP already applied: %s (hole inset 3 px)" % p); sys.exit(0)
+# Upstream block (+ an optional band from earlier Iris versions, any width/colour).
+OLD = re.compile(
+    r"    const SkColor background_color =\n"
+    r"        GetColorProvider\(\)->GetColor\(kColorOmniboxResultsBackground\);\n"
+    r"\n"
+    r"    // Paint a stroke of the background color as a 1 px border to hide the\n"
+    r"    // underlying antialiased location bar/toolbar edge\.  The round rect here is\n"
+    r"    // not antialiased, since the goal is to completely cover the underlying\n"
+    r"    // pixels, and AA would let those on the edge partly bleed through\.\n"
+    r"    SetBackground\(LocationBarView::CreateRoundRectBackground\(\n"
+    r"        SK_ColorTRANSPARENT, background_color, location_bar_->Bounds\(\)\.size\(\),\n"
+    r"        SkBlendMode::kSrc, false\)\);\n"
+    r"(?:    // Iris: a \d+ px band.*?\n        (?:background_color|SK_ColorRED)\)\);[^\n]*\n)?",
+    re.S)
+m = OLD.search(s)
+if not m:
+    sys.stderr.write("ERROR: %s: TopBackgroundView::OnThemeChanged body not found (drift?)\n" % p); sys.exit(1)
+s = s[:m.start()] + NEW + s[m.end():]
+for inc in ('#include "ui/views/background.h"', '#include "ui/views/painter.h"'):
+    if inc not in s:
+        anchor = '#include "ui/views/bubble/bubble_border.h"\n'
+        if s.count(anchor) != 1:
             sys.stderr.write("ERROR: %s: include anchor not found (drift?)\n" % p); sys.exit(1)
-        s = s.replace(inc, '#include "ui/views/border.h"  // Iris\n' + inc)
-    open(p, "w").write(s); print("OK   %s : %d px corner band" % (p, WIDTH))
-else:
-    sys.stderr.write("ERROR: %s: TopBackgroundView background not found (drift?)\n" % p); sys.exit(1)
+        s = s.replace(anchor, inc + "  // Iris\n" + anchor)
+open(p, "w").write(s)
+print("OK   %s : hole inset 3 px (replaces the 1 px band%s)" % (p, " and the older Iris band" if m.group(0).count("Iris") else ""))
 PY
 echo "=== omnibox corner fix complete ==="
