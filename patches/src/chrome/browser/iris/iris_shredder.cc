@@ -37,6 +37,14 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref("iris.ui.toolbar_new_identity", true);
   registry->RegisterBooleanPref("iris.ui.toolbar_lock", true);
   registry->RegisterBooleanPref("iris.ui.lock_keep_open", false);
+  // Theme editor and "Recolour websites" (apply-theme-editor.sh,
+  // apply-web-recolor.sh).
+  registry->RegisterDictionaryPref("iris.theme.custom");
+  registry->RegisterListPref("iris.theme.saved");
+  registry->RegisterBooleanPref("iris.web_recolor.enabled", false);
+  registry->RegisterIntegerPref("iris.web_recolor.brightness", 100);
+  registry->RegisterIntegerPref("iris.web_recolor.contrast", 100);
+  registry->RegisterListPref("iris.web_recolor.excluded");
   // Traffic-light window buttons (apply-traffic-lights.sh; names in
   // chrome/browser/ui/views/frame/iris_traffic_light_button.h).
   registry->RegisterBooleanPref("iris.ui.traffic_lights", true);

@@ -38,6 +38,7 @@ PATCHES=(
   apply-webrtc-off              # RTCPeerConnection gated behind IrisWebRTC (off)
   apply-webrtc-media-off        # also remove navigator.mediaDevices / getUserMedia / webkitGetUserMedia (needs webrtc-off)
   apply-web-apis-off            # MediaRecorder, captureStream, WebCodecs codecs, WebTransport, navigator.geolocation (IrisWebRTC gate) + legacy FileSystem / <geolocation> (blink list)
+  apply-web-apis-off-2          # WebGPU (navigator.gpu + GPU*), sensors, device motion/orientation, Web MIDI, Idle Detection + other leftover interfaces (IrisWebRTC gate)
   apply-rebrand-android         # Android app name/icons (needs branding/icon/generated-android/)
   apply-doh-secure              # DoH secure mode, Quad9 default, 15-resolver picker (Google hidden)
   apply-doh-more                # 7 more verified DoH providers (AdGuard x2, Control D x2, Applied Privacy, Digitale Gesellschaft, Wikimedia DNS)
@@ -114,6 +115,7 @@ PATCHES=(
   apply-palettes-picker         # B9 part 2: Iris palettes (ui/color/iris_palettes.h) in the Customize colour picker
   apply-glass                   # B9: opt-in glass look for the built-in pages (after apply-shredder)
   apply-app-lock                # B8 app lock at start + B10 passphrase encryption (os_crypt_async provider)
+  apply-app-lock-memory         # app lock: unlocked key pinned in RAM (mlock) + kept out of core dumps; passphrase copies wiped (needs app-lock)
   apply-keyring-skip            # no keyring prompt while the Iris passphrase lock is on (needs apply-app-lock)
   apply-storage-encryption      # bookmarks + open-tab session files encrypted ONLY (upstream wrote a plain-text copy too)
   apply-extra-hardening         # passwords fill only on account select; scheme- + port-bound cookies
@@ -149,6 +151,8 @@ PATCHES=(
   apply-adblock-extra           # "Block more ads and trackers": second bundled ruleset (StevenBlack, HaGeZi, AdGuard DNS, URLhaus), setting on desktop + Android
   apply-privacy-toggles-1       # toggles: JavaScript off, service workers off, WebGL off completely, ask before every download (needs adblock-extra)
   apply-privacy-toggles-2       # toggles: coarser timers, UTC + US English, memory-only cache, clear on exit, extensions off (needs shredder + toggles-1)
+  apply-timer-precision         # timers never finer than 1 ms (needs privacy-toggles-2)
+  apply-web-recolor             # Recolour websites: Blink auto-dark engine + Iris colour filter mapping pages onto the theme; per site (needs privacy-toggles-2, iris-permissions)
   apply-privacy-toggles-3       # toggles: block ads (on), web fonts, referrers, QUIC, autoplay, clipboard, JIT everywhere, WebGL/Google sign-in defaults
   apply-shield-sources          # shield counter 1/4: expose ads-blocked total + blocked-cookie count (Chromium already collects them)
   apply-iris-hardening-page     # all Iris switches on one "Iris hardening" sub-page (desktop) / topic groups (Android) + hide the Install button
@@ -157,14 +161,18 @@ PATCHES=(
   apply-block-downloads         # "Block all downloads" switch (off by default; desktop + Android)
   apply-block-third-party       # "Block third-party requests" switch (off by default; Blink hook + IrisFingerprintHost.GetBlockThirdParty; needs apply-fingerprint)
   apply-shield-stats            # shield counter 2/4: per-tab ShieldStats (ads + cookies + fingerprint reads)
+  apply-android-shield          # shared shield switch logic (desktop + Android) + Android toolbar shield button and sheet (needs shield-stats, android-per-site)
   apply-toolbar-icons           # new toolbar icons: refresh-dot (reload), x (stop), bookmark-plus (star), gear (menu) + shield/JS/flame/lock for the Iris buttons
   apply-toolbar-buttons         # desktop toolbar: shield (blocked count + panel), JavaScript, New identity, Lock buttons + Appearance switches
+  apply-customize-toolbar       # Customize your toolbar: Iris buttons listed, Cast/Send to devices/Lens/Translate... removed, stock icons -> Tabler (needs toolbar-buttons, toolbar-icons)
   apply-pageinfo-move-to-shield # desktop Page Info: Iris rows (ads, WebGL, sign-in, identity, forget, TLS details) now live in the shield panel; Android unchanged
   apply-settings-cleanup        # desktop: no Safety Hub / Safety check, no Privacy Guide promo, no Web Store tile on the new tab page
+  apply-iris-runner             # offline game: RUNNER (3D, jegly) replaces the dino when WebGL 2 works; retro touch pad; error page exempt from the WebGL block (needs iris-permissions)
   apply-jpegxl-on               # JPEG XL images explicitly on (decoder + feature already default; added to compiled-in --enable-features)
   apply-webgl-wording           # clarify "Allow WebGL" vs "Turn WebGL off completely" (Android + desktop)
   apply-traffic-lights          # desktop: AV-style traffic-light window buttons (on by default), colours + switch in Appearance
   apply-glass-window            # desktop: see-through glass window (title bar, tabs, toolbar) + opacity slider in Appearance, off by default
+  apply-theme-editor            # Settings > Appearance > Theme editor: colours per part of the window, saved themes, theme codes (needs glass-window, traffic-lights, web-recolor prefs)
   apply-security-page-iris      # Security page: no Google Advanced Protection Program; "... other Iris security settings"
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
