@@ -3,6 +3,7 @@
 package org.chromium.chrome.browser.iris;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import androidx.core.widget.ImageViewCompat;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.R;
@@ -36,6 +38,12 @@ import org.chromium.url.GURL;
  */
 @NullMarked
 public final class IrisShieldController implements TintObserver {
+    /**
+     * App preference: show the shield button (Settings > Appearance > Shield button), default on.
+     * The shield's protections work either way; only the button is hidden.
+     */
+    public static final String SHOW_BUTTON_PREF = "iris_shield_button";
+
     private final Activity mActivity;
     private final ViewGroup mButtonRow;
     private final ThemeColorProvider mTintProvider;
@@ -43,6 +51,11 @@ public final class IrisShieldController implements TintObserver {
     private final ImageView mIcon;
     private final TextView mBadge;
     private final ActivityTabProvider.ActivityTabTabObserver mTabObserver;
+    // Kept as a field: SharedPreferences holds its listeners weakly.
+    private final SharedPreferences.OnSharedPreferenceChangeListener mPrefListener =
+            (prefs, key) -> {
+                if (SHOW_BUTTON_PREF.equals(key)) updateButtonVisibility();
+            };
     private @Nullable Tab mTab;
     private @Nullable IrisShield mShield;
 
@@ -108,6 +121,8 @@ public final class IrisShieldController implements TintObserver {
 
         mButtonRow.addView(
                 mButton, 0, new ViewGroup.LayoutParams(dp(48), ViewGroup.LayoutParams.MATCH_PARENT));
+        updateButtonVisibility();
+        ContextUtils.getAppSharedPreferences().registerOnSharedPreferenceChangeListener(mPrefListener);
 
         mTintProvider.addTintObserver(this);
         onTintChanged(
@@ -138,6 +153,8 @@ public final class IrisShieldController implements TintObserver {
     }
 
     public void destroy() {
+        ContextUtils.getAppSharedPreferences()
+                .unregisterOnSharedPreferenceChangeListener(mPrefListener);
         mTabObserver.destroy();
         mTintProvider.removeTintObserver(this);
         unbind();
@@ -150,6 +167,13 @@ public final class IrisShieldController implements TintObserver {
             @Nullable ColorStateList activityFocusTint,
             @BrandedColorScheme int brandedColorScheme) {
         ImageViewCompat.setImageTintList(mIcon, activityFocusTint != null ? activityFocusTint : tint);
+    }
+
+    private void updateButtonVisibility() {
+        mButton.setVisibility(
+                ContextUtils.getAppSharedPreferences().getBoolean(SHOW_BUTTON_PREF, true)
+                        ? View.VISIBLE
+                        : View.GONE);
     }
 
     private void bind(@Nullable Tab tab) {

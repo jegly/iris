@@ -132,6 +132,8 @@ PATCHES=(
   apply-search-no-tls12-only    # Baidu, 360, Nona, Cốc Cốc out of the search list (no TLS 1.3): 28 engines
   apply-search-engines-trim     # search list round 3: -9 "random" engines, +DuckDuckGo Lite (20 engines)
   apply-flags-default-state     # chrome://flags: 'Default (Enabled)' / 'Default (Disabled)' shows what Default means
+  apply-flags-site-isolation    # chrome://flags: drop the Android "Strict site isolation" switch row (always on, showed Disabled)
+  apply-flags-iris-truth        # chrome://flags: switch rows say Default (Enabled/Disabled); rows for removed WebRTC hidden
   apply-android-settings-trim   # Android: Google services items, Safety check, Developer options gone (after no-google-settings)
   apply-android-home-clean      # Android home: no Google feed (spinner), no tip cards / tip notifications
   apply-android-home-clean2     # Android home round 2: no logo spinner, no Iris tips card
@@ -162,6 +164,9 @@ PATCHES=(
   apply-block-third-party       # "Block third-party requests" switch (off by default; Blink hook + IrisFingerprintHost.GetBlockThirdParty; needs apply-fingerprint)
   apply-shield-stats            # shield counter 2/4: per-tab ShieldStats (ads + cookies + fingerprint reads)
   apply-android-shield          # shared shield switch logic (desktop + Android) + Android toolbar shield button and sheet (needs shield-stats, android-per-site)
+  apply-android-no-identity-disc # no account (person) button in the Android toolbar on the new tab page
+  apply-android-screenshot-live # Android: "Block screenshots" switch applies to every open window at once
+  apply-android-shield-toggle   # Android: Settings > Appearance > "Shield button" switch (hide the toolbar shield)
   apply-toolbar-icons           # new toolbar icons: refresh-dot (reload), x (stop), bookmark-plus (star), gear (menu) + shield/JS/flame/lock for the Iris buttons
   apply-toolbar-buttons         # desktop toolbar: shield (blocked count + panel), JavaScript, New identity, Lock buttons + Appearance switches
   apply-customize-toolbar       # Customize your toolbar: Iris buttons listed, Cast/Send to devices/Lens/Translate... removed, stock icons -> Tabler (needs toolbar-buttons, toolbar-icons)

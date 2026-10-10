@@ -27,6 +27,8 @@
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
 #include "ui/base/models/image_model.h"
+#include "ui/compositor/layer.h"
+#include "ui/gfx/font_list.h"
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/button/md_text_button.h"
@@ -651,13 +653,20 @@ class IrisShieldButton : public ToolbarButton {
   explicit IrisShieldButton(PressedCallback callback)
       : ToolbarButton(std::move(callback)) {
     badge_ = AddChildView(std::make_unique<views::Label>());
-    badge_->SetFontList(views::Label::GetDefaultFontList().Derive(
-        -4, gfx::Font::NORMAL, gfx::Font::Weight::BOLD));
+    // A fixed small size: deriving from the system font made the badge cover
+    // the whole button with large desktop fonts (jegly 2026-10-11).
+    badge_->SetFontList(
+        views::Label::GetDefaultFontList()
+            .DeriveWithWeight(gfx::Font::Weight::BOLD)
+            .DeriveWithHeightUpperBound(kBadgeHeight - 2));
     badge_->SetEnabledColor(ui::kColorSysOnPrimary);
-    badge_->SetBackground(
-        views::CreateRoundedRectBackground(ui::kColorSysPrimary, 7));
+    badge_->SetBackground(views::CreateRoundedRectBackground(
+        ui::kColorSysPrimary, kBadgeHeight / 2));
     badge_->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(0, 2)));
     badge_->SetCanProcessEventsWithinSubtree(false);
+    // Its own layer, so it is drawn above the icon (which may have one).
+    badge_->SetPaintToLayer();
+    badge_->layer()->SetFillsBoundsOpaquely(false);
     badge_->SetVisible(false);
   }
 
@@ -681,10 +690,14 @@ class IrisShieldButton : public ToolbarButton {
     }
     // A small dot on the button's top-right corner, clear of most of the icon.
     gfx::Size size = badge_->GetPreferredSize();
-    size.set_width(std::max(size.width(), size.height()));
-    badge_->SetBounds(width() - size.width() - 1, 1, size.width(),
-                      size.height());
+    size.set_height(kBadgeHeight);
+    size.set_width(std::max(size.width(), kBadgeHeight));
+    // In the corner, so it only touches the tip of the icon's shoulder.
+    badge_->SetBounds(width() - size.width(), 0, size.width(), size.height());
   }
+
+  // Badge height in DIPs (a 20 DIP icon in a 28-34 DIP button).
+  static constexpr int kBadgeHeight = 12;
 
   raw_ptr<views::Label> badge_ = nullptr;
 };
