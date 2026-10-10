@@ -44,7 +44,12 @@ MARKER='// Iris: compiled-in hardening switches'
 #   <?xml-stylesheet?> processing; the CAP-alert exception is its own feature. Origin trials are off in Iris, so the
 #   'XSLT' deprecation trial can't turn it back on. Cost: old XML pages with a stylesheet show as raw XML.
 # 2026-10-09 (jegly): +FileSystem (legacy webkitRequestFileSystem), +GeolocationElement (the <geolocation> element); see apply-web-apis-off.sh.
-BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia,XSLT,EnableXSLTForCAPAlerts,FileSystem,GeolocationElement'
+# 2026-10-09 (API-surface audit): +CameraAndMicrophoneElements,UserMediaElement (<camera>/<microphone>/<usermedia>
+#   elements; getUserMedia is already removed), FencedFrames (Privacy Sandbox ad frames), PeriodicBackgroundSync,
+#   CaptureController (screen capture leftover), CrashReportingStorageAPI, FileSystemObserver,
+#   WebSpeechRecognitionContext. Each still exposed an interface object; see apply-web-apis-off-2.sh for the rest.
+#   +RegionCapture,ElementCapture (CropTarget / RestrictionTarget: tab-capture cropping; screen capture is off).
+BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,SharedStorageAPI,AIPromptAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia,XSLT,EnableXSLTForCAPAlerts,FileSystem,GeolocationElement,CameraAndMicrophoneElements,UserMediaElement,FencedFrames,PeriodicBackgroundSync,CaptureController,CrashReportingStorageAPI,FileSystemObserver,WebSpeechRecognitionContext,RegionCapture,ElementCapture'
 # Every name must be a RuntimeEnabledFeature (a wrong name is silently ignored) — checked below.
 
 # --- guards: the mechanisms this relies on must still exist upstream ---
