@@ -37,7 +37,9 @@
 #include "ui/views/layout/fill_layout.h"
 #include "ui/views/controls/scroll_view.h"
 #include "chrome/browser/iris/iris_app_lock.h"  // nogncheck
+#include "chrome/browser/iris/iris_shield_settings.h"  // nogncheck
 #include "base/no_destructor.h"
+#include "base/scoped_observation.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection_observer.h"
 #include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
 #include "ui/base/base_window.h"
@@ -121,7 +123,7 @@ class IrisScreenLock : public BrowserCollectionObserver {
       Hide(browser);
       return true;
     });
-    browsers->AddObserver(this);
+    observation_.Observe(browsers);
     IrisUnlockDialog::ShowWhileRunning(
         base::BindRepeating([](const std::u16string& passphrase) {
           return iris_app_lock::Unlock(g_browser_process->local_state(),
@@ -133,22 +135,24 @@ class IrisScreenLock : public BrowserCollectionObserver {
   }
 
   void Done(bool unlocked) {
-    GlobalBrowserCollection* browsers = GlobalBrowserCollection::GetInstance();
-    browsers->RemoveObserver(this);
+    observation_.Reset();
     locked_ = false;
     if (!unlocked) {
       chrome::AttemptUserExit();
       return;
     }
-    browsers->ForEach([](BrowserWindowInterface* browser) {
-      if (browser->GetWindow()) {
-        browser->GetWindow()->Show();
-      }
-      return true;
-    });
+    GlobalBrowserCollection::GetInstance()->ForEach(
+        [](BrowserWindowInterface* browser) {
+          if (browser->GetWindow()) {
+            browser->GetWindow()->Show();
+          }
+          return true;
+        });
   }
 
   bool locked_ = false;
+  base::ScopedObservation<GlobalBrowserCollection, BrowserCollectionObserver>
+      observation_{this};
 };
 #endif  // BUILDFLAG(IS_LINUX)
 
@@ -394,6 +398,10 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
         u"Forget this site when I close Iris",
         base::BindRepeating(&IrisShieldBubble::OnForget,
                             base::Unretained(this)));
+    recolor_toggle_ = AddToggleRow(
+        u"Recolour this site (Theme editor)",
+        base::BindRepeating(&IrisShieldBubble::OnRecolor,
+                            base::Unretained(this)));
     fingerprint_box_ = AddComboRow(
         u"Canvas and audio", {u"Protected", u"Real", u"Blank"},
         base::BindRepeating(&IrisShieldBubble::OnFingerprint,
@@ -447,20 +455,15 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
 
   // --- state ---------------------------------------------------------------
 
-  HostContentSettingsMap* Map() {
-    return HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
+  bool IsOn(iris::shield::Switch which) {
+    return iris::shield::IsOn(browser_->GetProfile(), url_, which);
   }
 
-  scoped_refptr<content_settings::CookieSettings> Cookies() {
-    return CookieSettingsFactory::GetForProfile(browser_->GetProfile());
-  }
-
-  ContentSetting Get(ContentSettingsType type) {
-    return Map()->GetContentSetting(url_, url_, type);
-  }
-
-  void Set(ContentSettingsType type, ContentSetting setting) {
-    Map()->SetContentSettingDefaultScope(url_, GURL(), type, setting);
+  void SetSwitch(iris::shield::Switch which,
+                 views::ToggleButton* toggle,
+                 bool reload = true) {
+    iris::shield::Set(browser_->GetProfile(), url_, which, toggle->GetIsOn());
+    Changed(reload);
   }
 
   void UpdateCounts() {
@@ -481,21 +484,23 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
       status_->SetText(u"Not used on this page");
       return;
     }
-    const bool ads_on = Get(ContentSettingsType::ADS) != CONTENT_SETTING_ALLOW;
+    using iris::shield::Switch;
+    const bool ads_on = IsOn(Switch::kAds);
     master_->SetIsOn(ads_on);
     status_->SetText(ads_on ? u"Shield is on" : u"Shield is off for this site");
     ads_toggle_->SetIsOn(ads_on);
-    cookie_toggle_->SetIsOn(!Cookies()->IsThirdPartyAccessAllowed(url_));
-    js_toggle_->SetIsOn(Get(ContentSettingsType::JAVASCRIPT) !=
-                        CONTENT_SETTING_BLOCK);
-    jit_toggle_->SetIsOn(Get(ContentSettingsType::JAVASCRIPT_JIT) ==
-                         CONTENT_SETTING_ALLOW);
-    webgl_toggle_->SetIsOn(Get(ContentSettingsType::IRIS_WEBGL) ==
-                           CONTENT_SETTING_ALLOW);
-    signin_toggle_->SetIsOn(Get(ContentSettingsType::IRIS_GOOGLE_SIGNIN) ==
-                            CONTENT_SETTING_ALLOW);
-    forget_toggle_->SetIsOn(Get(ContentSettingsType::COOKIES) ==
-                            CONTENT_SETTING_SESSION_ONLY);
+    cookie_toggle_->SetIsOn(IsOn(Switch::kCookies));
+    js_toggle_->SetIsOn(IsOn(Switch::kJavaScript));
+    jit_toggle_->SetIsOn(IsOn(Switch::kJit));
+    // "Turn WebGL off completely" (Iris hardening) wins over the site switch.
+    webgl_toggle_->SetIsOn(IsOn(Switch::kWebGL));
+    webgl_toggle_->SetEnabled(
+        !iris::shield::IsLocked(browser_->GetProfile(), Switch::kWebGL));
+    signin_toggle_->SetIsOn(IsOn(Switch::kSignIn));
+    forget_toggle_->SetIsOn(IsOn(Switch::kForget));
+    recolor_toggle_->SetIsOn(IsOn(Switch::kRecolor));
+    recolor_toggle_->SetEnabled(
+        !iris::shield::IsLocked(browser_->GetProfile(), Switch::kRecolor));
     const std::string fingerprint =
         iris::GetFingerprintReadsPreset(browser_->GetProfile(), url_);
     fingerprint_box_->SetSelectedIndex(fingerprint == "real"    ? 1
@@ -522,68 +527,40 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   // --- actions -------------------------------------------------------------
 
   void OnMaster() {
-    if (master_->GetIsOn()) {
-      Set(ContentSettingsType::ADS, CONTENT_SETTING_DEFAULT);
-      Cookies()->ResetThirdPartyCookieSetting(url_);
-      iris::SetFingerprintReadsPreset(browser_->GetProfile(), url_,
-                                      "protected");
-    } else {
-      Set(ContentSettingsType::ADS, CONTENT_SETTING_ALLOW);
-      Cookies()->SetThirdPartyCookieSetting(url_, CONTENT_SETTING_ALLOW);
-      iris::SetFingerprintReadsPreset(browser_->GetProfile(), url_, "real");
-    }
+    iris::shield::SetShield(browser_->GetProfile(), url_, master_->GetIsOn());
     Changed();
   }
 
   void OnAds() {
-    Set(ContentSettingsType::ADS, ads_toggle_->GetIsOn()
-                                      ? CONTENT_SETTING_DEFAULT
-                                      : CONTENT_SETTING_ALLOW);
-    Changed();
+    SetSwitch(iris::shield::Switch::kAds, ads_toggle_);
   }
 
   void OnCookies() {
-    if (cookie_toggle_->GetIsOn()) {
-      Cookies()->ResetThirdPartyCookieSetting(url_);
-    } else {
-      Cookies()->SetThirdPartyCookieSetting(url_, CONTENT_SETTING_ALLOW);
-    }
-    Changed();
+    SetSwitch(iris::shield::Switch::kCookies, cookie_toggle_);
   }
 
   void OnJavaScript() {
-    Set(ContentSettingsType::JAVASCRIPT, js_toggle_->GetIsOn()
-                                             ? CONTENT_SETTING_ALLOW
-                                             : CONTENT_SETTING_BLOCK);
-    Changed();
+    SetSwitch(iris::shield::Switch::kJavaScript, js_toggle_);
   }
 
   void OnJit() {
-    Set(ContentSettingsType::JAVASCRIPT_JIT, jit_toggle_->GetIsOn()
-                                                 ? CONTENT_SETTING_ALLOW
-                                                 : CONTENT_SETTING_BLOCK);
-    Changed();
+    SetSwitch(iris::shield::Switch::kJit, jit_toggle_);
   }
 
   void OnWebGL() {
-    Set(ContentSettingsType::IRIS_WEBGL, webgl_toggle_->GetIsOn()
-                                             ? CONTENT_SETTING_ALLOW
-                                             : CONTENT_SETTING_DEFAULT);
-    Changed();
+    SetSwitch(iris::shield::Switch::kWebGL, webgl_toggle_);
   }
 
   void OnSignIn() {
-    Set(ContentSettingsType::IRIS_GOOGLE_SIGNIN, signin_toggle_->GetIsOn()
-                                                     ? CONTENT_SETTING_ALLOW
-                                                     : CONTENT_SETTING_DEFAULT);
-    Changed();
+    SetSwitch(iris::shield::Switch::kSignIn, signin_toggle_);
+  }
+
+  void OnRecolor() {
+    SetSwitch(iris::shield::Switch::kRecolor, recolor_toggle_);
   }
 
   void OnForget() {
-    Set(ContentSettingsType::COOKIES, forget_toggle_->GetIsOn()
-                                          ? CONTENT_SETTING_SESSION_ONLY
-                                          : CONTENT_SETTING_DEFAULT);
-    Changed(/*reload=*/false);
+    SetSwitch(iris::shield::Switch::kForget, forget_toggle_, /*reload=*/false);
   }
 
   void OnFingerprint() {
@@ -605,15 +582,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   }
 
   void OnReset() {
-    Set(ContentSettingsType::ADS, CONTENT_SETTING_DEFAULT);
-    Set(ContentSettingsType::JAVASCRIPT, CONTENT_SETTING_DEFAULT);
-    Set(ContentSettingsType::JAVASCRIPT_JIT, CONTENT_SETTING_DEFAULT);
-    Set(ContentSettingsType::IRIS_WEBGL, CONTENT_SETTING_DEFAULT);
-    Set(ContentSettingsType::IRIS_GOOGLE_SIGNIN, CONTENT_SETTING_DEFAULT);
-    Set(ContentSettingsType::COOKIES, CONTENT_SETTING_DEFAULT);
-    Cookies()->ResetThirdPartyCookieSetting(url_);
-    iris::SetFingerprintReadsPreset(browser_->GetProfile(), url_, "protected");
-    iris::SetUserAgentPreset(browser_->GetProfile(), url_, "");
+    iris::shield::Reset(browser_->GetProfile(), url_);
     Changed();
   }
 
@@ -658,6 +627,7 @@ class IrisShieldBubble : public LocationBarBubbleDelegateView,
   raw_ptr<views::ToggleButton> cookie_toggle_ = nullptr;
   raw_ptr<views::ToggleButton> js_toggle_ = nullptr;
   raw_ptr<views::ToggleButton> jit_toggle_ = nullptr;
+  raw_ptr<views::ToggleButton> recolor_toggle_ = nullptr;
   raw_ptr<views::ToggleButton> webgl_toggle_ = nullptr;
   raw_ptr<views::ToggleButton> signin_toggle_ = nullptr;
   raw_ptr<views::ToggleButton> forget_toggle_ = nullptr;
@@ -796,11 +766,8 @@ void IrisToolbarButtons::UpdateJavaScript() {
     javascript_->SetHighlight(std::u16string(), std::nullopt);
     return;
   }
-  HostContentSettingsMap* map =
-      HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
-  const bool allowed =
-      map->GetContentSetting(url, url, ContentSettingsType::JAVASCRIPT) !=
-      CONTENT_SETTING_BLOCK;
+  const bool allowed = iris::shield::IsOn(
+      browser_->GetProfile(), url, iris::shield::Switch::kJavaScript);
   if (allowed) {
     javascript_->SetHighlight(std::u16string(), std::nullopt);
     javascript_->SetTooltipText(
@@ -849,14 +816,10 @@ void IrisToolbarButtons::OnJavaScriptPressed() {
   if (!url.SchemeIsHTTPOrHTTPS()) {
     return;
   }
-  HostContentSettingsMap* map =
-      HostContentSettingsMapFactory::GetForProfile(browser_->GetProfile());
-  const bool allowed =
-      map->GetContentSetting(url, url, ContentSettingsType::JAVASCRIPT) !=
-      CONTENT_SETTING_BLOCK;
-  map->SetContentSettingDefaultScope(
-      url, GURL(), ContentSettingsType::JAVASCRIPT,
-      allowed ? CONTENT_SETTING_BLOCK : CONTENT_SETTING_ALLOW);
+  Profile* profile = browser_->GetProfile();
+  iris::shield::Set(profile, url, iris::shield::Switch::kJavaScript,
+                    !iris::shield::IsOn(profile, url,
+                                        iris::shield::Switch::kJavaScript));
   UpdateJavaScript();
   ReloadTab(web_contents);
 }

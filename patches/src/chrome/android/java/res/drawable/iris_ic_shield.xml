@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 jegly. Licensed under the GNU General Public License v2.0 or later.
+     Iris shield (toolbar, Android): Tabler Icons "shield-check" (MIT, github.com/tabler/tabler-icons),
+     the same outline as the desktop shield (chrome/app/vector_icons/iris_shield.icon). Tinted by the toolbar. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M11.46,20.846A12,12 0,0 1,3.5 6A12,12 0,0 0,12 3A12,12 0,0 0,20.5 6A12,12 0,0 1,20.41 13.06"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M15,19L17,21L21,17"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+</vector>
