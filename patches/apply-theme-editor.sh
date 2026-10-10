@@ -175,5 +175,13 @@ edit("ui/webui/resources/cr_elements/cr_shared_vars.css",
      "}\n\n"
      "/* Iris: built-in pages follow the theme colours in dark mode (Catppuccin Mocha by\n",
      "follow the theme colours in light mode too", "light-mode page colours")
+# Settings paints its page background only in dark mode (settings.html); light mode showed the default white
+# behind the cards and the header (jegly 2026-10-10 screenshot).
+edit("chrome/browser/resources/settings/settings.html",
+     "    html,\n    body {\n      height: 100%;\n      margin: 0;\n    }\n",
+     "    /* Iris: the page background in light mode too (apply-theme-editor.sh). */\n"
+     "    html {\n      background: var(--md-background-color);\n    }\n\n"
+     "    html,\n    body {\n      height: 100%;\n      margin: 0;\n    }\n",
+     "the page background in light mode too", "Settings page background")
 PY
 echo "=== Theme editor complete ==="

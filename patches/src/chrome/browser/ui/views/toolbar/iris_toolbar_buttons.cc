@@ -652,11 +652,11 @@ class IrisShieldButton : public ToolbarButton {
       : ToolbarButton(std::move(callback)) {
     badge_ = AddChildView(std::make_unique<views::Label>());
     badge_->SetFontList(views::Label::GetDefaultFontList().Derive(
-        -3, gfx::Font::NORMAL, gfx::Font::Weight::BOLD));
+        -4, gfx::Font::NORMAL, gfx::Font::Weight::BOLD));
     badge_->SetEnabledColor(ui::kColorSysOnPrimary);
     badge_->SetBackground(
         views::CreateRoundedRectBackground(ui::kColorSysPrimary, 7));
-    badge_->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(0, 3)));
+    badge_->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(0, 2)));
     badge_->SetCanProcessEventsWithinSubtree(false);
     badge_->SetVisible(false);
   }
@@ -679,11 +679,11 @@ class IrisShieldButton : public ToolbarButton {
     if (!badge_->GetVisible()) {
       return;
     }
+    // A small dot on the button's top-right corner, clear of most of the icon.
     gfx::Size size = badge_->GetPreferredSize();
     size.set_width(std::max(size.width(), size.height()));
-    const gfx::Rect area = GetContentsBounds();
-    badge_->SetBounds(area.right() - size.width() + 3, area.y() - 2,
-                      size.width(), size.height());
+    badge_->SetBounds(width() - size.width() - 1, 1, size.width(),
+                      size.height());
   }
 
   raw_ptr<views::Label> badge_ = nullptr;
