@@ -322,6 +322,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Websites drawn in your theme's colours, with a switch per site (off by default) [Ubuntu]
 + "Customize your toolbar" lists Iris's buttons, with new icons; Cast and Send to your devices are gone [Ubuntu]
 + The shield on Android too, with the same per-site settings as on Ubuntu
++ A switch to hide the shield button on Android (blocking keeps working)
 + Website timers rounded to 1 ms (100 ms with "Coarser timers")
 + The app-lock key kept out of swap and crash dumps
 + A 3D offline game in place of the dinosaur, with a touch pad on Android
@@ -403,6 +404,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - The first-run setup flow and DRM preprovisioning at startup
 - Google services pages, Safety check, Developer options, and Settings search
 - The home-screen feed, tips card and loading spinner
+- The account button on the new tab page
 + Fewer permissions and open doors: no Gemini trigger or NFC tag handling, and your bookmarks and history aren't shared with other apps
 ```
 
@@ -432,12 +434,12 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 156.0.8078.11-4 files:
+SHA-256 of the 156.0.8078.11-5 files:
 
 ```
-8a4abb46341a8cf996c4d2276532ad23d8dfd15e2d0eb63d9b3dd93324351b70  iris-browser-stable_156.0.8078.11-4_amd64.deb
-75d6fe8f66a8954c74d937b478af1fbc9cfdd5c6cf1b2894ba99d0f7f37e00f7  iris-browser_156.0.8078.11-4_amd64.snap
-6e3e3b0e688eafc0a7b99ac756bf6d16aeee7d3c52e37af47f96ae350184cdac  iris-156.0.8078.11-4-pqc-signed.apk
+004eeaaade7a56a432074a0fc32ace20c11572e4b90e821c6db396358cc12f1e  iris-browser-stable_156.0.8078.11-5_amd64.deb
+b563f6485fce462790bbac39fda5ad6fc95e6a9dade1ed87a86ed590dc94f8aa  iris-browser_156.0.8078.11-5_amd64.snap
+74c8914fdbfdedbff4e04d02f4aa6b1ab025fe9085651818ae6c32ffec2bc942  iris-156.0.8078.11-5-pqc-signed.apk
 ```
 
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
