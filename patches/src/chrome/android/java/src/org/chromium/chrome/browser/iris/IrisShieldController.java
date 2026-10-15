@@ -31,10 +31,10 @@ import org.chromium.content_public.browser.WebContents;
 import org.chromium.url.GURL;
 
 /**
- * The shield button in the Android toolbar (phone layout): the number of ads, trackers, cookies
- * and fingerprinting attempts blocked on the current page; tapping it opens {@link
- * IrisShieldSheet}. Added at the start of the toolbar's button row by {@code ToolbarManager}
- * (apply-android-shield.sh). Tablets use another toolbar layout and get no button yet.
+ * The shield button in the Android toolbar: the number of ads, trackers, cookies and
+ * fingerprinting attempts blocked on the current page; tapping it opens {@link IrisShieldSheet}.
+ * Added by {@code ToolbarManager} (apply-android-shield.sh): phones at the start of the button
+ * row, tablets and unfolded foldables just before the optional button (see {@link #attach}).
  */
 @NullMarked
 public final class IrisShieldController implements TintObserver {
@@ -59,20 +59,45 @@ public final class IrisShieldController implements TintObserver {
     private @Nullable Tab mTab;
     private @Nullable IrisShield mShield;
 
-    /** Returns null when the toolbar has no button row (tablet layout). */
+    /**
+     * Phone layout: first in the button row (R.id.toolbar_buttons). Tablet layout (tablets and
+     * unfolded foldables, 600 dp and wider): the whole toolbar is one row
+     * (R.id.toolbar_tablet_layout); the shield goes just before the optional (adaptive) button, the
+     * same order as on phones. Returns null when neither row is found.
+     */
     public static @Nullable IrisShieldController attach(
             Activity activity,
             View toolbarContainer,
             ActivityTabProvider tabProvider,
             ThemeColorProvider tintProvider) {
         View row = toolbarContainer.findViewById(R.id.toolbar_buttons);
-        if (!(row instanceof ViewGroup)) return null;
-        return new IrisShieldController(activity, (ViewGroup) row, tabProvider, tintProvider);
+        if (row instanceof ViewGroup) {
+            return new IrisShieldController(
+                    activity, (ViewGroup) row, 0, tabProvider, tintProvider);
+        }
+        View tabletRow = toolbarContainer.findViewById(R.id.toolbar_tablet_layout);
+        if (!(tabletRow instanceof ViewGroup)) return null;
+        ViewGroup tabletGroup = (ViewGroup) tabletRow;
+        // The optional button is a ViewStub until first shown; once inflated it takes the stub's
+        // place under another id. Fall back to the tab switcher if neither is a direct child.
+        int[] anchors = {
+            R.id.optional_button_stub, R.id.optional_toolbar_button, R.id.tab_switcher_button
+        };
+        for (int id : anchors) {
+            View anchor = tabletGroup.findViewById(id);
+            int index = anchor != null ? tabletGroup.indexOfChild(anchor) : -1;
+            if (index >= 0) {
+                return new IrisShieldController(
+                        activity, tabletGroup, index, tabProvider, tintProvider);
+            }
+        }
+        return null;
     }
 
     private IrisShieldController(
             Activity activity,
             ViewGroup buttonRow,
+            int insertIndex,
             ActivityTabProvider tabProvider,
             ThemeColorProvider tintProvider) {
         mActivity = activity;
@@ -120,7 +145,9 @@ public final class IrisShieldController implements TintObserver {
         mBadge.setVisibility(View.GONE);
 
         mButtonRow.addView(
-                mButton, 0, new ViewGroup.LayoutParams(dp(48), ViewGroup.LayoutParams.MATCH_PARENT));
+                mButton,
+                insertIndex,
+                new ViewGroup.LayoutParams(dp(48), ViewGroup.LayoutParams.MATCH_PARENT));
         updateButtonVisibility();
         ContextUtils.getAppSharedPreferences().registerOnSharedPreferenceChangeListener(mPrefListener);
 

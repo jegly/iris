@@ -8,7 +8,9 @@
 #  - Android toolbar (phone layout): a shield button at the start of the toolbar's button row (R.id.toolbar_buttons),
 #    with the page's blocked count as a badge, tinted like the other toolbar icons. Added at runtime by
 #    ToolbarManager.initializeWithNative() (IrisShieldController), so the toolbar module's layouts are untouched.
-#    Tablets (other toolbar layout): no button yet.
+#    Tablets and unfolded foldables (600 dp+, toolbar_tablet.xml: one row R.id.toolbar_tablet_layout, no
+#    toolbar_buttons): the shield goes just before the optional (adaptive, e.g. share) button, same order as phones
+#    (jegly 2026-10-15: Pixel Fold unfolded showed only the share button). Logic in IrisShieldController.attach().
 #  - Tapping it opens IrisShieldSheet: a sheet at the bottom with the desktop panel's content: counts (page, kinds,
 #    lifetime), master switch, "This site" switches (ads/trackers, cross-site cookies, JavaScript, JS optimisation,
 #    WebGL, Google sign-in prompts, forget site), canvas/audio and browser identity lists, connection details, "Reset
