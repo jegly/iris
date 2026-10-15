@@ -181,6 +181,7 @@ PATCHES=(
   apply-omnibox-corner-fix      # address-bar dropdown: 2 px corner band, no toolbar-colour specks with contrasting themes
   apply-omnibox-native-popup    # address-bar dropdown: native popup instead of the WebUI page (no corner specks, no extra WebUI renderer)
   apply-security-page-iris      # Security page: no Google Advanced Protection Program; "... other Iris security settings"
+  apply-iris-hardening-security # Security page folded into Iris hardening (desktop); Safe Browsing off by default + no menu nag (needs iris-hardening-page, strict-pq-tls)
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
 )
