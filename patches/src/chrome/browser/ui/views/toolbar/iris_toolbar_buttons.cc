@@ -738,6 +738,12 @@ IrisToolbarButtons::IrisToolbarButtons(BrowserWindowInterface* browser) : browse
                               kIrisFlameIcon, u"New identity");
   lock_ = make_button(&IrisToolbarButtons::OnLockPressed, kIrisLockIcon,
                       u"Lock and close Iris");
+  // Short names for "Show button names" (ToolbarButton::SetIrisCaption,
+  // apply-toolbar-labels.sh); the accessible names above are longer.
+  shield_->SetIrisCaption(u"Shield");
+  javascript_->SetIrisCaption(u"JavaScript");
+  new_identity_->SetIrisCaption(u"New identity");
+  lock_->SetIrisCaption(u"Lock");
 
   browser_->GetTabStripModel()->AddObserver(this);
   pref_registrar_.Init(browser_->GetProfile()->GetPrefs());

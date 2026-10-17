@@ -170,6 +170,7 @@ PATCHES=(
   apply-toolbar-icons           # new toolbar icons: refresh-dot (reload), x (stop), bookmark-plus (star), gear (menu) + shield/JS/flame/lock for the Iris buttons
   apply-toolbar-buttons         # desktop toolbar: shield (blocked count + panel), JavaScript, New identity, Lock buttons + Appearance switches
   apply-customize-toolbar       # Customize your toolbar: Iris buttons listed, Cast/Send to devices/Lens/Translate... removed, stock icons -> Tabler (needs toolbar-buttons, toolbar-icons)
+  apply-toolbar-labels          # desktop: optional tiny names under the toolbar icons, switch in Customize toolbar -> Iris (needs customize-toolbar)
   apply-pageinfo-move-to-shield # desktop Page Info: Iris rows (ads, WebGL, sign-in, identity, forget, TLS details) now live in the shield panel; Android unchanged
   apply-settings-cleanup        # desktop: no Safety Hub / Safety check, no Privacy Guide promo, no Web Store tile on the new tab page
   apply-iris-runner             # offline game: RUNNER (3D, jegly) replaces the dino when WebGL 2 works; retro touch pad; error page exempt from the WebGL block (needs iris-permissions)
@@ -182,6 +183,7 @@ PATCHES=(
   apply-omnibox-native-popup    # address-bar dropdown: native popup instead of the WebUI page (no corner specks, no extra WebUI renderer)
   apply-security-page-iris      # Security page: no Google Advanced Protection Program; "... other Iris security settings"
   apply-iris-hardening-security # Security page folded into Iris hardening (desktop); Safe Browsing off by default + no menu nag (needs iris-hardening-page, strict-pq-tls)
+  apply-android-no-privacy-guide # Android: Privacy and security -> Privacy guide row removed (desktop: settings-cleanup)
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
 )
