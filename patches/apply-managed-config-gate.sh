@@ -18,6 +18,10 @@ s = open(p).read()
 old = "[\n  ImplementedAs=NavigatorManagedData,\n  SecureContext\n] partial interface Navigator {"
 new = "[\n  ImplementedAs=NavigatorManagedData,\n  SecureContext,\n  RuntimeEnabled=ManagedConfiguration\n] partial interface Navigator {"
 if new in s: print("SKIP already applied: " + p); sys.exit(0)
+# On a fresh tree apply-web-apis-off-2.sh (earlier in apply-all) already gates this partial on IrisWebRTC (off in
+# release) -> navigator.managed is gone either way; don't stack a second RuntimeEnabled (2026-10-17, first fresh run).
+gated = "[RuntimeEnabled=IrisWebRTC, \n  ImplementedAs=NavigatorManagedData,\n  SecureContext\n] partial interface Navigator {"
+if gated in s: print("SKIP already gated by apply-web-apis-off-2 (IrisWebRTC): " + p); sys.exit(0)
 if s.count(old) != 1: sys.stderr.write(f"ERROR: {p}: Navigator partial header changed (drift?)\n"); sys.exit(1)
 j = open("third_party/blink/renderer/platform/runtime_enabled_features.json5").read()
 if 'name: "ManagedConfiguration",' not in j: sys.stderr.write("ERROR: json5 no longer defines ManagedConfiguration\n"); sys.exit(1)

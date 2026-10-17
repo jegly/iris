@@ -36,6 +36,7 @@ void IrisShredder::RegisterProfilePrefs(
   registry->RegisterBooleanPref("iris.ui.toolbar_javascript", true);
   registry->RegisterBooleanPref("iris.ui.toolbar_new_identity", true);
   registry->RegisterBooleanPref("iris.ui.toolbar_lock", true);
+  registry->RegisterBooleanPref("iris.ui.toolbar_labels", false);  // apply-toolbar-labels.sh
   registry->RegisterBooleanPref("iris.ui.lock_keep_open", false);
   // Theme editor and "Recolour websites" (apply-theme-editor.sh,
   // apply-web-recolor.sh).
