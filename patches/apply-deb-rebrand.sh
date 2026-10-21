@@ -68,7 +68,7 @@ edit("chrome/common/chrome_paths_linux.cc",
 # A NEW Chromium version restarts at "1" (156.0.8078.11-1, 2026-10-07); the build's own rules (BUILD.gn / siso) expect
 # -1 as the output name, so a different value makes the build report "missing outputs" although the .deb is written.
 import re
-IRIS_RELEASE = "5"  # 156.0.8078.11-5 = release 0.0.0.8 (2026-10-11; -4 was 0.0.0.7, -3 0.0.0.6, -2 0.0.0.5). The build then prints "missing outputs" for the -1 name: expected, the -2 .deb IS written.
+IRIS_RELEASE = "1"  # 156.0.8078.47-1 = release 0.0.0.9 (2026-10-21; new Chromium version -> back to -1). Earlier: 156.0.8078.11-5 = 0.0.0.8, -4 0.0.0.7, -3 0.0.0.6, -2 0.0.0.5. With -1 the .deb name matches what the build expects (no "missing outputs").
 p_ = "chrome/installer/linux/common/installer.py"
 s_ = open(p_).read()
 want = '        data["package_release"] = "%s"  # Iris: bump per re-release (apply-deb-rebrand.sh)\n' % IRIS_RELEASE
