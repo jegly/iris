@@ -172,6 +172,7 @@ PATCHES=(
   apply-popup-allow-once-desktop # desktop: blocked pop-up bubble gets "Allow once" (open them now, setting unchanged)
   apply-block-downloads         # "Block all downloads" switch (off by default; desktop + Android)
   apply-block-third-party       # "Block third-party requests" switch (off by default; Blink hook + IrisFingerprintHost.GetBlockThirdParty; needs apply-fingerprint)
+  apply-clickfix-guard          # local ClickFix guard: a website's hidden command on the clipboard is replaced by a warning (on by default; nothing sent)
   apply-shield-stats            # shield counter 2/4: per-tab ShieldStats (ads + cookies + fingerprint reads)
   apply-android-shield          # shared shield switch logic (desktop + Android) + Android toolbar shield button and sheet (needs shield-stats, android-per-site)
   apply-android-no-identity-disc # no account (person) button in the Android toolbar on the new tab page
