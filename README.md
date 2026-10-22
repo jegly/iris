@@ -264,7 +264,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Translate offers, spellcheck dictionary downloads and autofill server lookups
 - Built-in AI: Prompt, Summarizer, Writer, Rewriter, Translator and language-detection APIs, the on-device model, AI checkout scanning and the AI settings page
 - Google Lens, AI Mode and Gemini
-- Safe Browsing surveys and file uploads for deep scanning
+- Safe Browsing, with its surveys and file uploads for deep scanning
 - Remote new tab page, search-engine logo, popular sites and Google's favicon server
 - Cast device discovery, the Discover feed and Touch to Search
 - Google sign-in widgets on other sites, until you allow them
@@ -313,6 +313,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + A different browser identity for any site, from the shield: 13 to pick from, including Firefox, Chrome, Edge, Safari and Samsung Internet on desktop, Android and iPhone
 + Cookies, saved logins and bookmarks encrypted with your passphrase when the app lock is on, open tabs too on Ubuntu
 + All of Iris's own switches on one "Iris hardening" page in Settings [Ubuntu]
++ A hidden command a website puts on your clipboard, the way ClickFix scams do, is swapped for a warning (checked on your device, on by default)
 + Switches to block web fonts, autoplay, all downloads and QUIC, to stop sending the Referer, and to clear copied text after 30 seconds
 + Tracking parameters removed from links, with a switch to keep them
 + Blocked pop-ups can be opened once, without allowing the site
@@ -333,11 +334,11 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 ```diff
 + TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange
 + CNSA 2.0 cipher and key-exchange preferences
-+ Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only (Settings → Privacy and security → Security; some sites won't load)
++ Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only (Settings → Privacy and security → Iris hardening; some sites won't load)
 + Merkle Tree Certificate verification, ready for post-quantum certificates
 + Connection details: TLS version, cipher, hash, key exchange, server signature and ECH (in the shield on Ubuntu, in the lock icon on Android)
 + Cookies only sent back to the scheme and port that set them
-+ Encrypted DNS in secure mode: Quad9 by default, 21 resolvers to choose from
++ Encrypted DNS in secure mode: Quad9 by default, 45 resolvers to choose from
 + HTTPS-Only mode: a warning before any http:// page
 + Full URLs in the address bar, www. and m. included
 + Websites can't reach your router, printer or localhost (Chromium default, kept)
@@ -453,7 +454,7 @@ sure the keys are mine. My keys are also in `keys/`:
 Iris is a set of small, guarded patch scripts applied to an upstream Chromium checkout, plus build configs.
 
 1. Get Chromium (`depot_tools`, `fetch chromium`) and check out the base commit
-   `fcb358d535effda2ded753c907011e6cdeda089e` (Chromium 156.0.8078.11).
+   `1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775` (Chromium 156.0.8078.47).
 2. The ad-block ruleset is included in `adblock/dist/`. `adblock/build-ruleset.sh` rebuilds it from fresh lists.
 3. Apply everything: `patches/apply-all.sh ~/path/to/chromium/src`. Each script checks the code it changes and
    stops with an error if upstream has drifted; re-running is safe.

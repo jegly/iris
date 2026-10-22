@@ -27,7 +27,7 @@ sure the keys are mine. My keys are also in `keys/`:
 Iris is a set of small, guarded patch scripts applied to an upstream Chromium checkout, plus build configs.
 
 1. Get Chromium (`depot_tools`, `fetch chromium`) and check out the base commit
-   `fcb358d535effda2ded753c907011e6cdeda089e` (Chromium 156.0.8078.11).
+   `1d17a2e2ee147bb7d6ae2ab6abdb3a2510c17775` (Chromium 156.0.8078.47).
 2. The ad-block ruleset is included in `adblock/dist/`. `adblock/build-ruleset.sh` rebuilds it from fresh lists.
 3. Apply everything: `patches/apply-all.sh ~/path/to/chromium/src`. Each script checks the code it changes and
    stops with an error if upstream has drifted; re-running is safe.
