@@ -203,3 +203,7 @@ for p in "${PATCHES[@]}"; do
   "$DIR/$p.sh" "$SRC"
 done
 echo "=== ALL ${#PATCHES[@]} Iris patches applied (or already present) ==="
+# Prove it: a SKIP can be wrong when a marker also matches another patch's code (0.0.0.9 shipped without RUNNER's
+# WebGL exemption that way). Fails if anything a patch adds is not in the tree.
+echo "================ verify (check-applied.py)"
+python3 "$DIR/check-applied.py" "$SRC"

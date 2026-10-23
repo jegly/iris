@@ -141,6 +141,6 @@ edit(b, "        IrisWebGLAllowed(web_contents, web_contents->GetLastCommittedUR
      "         // The offline / chrome://dino page runs only Iris's own game\n"
      "         // (apply-iris-runner.sh; jegly 2026-10-10).\n"
      "         web_contents->GetPrimaryMainFrame()->IsErrorDocument());\n",
-     "web_contents->GetPrimaryMainFrame()->IsErrorDocument());", "WebGL on the offline page")
+     "page runs only Iris's own game", "WebGL on the offline page")
 PY
 echo "=== offline game (RUNNER) complete ==="

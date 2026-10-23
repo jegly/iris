@@ -6,6 +6,7 @@
 !/patches/
 /patches/*
 !/patches/*.sh
+!/patches/check-applied.py
 !/patches/src/
 !/build/
 /build/*
