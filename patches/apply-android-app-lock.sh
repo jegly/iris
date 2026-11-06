@@ -10,7 +10,7 @@
 #     Android guard; without the lock Android only has PosixKeyProvider's fixed key.)
 # New here (patches/src):
 #   chrome/android/java/.../iris/IrisAppLock.java          state, 5-min re-lock, Keystore fingerprint, JNI
-#   chrome/android/java/.../iris/IrisUnlockActivity.java   "Iris is locked" screen (FLAG_SECURE, Back = background)
+#   chrome/android/java/.../iris/IrisUnlockActivity.java   lock screen, "Iris" (FLAG_SECURE, Back = background)
 #   chrome/android/java/.../iris/IrisAppLockSettings.java  set / change / fingerprint / turn off dialogs
 #   chrome/browser/iris/iris_app_lock_android.cc         JNI -> iris_app_lock (built in chrome/browser:core)
 # Wiring: chrome_java_sources.gni, chrome_jni_headers (chrome/android/BUILD.gn), chrome/browser/BUILD.gn (core),

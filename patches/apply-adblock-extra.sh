@@ -4,7 +4,8 @@
 # 156.0.8078.11 sources). Needs apply-adblock.sh and apply-strict-pq-tls.sh first (same files, different anchors).
 # Design: Chromium's subresource filter runs ONE ruleset at a time, so the two levels are two pre-built rulesets:
 #   Standard (default) = EasyList + EasyPrivacy (apply-adblock.sh)
-#   Extra              = Standard + StevenBlack hosts + HaGeZi Pro + AdGuard DNS filter + URLhaus hosts (this patch)
+#   Extra              = Standard + StevenBlack hosts + HaGeZi Pro + AdGuard DNS filter (this patch; URLhaus dropped
+#                        2026-11-05: abuse.ch ended the free downloads)
 # Both ship inside the browser (grit resources, brotli) - nothing is downloaded, ever. Refresh both with
 # adblock/build-ruleset.sh at each release. Setting = Local State bool "iris.adblock.extra" (default false):
 #  - browser_process_impl.cc: registered; at startup the ruleset service is given the Standard or Extra ruleset; changing
@@ -49,7 +50,7 @@ def edit(p, old, new, marker, label):
 
 PREF = "iris.adblock.extra"
 LABEL = "Block more ads and trackers"
-SUB = ("Adds the StevenBlack, HaGeZi Pro, AdGuard DNS and URLhaus lists to the built-in ones. They are part of Iris, "
+SUB = ("Adds the StevenBlack, HaGeZi Pro and AdGuard DNS lists to the built-in ones. They are part of Iris, "
        "nothing is downloaded. Takes effect straight away. Some sites may break; you can allow ads per site from the lock icon.")
 
 # 1. grit resources

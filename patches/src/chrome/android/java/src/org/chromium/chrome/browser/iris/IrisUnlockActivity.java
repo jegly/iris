@@ -5,6 +5,7 @@ package org.chromium.chrome.browser.iris;
 import android.app.Activity;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.graphics.Typeface;
 import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.os.Build;
@@ -32,7 +33,8 @@ import org.chromium.chrome.browser.night_mode.ThemeType;
 import javax.crypto.Cipher;
 
 /**
- * "Iris is locked": shown over Iris when it starts and after time in the background (IrisAppLock).
+ * The lock screen ("Iris" in DotGothic16): shown over Iris when it starts and after time in the
+ * background (IrisAppLock).
  * Unlocks with the passphrase (checked by the native app lock, scrypt) or, if set up, a fingerprint.
  * Back sends Iris to the background instead of closing the lock.
  */
@@ -67,11 +69,14 @@ public class IrisUnlockActivity extends Activity {
         layout.setPadding(pad, pad, pad, pad);
         layout.setBackgroundColor(surface);
 
+        // Just the name, big and bold, in the Iris header font (apply-android-lock-wordmark.sh).
         TextView title = new TextView(this);
-        title.setText("Iris is locked");
-        title.setTextSize(24);
+        title.setText("Iris");
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 72);
+        title.setTypeface(getResources().getFont(R.font.iris_dotgothic16), Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
         title.setTextColor(onSurface);
+        title.setPadding(0, 0, 0, pad);
         layout.addView(title);
 
         EditText passphrase = new EditText(this);
@@ -109,7 +114,7 @@ public class IrisUnlockActivity extends Activity {
         TextView message = new TextView(this);
         message.setGravity(Gravity.CENTER);
         message.setTextColor(onSurface);
-        message.setText("Starting…");
+        message.setText(""); // only for errors (wrong passphrase, fingerprint off)
         layout.addView(message);
         mMessage = message;
 

@@ -8,6 +8,7 @@
 !/patches/*.sh
 !/patches/check-applied.py
 !/patches/src/
+!/patches/gms-stubs/
 !/build/
 /build/*
 !/build/args-android.gn
@@ -31,6 +32,8 @@
 !/branding/icon/product_orb_16.icon
 !/branding/icon/product_orb_24.icon
 !/branding/icon/product_refresh_orb.icon
+!/branding/icon/product_refresh_orb_15.icon
+!/branding/fonts/
 !/website/
 !/adblock/
 /adblock/*

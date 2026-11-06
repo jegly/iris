@@ -6,6 +6,9 @@
 # unchecked) and, unless the user ticks it, CrxInstaller installs with Extension::WITHHOLD_PERMISSIONS, i.e. the
 # extension's host permissions are withheld and it runs on a site only when the user clicks it / grants that site
 # (extension_install_dialog_view.cc OnDialogAccepted, install_prompt_data.cc ShouldWithheldPermissionsOnDialogAccept).
+# 157: that feature is gone. Its successor kExtensionInstallSiteAccessOptions (off upstream) gives the install dialog
+# two radio buttons, "On click" (checked by default) and "On all sites"; InstallPromptData::
+# ShouldWithheldPermissionsOnDialogAccept() + extension_install_dialog_view.cc withhold host permissions on "On click".
 # Iris: that feature enabled by default. Only affects new installs through the dialog; existing extensions keep
 # their current site access. Desktop only (Android Iris has no extensions UI).
 # STATUS 2026-10-08: copy-tested only, NOT compile-proven (extensions/common extension_features.o).
@@ -17,9 +20,9 @@ python3 - <<'PY'
 import sys
 p = "extensions/common/extension_features.cc"
 s = open(p).read()
-old = "BASE_FEATURE(kAllowWithholdingExtensionPermissionsOnInstall,\n             base::FEATURE_DISABLED_BY_DEFAULT);\n"
+old = "BASE_FEATURE(kExtensionInstallSiteAccessOptions,\n             base::FEATURE_DISABLED_BY_DEFAULT);\n"
 new = ("// Iris: new extensions run on a site only after a click (apply-extensions-on-click.sh).\n"
-       "BASE_FEATURE(kAllowWithholdingExtensionPermissionsOnInstall,\n             base::FEATURE_ENABLED_BY_DEFAULT);\n")
+       "BASE_FEATURE(kExtensionInstallSiteAccessOptions,\n             base::FEATURE_ENABLED_BY_DEFAULT);\n")
 if "apply-extensions-on-click.sh" in s: print("SKIP already applied: " + p); sys.exit(0)
 if s.count(old) != 1: sys.stderr.write("ERROR: %s: feature definition not found exactly once (drift?)\n" % p); sys.exit(1)
 open(p, "w").write(s.replace(old, new, 1)); print("OK   " + p)

@@ -24,11 +24,13 @@ edit(S + "security_page.html",
      "    <!-- Iris: no Google Advanced Protection Program link (apply-security-page-iris.sh) -->\n"
      "    <cr-link-row id=\"advancedProtectionProgramLink\" class=\"hr\" hidden\n",
      "id=\"advancedProtectionProgramLink\" class=\"hr\" hidden", "classic page: APP row hidden")
-edit(S + "security_page_v2.html",
-     "  <settings-section>\n    <cr-link-row id=\"advancedProtectionProgramLinkRow\" class=\"box\"\n",
-     "  <!-- Iris: no Google Advanced Protection Program card (apply-security-page-iris.sh) -->\n"
-     "  <settings-section hidden>\n    <cr-link-row id=\"advancedProtectionProgramLinkRow\" class=\"box\"\n",
-     "<settings-section hidden>\n    <cr-link-row id=\"advancedProtectionProgramLinkRow\"", "v2 page: APP card hidden")
+import os
+if os.path.exists(S + "security_page_v2.html"):  # 156 only; 157 has one (Lit) security page
+  edit(S + "security_page_v2.html",
+       "  <settings-section>\n    <cr-link-row id=\"advancedProtectionProgramLinkRow\" class=\"box\"\n",
+       "  <!-- Iris: no Google Advanced Protection Program card (apply-security-page-iris.sh) -->\n"
+       "  <settings-section hidden>\n    <cr-link-row id=\"advancedProtectionProgramLinkRow\" class=\"box\"\n",
+       "<settings-section hidden>\n    <cr-link-row id=\"advancedProtectionProgramLinkRow\"", "v2 page: APP card hidden")
 edit("chrome/app/settings_strings.grdp",
      "      Safe Browsing (protection from dangerous sites) and other security settings\n",
      "      Safe Browsing (protection from dangerous sites) and other Iris security settings\n",

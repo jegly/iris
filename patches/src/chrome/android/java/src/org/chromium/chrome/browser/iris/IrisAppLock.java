@@ -34,7 +34,7 @@ import javax.crypto.spec.GCMParameterSpec;
  * (chrome/browser/iris/iris_app_lock.h): a random data key, wrapped by scrypt(passphrase), encrypts
  * cookies, bookmarks and sessions through IrisKeyProvider. There is no recovery.
  *
- * <p>Android parts: the "Iris is locked" screen ({@link IrisUnlockActivity}) is shown when Iris starts
+ * <p>Android parts: the lock screen ({@link IrisUnlockActivity}) is shown when Iris starts
  * and again after it has been in the background for {@link #RELOCK_AFTER_MS}; optional fingerprint
  * unlock keeps the passphrase only encrypted under an Android Keystore key that needs strong
  * biometrics (invalidated when fingerprints change).

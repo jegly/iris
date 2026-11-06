@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Iris — Settings "Autofill and passwords" (Your saved info): remove the Google-only parts (jegly 2026-10-04;
 # verified against the 156.0.8073.0 and 156.0.8078.9 sources).
-# chrome/browser/resources/settings/autofill_page/autofill_page.html:
+# chrome/browser/resources/settings/autofill_page/autofill_page.html.ts (Lit since 157):
 #  - <settings-account-card>: the Google account / sign-in card at the top (Iris has no Google sign-in)
 #  - "Related services": the Google Wallet and Google Account links (both open Google sites)
 #  - the "Suggestions from Gemini" card (AI; Iris has none)
@@ -16,37 +16,38 @@ cd "$SRC"
 python3 - <<'PY'
 import sys
 def die(m): sys.stderr.write("ERROR: " + m + "\n"); sys.exit(1)
-p = "chrome/browser/resources/settings/autofill_page/autofill_page.html"
+# 157: the page is Lit (autofill_page.html.ts; @click, ${...} conditionals). The click handlers / properties these
+# elements used are `protected` in autofill_page.ts, so removing their markup leaves no unused-private error.
+p = "chrome/browser/resources/settings/autofill_page/autofill_page.html.ts"
 s = open(p).read()
 MARK = "<!-- Iris: no Google account card"
 if MARK in s:
     print("SKIP already applied: %s" % p); sys.exit(0)
 CUTS = [
-    ('<settings-account-card prefs="{{prefs}}">\n'
-     '</settings-account-card>\n',
+    ('<settings-account-card></settings-account-card>\n',
      '<!-- Iris: no Google account card (apply-autofill-page-trim.sh) -->\n', "Google account card"),
     ('    <cr-link-row id="googleWalletButton" label="$i18n{googleWalletTitle}"\n'
-     '        on-click="onGoogleWalletRelatedServiceClick_"\n'
+     '        @click="${this.onGoogleWalletRelatedServiceClick_}"\n'
      '        start-icon="settings20:wallet" external>\n'
      '    </cr-link-row>\n'
      '    <cr-link-row id="googleAccountButton" label="$i18n{googleAccount}"\n'
-     '        on-click="onGoogleAccountRelatedServiceClick_"\n'
+     '        @click="${this.onGoogleAccountRelatedServiceClick_}"\n'
      '        start-icon="settings20:google" external>\n'
      '    </cr-link-row>\n',
      '    <!-- Iris: no Google Wallet / Google Account links -->\n', "Google Wallet + Google Account links"),
-    ('  <template is="dom-if" if="[[showSuggestionsFromGeminiSettings_]]">\n'
+    ('  ${this.showSuggestionsFromGeminiSettings_ ? html`\n'
      '    <div id="suggestionsFromGeminiCard">\n'
      '      <cr-link-row id="suggestionsFromGeminiLinkRow"\n'
-     '        label="$i18n{autofillPersonalContextSettingsTitle}"\n'
-     '        on-click="onSuggestionsFromGeminiClick_">\n'
+     '          label="$i18n{autofillPersonalContextSettingsTitle}"\n'
+     '          @click="${this.onSuggestionsFromGeminiClick_}">\n'
      '      </cr-link-row>\n'
      '      <hr>\n'
      '      <div id="suggestionsFromGeminiSubLabel" class="secondary">\n'
-     '        <cr-icon icon="[[spark_]]" aria-hidden="true"></cr-icon>\n'
+     '        <cr-icon icon="${this.spark_}" aria-hidden="true"></cr-icon>\n'
      '        $i18n{autofillPersonalContextSettingsSummary}\n'
      '      </div>\n'
      '    </div>\n'
-     '  </template>\n',
+     '  ` : \'\'}\n',
      '  <!-- Iris: no Gemini suggestions card -->\n', "Gemini suggestions card"),
 ]
 for old, new, what in CUTS:

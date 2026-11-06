@@ -102,7 +102,7 @@ edit("third_party/blink/renderer/core/execution_context/navigator_base.cc",
      "  if (iris_user_agent.contains(\"iPhone\")) {\n    return \"iPhone\";\n  }\n"
      "  if (iris_user_agent.contains(\"Android\")) {\n    return \"Linux armv81\";\n  }\n",
      'iris_user_agent.contains("iPhone")) {\n    return "iPhone";', "platform: iPhone / Android")
-edit("third_party/blink/renderer/core/frame/navigator.cc",
+edit("third_party/blink/renderer/core/frame/navigator_id.cc",  # 157: vendor() moved to NavigatorID
      "  if (iris_user_agent.contains(\"Safari/\") &&\n"
      "      iris_user_agent.contains(\"Version/\") &&\n"
      "      !iris_user_agent.contains(\"Chrome/\")) {\n"

@@ -5,7 +5,8 @@
 # Android Chromium has no USB/NFC FIDO stack of its own (device/fido hid is not built for Android). Upstream sends
 # requests to Play services' FIDO2 API, or in parallel to Android 14+'s system Credential Manager, and HARD-requires
 # Play services before either:
-#   - AuthenticatorImpl: makeCredential/getCredential fail unless GmsCoreUtils.isWebauthnSupported(); conditional
+#   - AuthenticatorImpl: makeCredential/getCredential fail unless GmsCoreUtils.isWebauthnSupported() (157: via
+#     hasCredentialBackend()); conditional
 #     mediation and isUserVerifyingPlatformAuthenticatorAvailable() are "unsupported" without it.
 #   - CredManSupportProvider: Credential Manager is DISABLED when the Play services version can't be read
 #     (hasOldGmsVersion: -1 -> "insufficient").
@@ -45,23 +46,15 @@ CONST = ("    // Iris: on Android 15+ WebAuthn goes only through the system Cred
 
 # 1) AuthenticatorImpl: no hard Play services requirement
 p = D + "AuthenticatorImpl.java"
-edit(p, "        if (!GmsCoreUtils.isWebauthnSupported()\n"
-        "                || (!isChrome(mWebContents) && !GmsCoreUtils.isResultReceiverSupported())) {\n",
-     "        if (!irisCredManOnly() // Iris: Credential Manager needs no Play services\n"
-     "                && (!GmsCoreUtils.isWebauthnSupported()\n"
-     "                        || (!isChrome(mWebContents) && !GmsCoreUtils.isResultReceiverSupported()))) {\n",
-     "                        || (!isChrome(mWebContents) && !GmsCoreUtils.isResultReceiverSupported()))) {\n",
-     "makeCredential: no Play services requirement")
-edit(p, "        if (!GmsCoreUtils.isWebauthnSupported()\n"
-        "                || (!isChrome(mWebContents) && !GmsCoreUtils.isResultReceiverSupported())\n"
-        "                || (options.publicKey == null && !isPasswordOnlyFlux)) {\n",
-     "        if ((!irisCredManOnly() // Iris: Credential Manager needs no Play services\n"
-     "                        && (!GmsCoreUtils.isWebauthnSupported()\n"
-     "                                || (!isChrome(mWebContents)\n"
-     "                                        && !GmsCoreUtils.isResultReceiverSupported())))\n"
-     "                || (options.publicKey == null && !isPasswordOnlyFlux)) {\n",
-     "                                        && !GmsCoreUtils.isResultReceiverSupported())))\n",
-     "getCredential: no Play services requirement")
+# 157: makeCredential + getCredential no longer test GmsCoreUtils inline; both call hasCredentialBackend() (Chrome:
+# GmsCoreUtils.isWebauthnSupported(); WebView: + ResultReceiver or Credential Manager). One gate for both now.
+edit(p, "    private boolean hasCredentialBackend() {\n"
+        "        if (isChrome(mWebContents)) {\n",
+     "    private boolean hasCredentialBackend() {\n"
+     "        if (irisCredManOnly()) return true; // Iris: Credential Manager needs no Play services\n"
+     "        if (isChrome(mWebContents)) {\n",
+     "        if (irisCredManOnly()) return true; // Iris: Credential Manager needs no Play services\n",
+     "make/getCredential: no Play services requirement (hasCredentialBackend)")
 edit(p, "    private boolean couldSupportConditionalMediation() {\n"
         "        return GmsCoreUtils.isWebauthnSupported() && isChrome(mWebContents);\n",
      "    private boolean couldSupportConditionalMediation() {\n"
@@ -69,13 +62,8 @@ edit(p, "    private boolean couldSupportConditionalMediation() {\n"
      "        return GmsCoreUtils.isWebauthnSupported() && isChrome(mWebContents);\n",
      "        if (irisCredManOnly()) return true; // Iris\n        return GmsCoreUtils.isWebauthnSupported() && isChrome(",
      "conditional mediation without Play services")
-edit(p, "    private boolean couldSupportUvpaa() {\n"
-        "        return GmsCoreUtils.isWebauthnSupported()\n",
-     "    private boolean couldSupportUvpaa() {\n"
-     "        if (irisCredManOnly()) return true; // Iris\n"
-     "        return GmsCoreUtils.isWebauthnSupported()\n",
-     "    private boolean couldSupportUvpaa() {\n        if (irisCredManOnly()) return true; // Iris\n",
-     "UVPAA without Play services")
+# 157: couldSupportUvpaa() is gone; isUserVerifyingPlatformAuthenticatorAvailable() and getClientCapabilities() test
+# hasCredentialBackend(), which the edit above already opens on Android 15+.
 add_const(p, CONST, "irisCredManOnly()")
 
 # 2) CredManSupportProvider: no Play services version check; recommend the platform Credential Manager UI

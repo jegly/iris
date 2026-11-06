@@ -41,16 +41,14 @@ def cut(old, new, what):
     s = s.replace(old, new, 1)
 
 # 1. Gemini external trigger
-cut("            <!-- TODO(b/548888503): Remove after approval.-->\n"
-    "            {% if channel in ['canary', 'default'] %}\n"
-    "            <!-- This starts FGS and finishes, does not show anything to the\n"
+# 157: the TODO + {% if channel in ['canary', 'default'] %} wrapper is gone -> the filter now ships in EVERY channel.
+cut("            <!-- This starts FGS and finishes, does not show anything to the\n"
     "                 user. Caller needs to be a trusted google app and need to use\n"
     "                 startActivityForResult. -->\n"
     "            <intent-filter>\n"
     "                <action android:name=\"org.chromium.chrome.browser.glic.EXTERNAL_TRIGGERING\" />\n"
     "                <category android:name=\"android.intent.category.DEFAULT\" />\n"
-    "            </intent-filter>\n"
-    "            {% endif %}\n",
+    "            </intent-filter>\n",
     "            <!-- Iris: no Gemini external trigger (apply-android-manifest-harden2.sh) -->\n",
     "glic external-trigger intent filter")
 # 2. NFC tags

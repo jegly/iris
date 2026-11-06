@@ -29,7 +29,14 @@ def enable(path, ident):
     if on.search(s): print(f"SKIP already enabled: {ident}"); return
     if len(off.findall(s)) != 1: die(f"{path}: {ident} DISABLED declaration found {len(off.findall(s))}x (drift?)")
     open(path, "w").write(off.sub(r'\1base::FEATURE_ENABLED_BY_DEFAULT', s, count=1)); print(f"OK   {ident} -> ENABLED ({path})")
-enable("content/public/common/content_features.cc", "kIsolateSubframeErrorPages")
+# kIsolateSubframeErrorPages: 157 made it platform-conditional (ENABLED on desktop upstream, Android still DISABLED with
+# a TODO to enable it) -> flip only the Android branch (Iris has had it on for both since 156).
+p = "content/public/common/content_features.cc"; s = open(p).read()
+e_old = "BASE_FEATURE(kIsolateSubframeErrorPages,\n#if BUILDFLAG(IS_ANDROID)\n             base::FEATURE_DISABLED_BY_DEFAULT\n"
+e_new = "BASE_FEATURE(kIsolateSubframeErrorPages,\n#if BUILDFLAG(IS_ANDROID)\n             base::FEATURE_ENABLED_BY_DEFAULT  // Iris\n"
+if e_new in s: print("SKIP already enabled: kIsolateSubframeErrorPages (Android)")
+elif s.count(e_old) == 1: open(p,"w").write(s.replace(e_old, e_new)); print("OK   kIsolateSubframeErrorPages (Android branch) -> ENABLED")
+else: die("kIsolateSubframeErrorPages Android branch not found (drift?)")
 enable("components/permissions/features.cc", "kPermissionsGestureGatedPrompts")
 enable("components/permissions/features.cc", "kSafetyHubUnusedPermissionRevocationForAllSurfaces")
 enable("media/base/media_switches.cc", "kHardenUrlProvisionFetcher")

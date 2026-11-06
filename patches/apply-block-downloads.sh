@@ -25,12 +25,13 @@ KEY = "iris.privacy.block_downloads"
 TITLE = "Block all downloads"
 SUB = ("Iris refuses every file download, including ones you start yourself. Nothing is saved to your device. "
        "Turn it off when you need to download a file.")
+# 157: DCHECK_CURRENTLY_ON -> CHECK_CURRENTLY_ON(..., base::NotFatalUntil::M161) at the top of CheckDownloadAllowed.
 edit("chrome/browser/download/chrome_download_manager_delegate.cc",
-     "  DCHECK_CURRENTLY_ON(BrowserThread::UI);\n"
+     "  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);\n"
      "#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \\\n"
      "    BUILDFLAG(IS_MAC)\n"
      "  // Don't download pdf if it is a file URL",
-     "  DCHECK_CURRENTLY_ON(BrowserThread::UI);\n"
+     "  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);\n"
      "  // Iris: Settings -> \"Block all downloads\" (apply-block-downloads.sh).\n"
      "  if (profile_->GetPrefs()->GetBoolean(\"%s\")) {\n"
      "    OnCheckDownloadAllowedFailed(std::move(check_download_allowed_cb));\n"

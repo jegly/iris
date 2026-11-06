@@ -27,6 +27,9 @@ enable_rlz = false                # already false when unbranded; explicit
 
 # --- AI stripped (compile-out) ---
 use_on_device_model_service = false
+# Iris (jegly 2026-11-05): no search-engine choice screen (EEA picker incl. Google; DuckDuckGo stays the default).
+# Only gate: SearchEngineChoiceService::GetStaticChoiceScreenConditions -> kUnsupportedBrowserType. Android: already false.
+choice_screen_in_chrome = false
 
 # --- V8: STANDARD build config (NO build-time jitless) — changed 2026-09-26 ---
 # Build-time jitless CANNOT link in this V8 revision (cost two overnight builds):
@@ -111,4 +114,4 @@ use_kerberos = false             # jegly: no Kerberos
 enterprise_content_analysis = false
 enterprise_local_content_analysis = false
 # enterprise_proxy stays ON: chrome/browser/enterprise calls enterprise_net::IsDynamicRouteFetchingEnabled() unconditionally (build failure 2026-09-28)
-enterprise_telomere_reporting = false
+# enterprise_telomere_reporting: removed upstream in 157 (the Telomere reporting code is gone; arg had no effect).

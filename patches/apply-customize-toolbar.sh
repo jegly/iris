@@ -57,8 +57,9 @@ def edit(p, old, new, marker, label):
 
 D = "chrome/browser/ui/webui/side_panel/customize_chrome/customize_toolbar/"
 M = D + "customize_toolbar.mojom"
-edit(M, "  kShowTabsFromOtherDevices,\n};\n",
-     "  kShowTabsFromOtherDevices,\n"
+# 157: kShowTabsFromOtherDevices is gone; the enum ends with kContextualTasks.
+edit(M, "  kContextualTasks,\n};\n",
+     "  kContextualTasks,\n"
      "  // Iris's own toolbar buttons (apply-customize-toolbar.sh).\n"
      "  kIrisShield,\n  kIrisJavaScript,\n  kIrisNewIdentity,\n  kIrisLock,\n};\n",
      "kIrisShield,", "mojom: Iris actions")
@@ -102,7 +103,6 @@ edit(C, "namespace {\n",
      "  switch (id) {\n"
      "    case kActionRouteMedia:                         // Cast\n"
      "    case kActionSendTabToSelf:                      // needs sync\n"
-     "    case kActionSidePanelShowTabsFromOtherDevices:  // needs sync\n"
      "    case kActionSidePanelShowLensOverlayResults:    // Google Lens\n"
      "    case kActionSidePanelShowSearchCompanion:\n"
      "    case kActionShowTranslate:\n"

@@ -30,7 +30,9 @@ PATCHES=(
   apply-remove-ai-page          # settings AI page gone
   apply-glic-off                # Gemini (Glic) kill switch off on all platforms (Android showed "Ask Gemini")
   apply-ai-off                  # No AI: AI Mode, AICore/Gemini Nano, Read Aloud, Google Lens
+  apply-gmail-otp-off           # Gmail one-time-code fetching + its token notification off (need Google sign-in; M157 audit safeguard)
   apply-no-google-startup       # No Google at startup: ListAccounts, network time; component updater = CRLSet + PKI only
+  apply-updater-pings-off       # component updater: no install/update event pings to Google (update checks kept; issue #1 item 3)
   apply-version-protections     # chrome://version: live 'Iris protections' readout
   apply-default-search          # DuckDuckGo default (IRIS_SEARCH_ENGINE to swap)
   apply-search-list-ddg         # DDG selectable in every region
@@ -52,6 +54,7 @@ PATCHES=(
   apply-doh-more                # 7 more verified DoH providers (AdGuard x2, Control D x2, Applied Privacy, Digitale Gesellschaft, Wikimedia DNS)
   apply-doh-more-2             # 24 more DoH providers from DNSCrypt's list (each tested live 2026-10-18: DoH POST/HTTP2, TLS 1.3 AES-256, filter labels, privacy page)
   apply-emudhra-distrust        # emSign Root CA - G1 + emSign ECC Root CA - G3 out of the root store and SPKI-blocked (eMudhra weak-key incident 2026-10-17)
+  apply-ct-enforce              # Certificate Transparency enforced; SCT auditing (hashdance/reports to Google) always off (issue #1 items 1+2)
   apply-privacy-batch1          # window.name, FedCM, compression dicts, preloading, text fragments, SXG, translate, autofill server, feed
   apply-fingerprint-apis        # speechSynthesis, fetchLater, getBattery, getGamepads, sendBeacon, userAgentData off
   apply-compiler-hardening      # strong protector, stack-clash, Android SCS+strong (FULL REBUILD)
@@ -70,6 +73,8 @@ PATCHES=(
   apply-android-no-google-settings # Android: no 'You and Google' / Google services in Settings
   apply-android-strings-iris    # Android: UI strings Chrome -> Iris (+ re-keyed translations)
   apply-android-no-gms          # Android: never use Google Play services; chrome://version without device model
+  apply-android-gms-stubs       # Android: Play services/Firebase/Play Core/ML Kit replaced by Iris stubs - no Google library code in the APK (issue #1 item 9)
+  apply-android-fonts-off       # Android: no CSS local() font lookups through Play services (kAndroidDownloadableFontsMatching off; issue #1 item 4)
   apply-android-manifest-harden # Android: no location/all-apps/Google push+accounts/Cast/ads/BT/NFC/HID permissions
   apply-android-manifest-harden2 # Android: no Gemini trigger/NFC tag filter, WebAPK+TWA unexported, no debug filter, browser provider unexported, 4 leftover permissions
   apply-android-webauthn-credman # Android: passkeys + security keys via Credential Manager, no Play services
@@ -77,6 +82,8 @@ PATCHES=(
   apply-android-iris-privacy-settings # Android: 'Iris' section in Privacy (screenshots, auto-delete, WebGL, sign-in)
   apply-android-themes          # Android: Iris palettes (Catppuccin Mocha + dark default), Appearance > Colours
   apply-android-app-lock        # Android: app lock (passphrase + fingerprint, real encryption, 5-min re-lock)
+  apply-android-lock-wordmark   # Android lock screen: just "Iris" in DotGothic16, big + bold (font resource; text in IrisUnlockActivity.java)
+  apply-android-exit            # Android: app menu Exit; clears data now when clear-on-exit is on, then quits - issue #1 item 5
   apply-android-per-site        # Android: per-site WebGL/sign-in/identity/canvas in the site's settings
   apply-android-no-xr-module    # Android: no XR/ARCore feature module in the APK (~20 MB of unused Google libs)
   apply-orb-logo                # product vector icons -> orb
@@ -113,6 +120,7 @@ PATCHES=(
   apply-clipboard-clear         # B7: copied text cleared from the clipboard after 30 s while deletion is on
   apply-user-agent              # B2: per-site browser identity (needs apply-iris-permissions)
   apply-fingerprint             # B4: canvas + audio fingerprint protection per site (needs apply-iris-permissions)
+  apply-font-metrics-noise      # per-site noise on measureText + element/range client rects (font fingerprinting) - issue #1 item 7
   apply-page-info-icons         # Page Info icons for the Iris rows (else NOTREACHED crash on opening Page Info)
   apply-page-info-tls           # Page Info: TLS protocol/cipher/key exchange/signature/ECH under the certificate row
   apply-android-page-info-tls-extra # Android: Page Info signature scheme + ECH sentences
@@ -171,6 +179,7 @@ PATCHES=(
   apply-tracking-param-toggle   # "Remove tracking from links" switch (default on) + more tracking params (www list)
   apply-popup-allow-once-desktop # desktop: blocked pop-up bubble gets "Allow once" (open them now, setting unchanged)
   apply-block-downloads         # "Block all downloads" switch (off by default; desktop + Android)
+  apply-punycode-toggle         # opt-in: show web addresses as punycode (display only; lookalike checks still decode) - issue #1 item 8
   apply-block-third-party       # "Block third-party requests" switch (off by default; Blink hook + IrisFingerprintHost.GetBlockThirdParty; needs apply-fingerprint)
   apply-clickfix-guard          # local ClickFix guard: a website's hidden command on the clipboard is replaced by a warning (on by default; nothing sent)
   apply-shield-stats            # shield counter 2/4: per-tab ShieldStats (ads + cookies + fingerprint reads)
@@ -197,6 +206,11 @@ PATCHES=(
   apply-android-no-privacy-guide # Android: Privacy and security -> Privacy guide row removed (desktop: settings-cleanup)
   apply-third-party-notices     # fonts (OFL) + Catppuccin (MIT) notices in /usr/share/doc (after apply-adblock)
   apply-deb-no-google-repo      # .deb: no Google apt repo/key/cron; postinst removes what -1/-2 installed (after notices: same build.py)
+  apply-android-notices         # APK: third-party + filter-list notices as assets (after notices + adblock-extra)
+  apply-input-protection        # desktop: ignore clicks on browser UI covered by Chromium's own PiP / always-on-top windows (kEnableInputProtection on)
+  apply-gtk-mode-match          # desktop: GNOME/GTK colours all-or-nothing when GNOME and Iris light/dark disagree (157 regression: dark flash on new tab, dark text boxes)
+  apply-ntp-no-flash            # new tab page background transparent (tab area is themed): no white/black flash on + with Iris palettes (needs glass-window)
+  apply-adblock-max             # 3rd STATIC ad-block level (HaGeZi Ultimate + TIF medium + Fake), off by default - issue #2  (last: its Android/desktop anchors are edited by earlier patches)
 )
 for p in "${PATCHES[@]}"; do
   echo "================ $p"

@@ -44,10 +44,27 @@ edit("chrome/browser/profiles/profile.cc",
      r"(prefs::kContextualSearchEnabled,\s*)std::string\(\),",
      r"\1prefs::kContextualSearchDisabledValue,  // Iris",
      "prefs::kContextualSearchDisabledValue,  // Iris", regex=True)
+# 157: the call became `ShouldCreatePopularSites(profile) ? ChromePopularSitesFactory::NewForProfile(profile) : nullptr`
+# (Android only; desktop already false). Iris: the helper returns false everywhere. It stays called, so no
+# -Wunused-function; plain `return false;` body, so no unreachable code.
 edit("chrome/browser/ntp_tiles/chrome_most_visited_sites_factory.cc",
-     "      ChromePopularSitesFactory::NewForProfile(profile),",
-     "      nullptr,  // Iris: no popular-sites fetch (was ChromePopularSitesFactory::NewForProfile)",
-     "nullptr,  // Iris: no popular-sites fetch")
+     "bool ShouldCreatePopularSites(Profile* profile) {\n"
+     "#if BUILDFLAG(IS_ANDROID)\n"
+     "  if (search::IsWebUiNtpEnabledForDesktopAndroid() &&\n"
+     "      base::FeatureList::IsEnabled(chrome::android::kUseWebUiNtp3PDSE)) {\n"
+     "    // TODO(crbug.com/572038495): Remove Popular Sites for 1P NTPs.\n"
+     "    return search::DefaultSearchProviderIsGoogle(profile);\n"
+     "  }\n"
+     "  return true;\n"
+     "#else\n"
+     "  return false;\n"
+     "#endif\n"
+     "}\n",
+     "bool ShouldCreatePopularSites(Profile* profile) {\n"
+     "  // Iris: no popular-sites fetch on any platform (apply-vanadium-parity).\n"
+     "  return false;\n"
+     "}\n",
+     "// Iris: no popular-sites fetch on any platform")
 edit("components/ntp_tiles/features.cc",
      r'("NTPPopularSitesBakedInContent",\s*)base::FEATURE_ENABLED_BY_DEFAULT',
      r'\1base::FEATURE_DISABLED_BY_DEFAULT', '"NTPPopularSitesBakedInContent",\n             base::FEATURE_DISABLED', regex=True)

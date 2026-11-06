@@ -64,15 +64,15 @@ edit("chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc",
      "      {\"irisGlass\", IDS_SETTINGS_IRIS_APP_LOCK_AFTER},  // Iris (B9 glass)\n",
      "\"irisGlass\"", "string registered")
 
-# 3. toggle under the theme rows
+# 3. toggle under the theme rows (157: the link row's label attribute is on its first line)
 edit("chrome/browser/resources/settings/appearance_page/appearance_page.html.ts",
-     '      <cr-link-row id="customizeToolbar"\n',
+     '      <cr-link-row id="customizeToolbar" label="$i18n{customizeToolbar}"\n',
      '      <!-- Iris (B9): glass look, off by default (apply-glass.sh) -->\n'
      '      <settings-toggle-button id="irisGlassToggle" class="hr"\n'
      '          pref-key="iris.glass.enabled"\n'
      '          label="$i18n{irisGlass}">\n'
      '      </settings-toggle-button>\n'
-     '      <cr-link-row id="customizeToolbar"\n',
+     '      <cr-link-row id="customizeToolbar" label="$i18n{customizeToolbar}"\n',
      "irisGlassToggle", "Appearance toggle")
 
 # 4. live refresh

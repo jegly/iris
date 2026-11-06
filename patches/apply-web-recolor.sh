@@ -189,14 +189,18 @@ edit(sb, "      Clamp<int>(kDefaultBackgroundBrightnessThreshold, 0, 255);\n  re
 
 # --- browser ---
 c = "chrome/browser/chrome_content_browser_client.cc"
-edit(c, '      if (prefs->GetBoolean("iris.privacy.coarse_timers")) {\n',
+# 157: the renderer's pref switches moved into AppendExtraCommandLineSwitchesFromPrefs(command_line, prefs), which has
+# no Profile*; SwitchValue() needs the profile, so this block goes right after that call, where `profile` exists.
+edit(c, '      AppendExtraCommandLineSwitchesFromPrefs(command_line,\n'
+        '                                              profile->GetPrefs());\n',
+     '      AppendExtraCommandLineSwitchesFromPrefs(command_line,\n'
+     '                                              profile->GetPrefs());\n'
      '      // Iris: "Recolour websites" colours (apply-web-recolor.sh).\n'
      '      if (const std::string iris_recolor =\n'
      '              iris::recolor::SwitchValue(profile);\n'
      '          !iris_recolor.empty()) {\n'
      '        command_line->AppendSwitchASCII(iris::recolor::kSwitch, iris_recolor);\n'
-     '      }\n'
-     '      if (prefs->GetBoolean("iris.privacy.coarse_timers")) {\n',
+     '      }\n',
      "iris::recolor::SwitchValue(profile)", "renderer switch")
 edit(c, "  web_prefs->force_dark_mode_enabled =\n      prefs->GetBoolean(prefs::kWebKitForceDarkModeEnabled);\n",
      "  web_prefs->force_dark_mode_enabled =\n      prefs->GetBoolean(prefs::kWebKitForceDarkModeEnabled) ||\n"

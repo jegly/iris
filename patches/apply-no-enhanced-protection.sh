@@ -46,11 +46,14 @@ edit(SEC + "security_page.html",
      '        <settings-collapse-radio-button id="safeBrowsingEnhanced" hidden\n',
      "<!-- Iris: Enhanced protection removed", "Security page: Enhanced radio hidden")
 p = SEC + "security_page_v2.html"
-s = open(p).read()
+import os
 MARK = "<!-- Iris: Enhanced protection removed"
-if MARK in s:
+if not os.path.exists(p):  # 157: security_page_v2.html is gone
+    print("SKIP not in this Chromium: %s" % p)
+elif MARK in open(p).read():
     print("SKIP already applied: %s" % p)
 else:
+    s = open(p).read()
     a1 = ('      <div class="box card card-end">\n'
           '        <controlled-radio-button id="securitySettingsBundleEnhanced"\n')
     a2 = '          <controlled-radio-button id="enhancedProtectionButton"\n'

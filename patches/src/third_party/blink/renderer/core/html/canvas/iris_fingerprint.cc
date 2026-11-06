@@ -77,6 +77,45 @@ void IrisFingerprint::EnsureLoaded() {
 }
 
 // static
+double IrisFingerprint::ProtectMetric(ExecutionContext* context, double value) {
+  if (value == 0 || !std::isfinite(value)) {
+    return value;
+  }
+  IrisFingerprint* fp = For(context);
+  if (!fp) {
+    return value;
+  }
+  fp->EnsureLoaded();
+  if (fp->mode_ == Mode::kReal) {
+    return value;
+  }
+  const uint64_t h = Mix(fp->seed_ ^ std::bit_cast<uint64_t>(value) ^
+                         0x6A09E667F3BCC909ull);
+  // u is uniform in [-1, 1): 52 random bits scaled to [0, 2), minus 1.
+  const double u = static_cast<double>(h >> 12) * 0x1.0p-51 - 1.0;
+  return value * (1.0 + u * 0.0002);
+}
+
+// static
+gfx::RectF IrisFingerprint::ProtectRect(ExecutionContext* context,
+                                        const gfx::RectF& rect) {
+  auto p = [context](float v) {
+    return static_cast<float>(ProtectMetric(context, v));
+  };
+  return gfx::RectF(p(rect.x()), p(rect.y()), p(rect.width()),
+                    p(rect.height()));
+}
+
+// static
+gfx::QuadF IrisFingerprint::ProtectQuad(ExecutionContext* context,
+                                        const gfx::QuadF& quad) {
+  auto p = [context](const gfx::PointF& point) {
+    return gfx::PointF(static_cast<float>(ProtectMetric(context, point.x())),
+                       static_cast<float>(ProtectMetric(context, point.y())));
+  };
+  return gfx::QuadF(p(quad.p1()), p(quad.p2()), p(quad.p3()), p(quad.p4()));
+}
+
 // static
 bool IrisFingerprint::ShouldBlockThirdParty(ExecutionContext* context) {
   IrisFingerprint* fp = For(context);

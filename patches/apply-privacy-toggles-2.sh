@@ -62,23 +62,23 @@ CE_ANDROID = ("History, the downloads list, cookies, site data and cached files 
               "Passwords and site settings are kept.")
 
 # --- renderer switches
+# 157: the renderer's pref -> switch code moved into AppendExtraCommandLineSwitchesFromPrefs(command_line, prefs)
+# (called with the renderer profile's prefs); same names, so the same block goes at its top.
 edit("chrome/browser/chrome_content_browser_client.cc",
-     "      Profile* profile =\n"
-     "          Profile::FromBrowserContext(process->GetBrowserContext());\n"
-     "      PrefService* prefs = profile->GetPrefs();\n"
-     "      PrefService* local_state = g_browser_process->local_state();\n",
-     "      Profile* profile =\n"
-     "          Profile::FromBrowserContext(process->GetBrowserContext());\n"
-     "      PrefService* prefs = profile->GetPrefs();\n"
-     "      // Iris: privacy toggles a renderer needs at start\n"
-     "      // (apply-privacy-toggles-2.sh; prefs registered by IrisShredder).\n"
-     "      if (prefs->GetBoolean(\"%s\")) {\n"
-     "        command_line->AppendSwitch(\"iris-coarse-timers\");\n"
-     "      }\n"
-     "      if (prefs->GetBoolean(\"%s\")) {\n"
-     "        command_line->AppendSwitch(\"iris-utc\");\n"
-     "      }\n"
-     "      PrefService* local_state = g_browser_process->local_state();\n" % (CT, SL),
+     "void AppendExtraCommandLineSwitchesFromPrefs(base::CommandLine* command_line,\n"
+     "                                             PrefService* prefs) {\n"
+     "  PrefService* local_state = g_browser_process->local_state();\n",
+     "void AppendExtraCommandLineSwitchesFromPrefs(base::CommandLine* command_line,\n"
+     "                                             PrefService* prefs) {\n"
+     "  // Iris: privacy toggles a renderer needs at start\n"
+     "  // (apply-privacy-toggles-2.sh; prefs registered by IrisShredder).\n"
+     "  if (prefs->GetBoolean(\"%s\")) {\n"
+     "    command_line->AppendSwitch(\"iris-coarse-timers\");\n"
+     "  }\n"
+     "  if (prefs->GetBoolean(\"%s\")) {\n"
+     "    command_line->AppendSwitch(\"iris-utc\");\n"
+     "  }\n"
+     "  PrefService* local_state = g_browser_process->local_state();\n" % (CT, SL),
      "AppendSwitch(\"iris-coarse-timers\")", "renderer switches")
 
 # --- Blink: timers

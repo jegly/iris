@@ -88,7 +88,7 @@ else:
            "    <cr-link-row id=\"irisHardeningLinkRow\" class=\"hr\" start-icon=\"cr:security\"\n"
            "        label=\"Iris hardening\"\n"
            "        sub-label=\"Ad blocking, JavaScript, WebGL, fonts, timers, cache, clear on exit and more\"\n"
-           "        on-click=\"onIrisHardeningClick_\"\n"
+           "        @click=\"${this.onIrisHardeningClick_}\"\n"  # 157: privacy_page is Lit
            "        role-description=\"$i18n{subpageArrowRoleDescription}\"></cr-link-row>\n")
     open(p, "w").write(s[:start] + row + keep + s[end:])
     print("OK   %s : %d toggles moved to %s" % (p, len(used) - 1, out))
@@ -102,7 +102,9 @@ edit(R + "router.ts", "  COOKIES: Route;\n", "  COOKIES: Route;\n  IRIS_HARDENIN
      "IRIS_HARDENING: Route;", "routes interface")
 # 3. index
 edit(R + "privacy_page/privacy_page_index.html",
-     "  <template is=\"dom-if\" if=\"[[!enableBundledSecuritySettings_]]\">\n",
+# 157: no enableBundledSecuritySettings_ wrapper any more; the view goes before the Security view.
+     "  <template is=\"dom-if\" if=\"[[renderView_(\n"
+     "      routes_.SECURITY, currentRoute, inSearchMode)]]\" update-when-false>\n",
      "  <!-- Iris: apply-iris-hardening-page.sh -->\n"
      "  <template is=\"dom-if\" if=\"[[renderView_(\n"
      "      routes_.IRIS_HARDENING, currentRoute, inSearchMode)]]\"\n"
@@ -112,7 +114,8 @@ edit(R + "privacy_page/privacy_page_index.html",
      "        route-path$=\"[[routes_.IRIS_HARDENING.path]]\">\n"
      "    </settings-iris-hardening-page>\n"
      "  </template>\n\n"
-     "  <template is=\"dom-if\" if=\"[[!enableBundledSecuritySettings_]]\">\n",
+     "  <template is=\"dom-if\" if=\"[[renderView_(\n"
+     "      routes_.SECURITY, currentRoute, inSearchMode)]]\" update-when-false>\n",
      "settings-iris-hardening-page", "index view")
 # 4. lazy load + build
 edit(R + "lazy_load.ts", "import './privacy_page/cookies_page.js';\n",
@@ -127,11 +130,11 @@ edit(R + "BUILD.gn", "    \"privacy_page/cookies_page.ts\",\n",
      "privacy_page/iris_hardening_page.ts", "BUILD")
 # 5. privacy page TS
 t = R + "privacy_page/privacy_page.ts"
-edit(t, "  private onCookiesClick_() {\n",
+edit(t, "  protected onCookiesClick_() {\n",
      "  // Iris: apply-iris-hardening-page.sh\n"
-     "  private onIrisHardeningClick_() {\n"
+     "  protected onIrisHardeningClick_() {\n"
      "    Router.getInstance().navigateTo(routes.IRIS_HARDENING);\n  }\n\n"
-     "  private onCookiesClick_() {\n",
+     "  protected onCookiesClick_() {\n",
      "onIrisHardeningClick_() {", "link row click")
 edit(t, "    if (routes.COOKIES) {\n      map.set(routes.COOKIES.path, '#thirdPartyCookiesLinkRow');\n    }\n",
      "    if (routes.COOKIES) {\n      map.set(routes.COOKIES.path, '#thirdPartyCookiesLinkRow');\n    }\n\n"

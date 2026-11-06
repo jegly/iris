@@ -1,6 +1,6 @@
 // Copyright 2026 jegly. Licensed under the GNU General Public License v2.0 or later.
 //
-// Iris (Phase B4): canvas and audio fingerprint protection. Pages that read what they drew (getImageData, toDataURL,
+// Iris (Phase B4): canvas and audio fingerprint protection (+ font metrics, 2026-11-05). Pages that read what they drew (getImageData, toDataURL,
 // toBlob, OffscreenCanvas.convertToBlob) or the samples of an AudioBuffer get, depending on the site's setting:
 //   protected (default): the lowest bit of some pixel channels / audio samples is set to a value derived from a
 //                        per-site, per-session seed. Invisible and inaudible, stable within a session, idempotent
@@ -22,6 +22,8 @@
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/supplementable.h"
+#include "ui/gfx/geometry/quad_f.h"
+#include "ui/gfx/geometry/rect_f.h"
 
 namespace blink {
 
@@ -53,6 +55,15 @@ class CORE_EXPORT IrisFingerprint final
   // Byte samples (AnalyserNode byte data), in place: the lowest bit of about
   // one value in eight; zero values (silence) stay zero.
   static void ProtectBytes(ExecutionContext*, base::span<uint8_t> bytes);
+
+  // Font metrics (apply-font-metrics-noise.sh): a length a page reads back
+  // (canvas measureText, element / range client rects) scaled by a tiny
+  // per-site factor (|change| < 0.02%) derived from the seed and the value
+  // itself, so the same value always reads the same. "real": unchanged;
+  // "blank" is treated like "protected" here (zero sizes would break pages).
+  static double ProtectMetric(ExecutionContext*, double value);
+  static gfx::RectF ProtectRect(ExecutionContext*, const gfx::RectF&);
+  static gfx::QuadF ProtectQuad(ExecutionContext*, const gfx::QuadF&);
 
   // "Block third-party requests": whether this document's third-party subresource requests are refused (asked from the
   // browser once, then cached for the document).

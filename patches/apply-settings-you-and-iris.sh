@@ -46,9 +46,9 @@ edit("chrome/browser/resources/settings/people_page/people_page.html.ts",
      '"Google services" hidden', '"Google services" row hidden')
 
 edit("chrome/browser/resources/settings/privacy_page/privacy_page.html",
-     '        on-click="onSiteSettingsLinkRowClick_"\n'
+     '        @click="${this.onSiteSettingsLinkRowClick_}"\n'
      '        role-description="$i18n{subpageArrowRoleDescription}"></cr-link-row>\n',
-     '        on-click="onSiteSettingsLinkRowClick_"\n'
+     '        @click="${this.onSiteSettingsLinkRowClick_}"\n'
      '        role-description="$i18n{subpageArrowRoleDescription}"></cr-link-row>\n'
      '    <!-- Iris: moved here from the hidden "Google services" page (apply-settings-you-and-iris.sh) -->\n'
      '    <settings-toggle-button id="irisSearchSuggestToggle" class="hr"\n'
@@ -63,7 +63,7 @@ s = open(p).read()
 imp = "import '../controls/settings_toggle_button.js';\n"
 if imp in s: print("SKIP already imported: " + p)
 else:
-    anchor = "import '/shared/settings/prefs/prefs.js';\n"
+    anchor = "import '../settings_page/settings_section.js';\n"  # 157: Lit page, no prefs.js import
     if s.count(anchor) != 1: die(p + ": import anchor missing (drift?)")
     open(p, "w").write(s.replace(anchor, anchor + imp, 1)); print("OK   " + p + " : imports settings_toggle_button")
 PY

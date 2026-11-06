@@ -24,6 +24,8 @@ disable_fieldtrial_testing_config = true
 enable_reporting = false
 enable_rlz = false
 use_on_device_model_service = false
+# Iris (issue #1 item 9): Play services/Firebase/Play Core/ML Kit come from Iris's stubs - set in the tree by
+# apply-android-gms-stubs.sh (google_play_services_package is not a gn arg).
 
 # --- V8: STANDARD build config (NO build-time jitless) — changed 2026-09-26 ---
 # Build-time jitless CANNOT link in this V8 revision (cost two overnight builds):
@@ -75,4 +77,4 @@ cc_wrapper = "ccache"
 # ===================================================================
 
 # Release 0.0.0.6 (2026-10-09, jegly "bump the version"): versionCode above 0.0.0.4/0.0.0.5 (807801104) so phones treat it as an update.
-android_override_version_code = "807801118"
+android_override_version_code = "807801119"

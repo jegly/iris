@@ -51,7 +51,8 @@ if GUARD in s:
 else:
     a1 = ("        if (DeviceInfo.isXr()) {\n"
           "            assert XrModule.isInstalled() : \"XR module must be installed on XR devices. \";\n"
-          "            mXrSceneCoreSessionInitializer =\n")
+          "            var xrSceneCoreSessionManager = assertNonNull(mXrSceneCoreSessionManagerSupplier.get());\n"
+          "            mXrSceneCoreSessionInitializer =\n")  # 157: + the assertNonNull line
     a2 = ("            if (DeviceInfo.isXr()) {\n"
           "                assert XrModule.isInstalled() : \"XR module must be installed on XR devices. \";\n"
           "                xrSceneCoreSessionManager = XrModule.getImpl().getXrSceneCoreSessionManager(this);\n")

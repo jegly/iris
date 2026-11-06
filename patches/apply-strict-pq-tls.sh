@@ -182,29 +182,34 @@ TOGGLE = ("    <!-- Iris: strict post-quantum encryption (apply-strict-pq-tls.sh
           "        sub-label=\"%s\">\n"
           "    </settings-toggle-button>\n" % (LABEL, SUB))
 SEC = "chrome/browser/resources/settings/privacy_page/security/"
+# 157: security_page is a Lit template (security_page_v2.html is gone). The toggle markup is static (pref-key, no
+# bindings), so it is the same in Lit; apply-iris-hardening-security.sh copies it to the Iris hardening page.
 edit(SEC + "security_page.html",
-     "        </settings-secure-dns>\n"
-     "      </template>\n"
-     "    </template>\n"
+     "      <settings-secure-dns class=\"hr\" id=\"secureDnsSettingNew\">\n"
+     "      </settings-secure-dns>\n"
+     "    ` : ''}\n"
      "<if expr=\"is_chromeos\">\n",
-     "        </settings-secure-dns>\n"
-     "      </template>\n"
-     "    </template>\n" + TOGGLE +
+     "      <settings-secure-dns class=\"hr\" id=\"secureDnsSettingNew\">\n"
+     "      </settings-secure-dns>\n"
+     "    ` : ''}\n" + TOGGLE +
      "<if expr=\"is_chromeos\">\n",
      "irisStrictPqTls", "Security page toggle")
-edit(SEC + "security_page_v2.html",
-     "      </settings-secure-dns>\n"
-     "    </template>\n"
-     "    <template is=\"dom-if\" if=\"[[enableSecurityKeysSubpage_]]\">\n",
-     "      </settings-secure-dns>\n"
-     "    </template>\n" + TOGGLE +
-     "    <template is=\"dom-if\" if=\"[[enableSecurityKeysSubpage_]]\">\n",
-     "irisStrictPqTls", "Security page (v2) toggle")
+import os
+if os.path.exists(SEC + "security_page_v2.html"):  # 156 only
+  edit(SEC + "security_page_v2.html",
+       "      </settings-secure-dns>\n"
+       "    </template>\n"
+       "    <template is=\"dom-if\" if=\"[[enableSecurityKeysSubpage_]]\">\n",
+       "      </settings-secure-dns>\n"
+       "    </template>\n" + TOGGLE +
+       "    <template is=\"dom-if\" if=\"[[enableSecurityKeysSubpage_]]\">\n",
+       "irisStrictPqTls", "Security page (v2) toggle")
 
 # Trees patched before 2026-10-07 used the legacy pref="{{prefs...}}" binding, which does not write in 156 (the toggle
 # did nothing): switch them to pref-key like every other Iris toggle.
 for f in ("security_page.html", "security_page_v2.html"):
     q = SEC + f
+    if not os.path.exists(q): continue
     t = open(q).read()
     old_b = 'pref="{{prefs.iris.tls.strict_pq}}"'
     if old_b in t:

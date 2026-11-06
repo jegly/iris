@@ -33,10 +33,12 @@ edit("third_party/blink/renderer/core/execution_context/navigator_base.cc",
      "  }\n",
      "apply-ua-navigator-consistency.sh", "platform")
 
-p = "third_party/blink/renderer/core/frame/navigator.cc"
+# 157: productSub() + vendor() moved from Navigator to NavigatorID (navigator_id.cc), which declares userAgent() as a
+# pure virtual, so the same code works there (and now also covers workers).
+p = "third_party/blink/renderer/core/frame/navigator_id.cc"
 edit(p,
-     'String Navigator::productSub() const {\n  return "20030107";\n}\n',
-     'String Navigator::productSub() const {\n'
+     'String NavigatorID::productSub() const {\n  return "20030107";\n}\n',
+     'String NavigatorID::productSub() const {\n'
      '  // Iris: Firefox reports 20100101 (apply-ua-navigator-consistency.sh).\n'
      '  if (userAgent().contains("Firefox/")) {\n'
      '    return "20100101";\n'

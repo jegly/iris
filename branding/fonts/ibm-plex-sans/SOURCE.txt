@@ -1,0 +1,1 @@
+Source: npm @ibm/plex-sans 1.1.0 (IBM, github.com/IBM/plex), fonts/complete/woff2, fetched 2026-09-27 via cdn.jsdelivr.net
