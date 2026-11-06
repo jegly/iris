@@ -187,7 +187,7 @@
 
     <section id="download" aria-labelledby="download-h">
       <div class="section-head">
-        <h2 id="download-h">Download <span class="pill">156.0.8078.47-2</span></h2>
+        <h2 id="download-h">Download <span class="pill">157.0.8103.38-1</span></h2>
       </div>
       <div class="downloads">
         <article class="dl" id="dl-deb">
@@ -225,6 +225,7 @@
           <ul>
             <li class="add"><span class="sign">+</span><span>Ad and tracker blocking on every site <span class="why">(EasyList + EasyPrivacy built in, with a per-site switch)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Extra filter lists for more ad and tracker blocking, one switch</span></li>
+            <li class="add"><span class="sign">+</span><span>A third level with HaGeZi Ultimate, Threat Intelligence Feeds and Fake, one switch <span class="why">(built in, off by default; blocks the most and breaks the most sites)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Block third-party requests: a switch that stops pages loading anything from other sites <span class="why">(off by default; breaks many sites)</span></span></li>
             <li class="rm"><span class="sign">−</span><span>Topics, Protected Audience and Shared Storage <span class="why">(Privacy Sandbox ad APIs)</span></span></li>
             <li class="rm"><span class="sign">−</span><span>Third-party cookies</span></li>
@@ -252,6 +253,7 @@
             <li class="rm"><span class="sign">−</span><span>Origin trials <span class="why">(sites can't switch removed features back on)</span></span></li>
             <li class="add"><span class="sign">+</span><span>A single <code>Accept-Language</code> value instead of your full list</span></li>
             <li class="add"><span class="sign">+</span><span>Canvas and audio fingerprints randomised per site and per session, or blanked, per site</span></li>
+            <li class="add"><span class="sign">+</span><span>Text measurements and element sizes slightly randomised per site, against font fingerprinting</span></li>
             <li class="add"><span class="sign">+</span><span>CPU core count and device memory reported as common fixed values</span></li>
             <li class="rm"><span class="sign">−</span><span>WebGL until you allow a site <span class="why">(off by default, one click to enable)</span></span></li>
           </ul>
@@ -269,6 +271,9 @@
             <li class="rm"><span class="sign">−</span><span>Cast device discovery, the Discover feed and Touch to Search</span></li>
             <li class="rm"><span class="sign">−</span><span>Google sign-in widgets on other sites, until you allow them</span></li>
             <li class="rm"><span class="sign">−</span><span>Background networking, field-trial experiments, usage statistics and crash reports</span></li>
+            <li class="rm"><span class="sign">−</span><span>Certificate Transparency reports and lookups sent to Google <span class="why">(SCT auditing)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Install and update pings from component updates <span class="why">(security lists still update)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Login codes read from Gmail</span></li>
             <li class="add"><span class="sign">+</span><span>DuckDuckGo as the default search engine, and a new tab page that stays local</span></li>
             <li class="add"><span class="sign">+</span><span>20 search engines to choose from in every country, privacy-first, all of them reachable over TLS 1.3</span></li>
           </ul>
@@ -292,6 +297,7 @@
             <li class="rm"><span class="sign">−</span><span>Window-controls overlay, sub-apps, launch queue, managed configuration and protocol handlers</span></li>
             <li class="rm"><span class="sign">−</span><span>Handwriting ink, raw media-stream processing and Animation Worklet</span></li>
             <li class="rm"><span class="sign">−</span><span>Declarative partial page updates (experimental)</span></li>
+            <li class="rm"><span class="sign">−</span><span>HTML-in-canvas <span class="why">(drawing page content into a canvas, experimental)</span></span></li>
             <li class="rm"><span class="sign">−</span><span>Cross-site scripts that a page inserts with <code>document.write()</code></span></li>
             <li class="rm"><span class="sign">−</span><span>The Payment Request API and its browser-side interface</span></li>
             <li class="rm"><span class="sign">−</span><span>Screen sharing</span></li>
@@ -336,6 +342,7 @@
             <li class="add"><span class="sign">+</span><span>CNSA 2.0 cipher and key-exchange preferences</span></li>
             <li class="add"><span class="sign">+</span><span>Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only <span class="why">(Settings → Privacy and security → Iris hardening; some sites won't load)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Merkle Tree Certificate verification, ready for post-quantum certificates</span></li>
+            <li class="add"><span class="sign">+</span><span>Certificate Transparency enforced: certificates must be publicly logged</span></li>
             <li class="add"><span class="sign">+</span><span>Connection details: TLS version, cipher, hash, key exchange, server signature and ECH <span class="why">(in the shield on Ubuntu, in the lock icon on Android)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Cookies only sent back to the scheme and port that set them</span></li>
             <li class="add"><span class="sign">+</span><span>Encrypted DNS in secure mode: Quad9 by default, 45 resolvers to choose from</span></li>
@@ -345,6 +352,7 @@
             <li class="add"><span class="sign">+</span><span>Cache, connections and storage partitioned per site <span class="why">(Chromium default, kept)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Cookies and saved logins encrypted with a key from your desktop keyring <span class="plat">Ubuntu</span></span></li>
             <li class="add"><span class="sign">+</span><span>Lookalike-domain (IDN homograph) warnings <span class="why">(Chromium default, kept)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>A switch to show web addresses as punycode, so lookalike letters can't hide <span class="why">(off by default)</span></span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -382,6 +390,7 @@
             <li class="add"><span class="sign">+</span><span>Notifications, clipboard and more than 30 other site permissions start as Not allowed until you allow a site</span></li>
             <li class="add"><span class="sign">+</span><span>Permission prompts only after a click; unused site permissions revoked automatically</span></li>
             <li class="add"><span class="sign">+</span><span>Popups only from real clicks; downloads never open by themselves</span></li>
+            <li class="add"><span class="sign">+</span><span>Clicks on browser prompts ignored while a picture-in-picture window covers them <span class="plat">Ubuntu</span></span></li>
             <li class="add"><span class="sign">+</span><span>PDFs open in your system viewer instead of inside the browser</span></li>
             <li class="add"><span class="sign">+</span><span>Media licence requests over HTTPS only, with size limits</span></li>
             <li class="rm"><span class="sign">−</span><span>Admin and MDM policies: nothing outside the browser can reconfigure it</span></li>
@@ -400,7 +409,9 @@
             <li class="add"><span class="sign">+</span><span>Every protection built into the app itself, because Android ignores launch flags</span></li>
             <li class="add"><span class="sign">+</span><span>Installs alongside Chrome as its own app (<code>io.jegly.iris</code>)</span></li>
             <li class="add"><span class="sign">+</span><span>App lock with fingerprint, and screenshots blocked</span></li>
+            <li class="add"><span class="sign">+</span><span>Exit in the menu: closes Iris completely, deleting your data first if it's set to clear on exit</span></li>
             <li class="rm"><span class="sign">−</span><span>Trust in user-installed CA certificates <span class="why">(blocks TLS interception)</span></span></li>
+            <li class="rm"><span class="sign">−</span><span>Google Play services, Firebase, Play Core and ML Kit code, left out of the app</span></li>
             <li class="rm"><span class="sign">−</span><span>Android and Google cloud backups of browser data</span></li>
             <li class="rm"><span class="sign">−</span><span>The first-run setup flow and DRM preprovisioning at startup</span></li>
             <li class="rm"><span class="sign">−</span><span>Google services pages, Safety check, Developer options, and Settings search</span></li>

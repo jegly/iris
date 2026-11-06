@@ -225,6 +225,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 ```diff
 + Ad and tracker blocking on every site (EasyList + EasyPrivacy built in, with a per-site switch)
 + Extra filter lists for more ad and tracker blocking, one switch
++ A third level with HaGeZi Ultimate, Threat Intelligence Feeds and Fake, one switch (built in, off by default; blocks the most and breaks the most sites)
 + Block third-party requests: a switch that stops pages loading anything from other sites (off by default; breaks many sites)
 - Topics, Protected Audience and Shared Storage (Privacy Sandbox ad APIs)
 - Third-party cookies
@@ -252,6 +253,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Origin trials (sites can't switch removed features back on)
 + A single Accept-Language value instead of your full list
 + Canvas and audio fingerprints randomised per site and per session, or blanked, per site
++ Text measurements and element sizes slightly randomised per site, against font fingerprinting
 + CPU core count and device memory reported as common fixed values
 - WebGL until you allow a site (off by default, one click to enable)
 ```
@@ -269,6 +271,9 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Cast device discovery, the Discover feed and Touch to Search
 - Google sign-in widgets on other sites, until you allow them
 - Background networking, field-trial experiments, usage statistics and crash reports
+- Certificate Transparency reports and lookups sent to Google (SCT auditing)
+- Install and update pings from component updates (security lists still update)
+- Login codes read from Gmail
 + DuckDuckGo as the default search engine, and a new tab page that stays local
 + 20 search engines to choose from in every country, privacy-first, all of them reachable over TLS 1.3
 ```
@@ -292,6 +297,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Window-controls overlay, sub-apps, launch queue, managed configuration and protocol handlers
 - Handwriting ink, raw media-stream processing and Animation Worklet
 - Declarative partial page updates (experimental)
+- HTML-in-canvas (drawing page content into a canvas, experimental)
 - Cross-site scripts that a page inserts with document.write()
 - The Payment Request API and its browser-side interface
 - Screen sharing
@@ -336,6 +342,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + CNSA 2.0 cipher and key-exchange preferences
 + Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only (Settings → Privacy and security → Iris hardening; some sites won't load)
 + Merkle Tree Certificate verification, ready for post-quantum certificates
++ Certificate Transparency enforced: certificates must be publicly logged
 + Connection details: TLS version, cipher, hash, key exchange, server signature and ECH (in the shield on Ubuntu, in the lock icon on Android)
 + Cookies only sent back to the scheme and port that set them
 + Encrypted DNS in secure mode: Quad9 by default, 45 resolvers to choose from
@@ -345,6 +352,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Cache, connections and storage partitioned per site (Chromium default, kept)
 + Cookies and saved logins encrypted with a key from your desktop keyring [Ubuntu]
 + Lookalike-domain (IDN homograph) warnings (Chromium default, kept)
++ A switch to show web addresses as punycode, so lookalike letters can't hide (off by default)
 ```
 
 ### Memory safety & compiler
@@ -382,6 +390,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Notifications, clipboard and more than 30 other site permissions start as Not allowed until you allow a site
 + Permission prompts only after a click; unused site permissions revoked automatically
 + Popups only from real clicks; downloads never open by themselves
++ Clicks on browser prompts ignored while a picture-in-picture window covers them [Ubuntu]
 + PDFs open in your system viewer instead of inside the browser
 + Media licence requests over HTTPS only, with size limits
 - Admin and MDM policies: nothing outside the browser can reconfigure it
@@ -400,7 +409,9 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + Every protection built into the app itself, because Android ignores launch flags
 + Installs alongside Chrome as its own app (io.jegly.iris)
 + App lock with fingerprint, and screenshots blocked
++ Exit in the menu: closes Iris completely, deleting your data first if it's set to clear on exit
 - Trust in user-installed CA certificates (blocks TLS interception)
+- Google Play services, Firebase, Play Core and ML Kit code, left out of the app
 - Android and Google cloud backups of browser data
 - The first-run setup flow and DRM preprovisioning at startup
 - Google services pages, Safety check, Developer options, and Settings search
@@ -435,12 +446,12 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 156.0.8078.47-2 files:
+SHA-256 of the 157.0.8103.38-1 files:
 
 ```
-8638b39220693072a2eec0364b87831ff4e809806976cbd8380b29c9fe454cec  iris-browser-stable_156.0.8078.47-2_amd64.deb
-3149aee51a97ffe98478d1ef3aa4cc2aaa937f1aa2cbcb0e1fc2cd2233f9b2da  iris-browser_156.0.8078.47-2_amd64.snap
-6fbc371cb7c20e116a15513a28353356849b66fd327eee5318a5250c701fb686  iris-156.0.8078.47-2-pqc-signed.apk
+8d780b2bbaaa23a7b1acb4fb42168c677e4bd17d1736e94ef6c7590bfc8e414f  iris-browser-stable_157.0.8103.38-1_amd64.deb
+2f0df7a0d5d8b067a2c2159032aa0770478ef2f44e6d90d7949a67ee72db6ba6  iris-browser_157.0.8103.38-1_amd64.snap
+39d4ad73213cfb5f58d1043316745c4a7736145a5409bfd48cf20b3841b9e9e1  iris-157.0.8103.38-1-pqc-signed.apk
 ```
 
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes
