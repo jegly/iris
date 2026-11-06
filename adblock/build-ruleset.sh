@@ -9,9 +9,14 @@
 #      indexes only url_rules() (ruleset_service.cc), so cosmetic rules would be ~1.2 MB of dead weight. Rules the
 #      filter can't express ($document blocking, $redirect, $csp, $rewrite, #?#) are skipped -> converter-skipped.log
 #   4. writes version.txt = iris-<UTC date>-<sha256 prefix of ruleset.pb> (a new list => new version => re-index)
-#   5. EXTRA level (Settings -> "Block more ads and trackers"): downloads StevenBlack hosts, HaGeZi Pro, AdGuard DNS filter and
-#      URLhaus hosts, merges them with prepare-extra-lists.py, converts EasyList + EasyPrivacy + those into ruleset-extra.pb
+#   5. EXTRA level (Settings -> "Block more ads and trackers"): downloads StevenBlack hosts, HaGeZi Pro and AdGuard DNS filter
+#      (URLhaus until 2026-11-05), merges them with prepare-extra-lists.py, converts EasyList + EasyPrivacy + those into ruleset-extra.pb
 #      (+ version-extra.txt). One ruleset loads at a time (Chromium's filter has one), so Extra is a superset of Standard.
+#   6. MAX level (Settings -> "Block the most ads, trackers and threats", issue #2, jegly 2026-11-05): Extra with HaGeZi
+#      Pro replaced by HaGeZi Ultimate (a superset of Pro) + HaGeZi TIF medium (threat feeds) + HaGeZi Fake ->
+#      ruleset-max.pb (+ version-max.txt). STATIC like the others: lists are fetched HERE, on the build machine; Iris
+#      never downloads or updates them (jegly 2026-11-05). TIF goes stale fast (HaGeZi: expires 8 h): only as fresh as
+#      the release build.
 # Refreshing the lists later = re-run this, then re-run patches/apply-adblock.sh (copies the new files; only
 # resources are rebuilt).
 # Usage: build-ruleset.sh [--offline]   (--offline: reuse adblock/lists/*.txt instead of downloading)
@@ -37,9 +42,12 @@ if [ "${1:-}" != "--offline" ]; then
   get stevenblack-hosts.txt https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
   get hagezi-pro.txt https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt
   get adguard-dns.txt https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt
-  get urlhaus-hosts.txt https://urlhaus.abuse.ch/downloads/hostfile/
+  # URLhaus dropped 2026-11-05: abuse.ch ended the free downloads (every file returns 410 Gone). Malware domains: HaGeZi TIF in the Max level.
+  get hagezi-ultimate.txt https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.txt
+  get hagezi-tif-medium.txt https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/tif.medium.txt
+  get hagezi-fake.txt https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/fake.txt
 fi
-for l in stevenblack-hosts hagezi-pro adguard-dns urlhaus-hosts; do [ -s "$LISTS/$l.txt" ] || { echo "ERROR: $LISTS/$l.txt missing" >&2; exit 1; }; done
+for l in stevenblack-hosts hagezi-pro adguard-dns hagezi-ultimate hagezi-tif-medium hagezi-fake; do [ -s "$LISTS/$l.txt" ] || { echo "ERROR: $LISTS/$l.txt missing" >&2; exit 1; }; done
 
 "$CONV" --input_format=filter-list --output_format=unindexed-ruleset \
   --input_files="$LISTS/easylist.txt,$LISTS/easyprivacy.txt" --output_file_url="$DIST/ruleset.pb.new" 2>"$HERE/converter-skipped.log"
@@ -50,7 +58,7 @@ SHA=$(sha256sum "$DIST/ruleset.pb" | cut -c1-12)
 echo "iris-$(date -u +%Y%m%d)-$SHA" > "$DIST/version.txt"
 
 # --- Extra level: EasyList + EasyPrivacy + the merged extra lists ---
-python3 "$HERE/prepare-extra-lists.py" "$LISTS/extra-merged.txt" "$LISTS/stevenblack-hosts.txt" "$LISTS/urlhaus-hosts.txt" \
+python3 "$HERE/prepare-extra-lists.py" "$LISTS/extra-merged.txt" "$LISTS/stevenblack-hosts.txt" \
   "$LISTS/hagezi-pro.txt" "$LISTS/adguard-dns.txt"
 "$CONV" --input_format=filter-list --output_format=unindexed-ruleset \
   --input_files="$LISTS/easylist.txt,$LISTS/easyprivacy.txt,$LISTS/extra-merged.txt" --output_file_url="$DIST/ruleset-extra.pb.new" \
@@ -59,6 +67,17 @@ python3 "$HERE/prepare-extra-lists.py" "$LISTS/extra-merged.txt" "$LISTS/stevenb
 mv "$DIST/ruleset-extra.pb.new" "$DIST/ruleset-extra.pb"
 SHAX=$(sha256sum "$DIST/ruleset-extra.pb" | cut -c1-12)
 echo "iris-extra-$(date -u +%Y%m%d)-$SHAX" > "$DIST/version-extra.txt"
+
+# --- Max level: EasyList + EasyPrivacy + Extra lists with Pro -> Ultimate, + TIF medium + Fake ---
+python3 "$HERE/prepare-extra-lists.py" "$LISTS/max-merged.txt" "$LISTS/stevenblack-hosts.txt" \
+  "$LISTS/hagezi-ultimate.txt" "$LISTS/adguard-dns.txt" "$LISTS/hagezi-tif-medium.txt" "$LISTS/hagezi-fake.txt"
+"$CONV" --input_format=filter-list --output_format=unindexed-ruleset \
+  --input_files="$LISTS/easylist.txt,$LISTS/easyprivacy.txt,$LISTS/max-merged.txt" --output_file_url="$DIST/ruleset-max.pb.new" \
+  2>"$HERE/converter-skipped-max.log"
+[ -s "$DIST/ruleset-max.pb.new" ] || { echo "ERROR: converter produced an empty max ruleset" >&2; exit 1; }
+mv "$DIST/ruleset-max.pb.new" "$DIST/ruleset-max.pb"
+SHAM=$(sha256sum "$DIST/ruleset-max.pb" | cut -c1-12)
+echo "iris-max-$(date -u +%Y%m%d)-$SHAM" > "$DIST/version-max.txt"
 
 {
   echo "Iris bundles filter rules converted from the following lists (network rules only):"
@@ -72,15 +91,15 @@ echo "iris-extra-$(date -u +%Y%m%d)-$SHAX" > "$DIST/version-extra.txt"
   echo "and Creative Commons Attribution-ShareAlike 3.0 Unported"
   echo "(https://creativecommons.org/licenses/by-sa/3.0/)."
   echo
-  echo "The optional \"Block more ads and trackers\" level also bundles (domain rules, network rules only):"
-  for l in hagezi-pro adguard-dns; do
+  echo "The optional \"Block more ads and trackers\" and \"Block the most ads, trackers and threats\" levels also bundle"
+  echo "(domain rules, network rules only):"
+  for l in hagezi-pro adguard-dns hagezi-ultimate hagezi-tif-medium hagezi-fake; do
     echo; echo "== $l.txt =="
     grep -m4 -E '^! (Title|Homepage|License|Last modified):' "$LISTS/$l.txt" || true
   done
   echo
   echo "HaGeZi's DNS blocklists (https://github.com/hagezi/dns-blocklists) are licensed GPL-3.0."
   echo "The AdGuard DNS filter (https://github.com/AdguardTeam/AdGuardSDNSFilter) is licensed GPL-3.0."
-  echo "abuse.ch URLhaus host file (https://urlhaus.abuse.ch/), free to use (CC0)."
   echo
   echo "StevenBlack/hosts (https://github.com/StevenBlack/hosts), MIT License:"
   echo "Copyright (c) Steven Black"
@@ -98,4 +117,5 @@ echo "iris-extra-$(date -u +%Y%m%d)-$SHAX" > "$DIST/version-extra.txt"
 echo "skipped (unsupported) rules: $(grep -c 'rule_stream.cc' "$HERE/converter-skipped.log" || true) — see adblock/converter-skipped.log"
 echo "OK   $DIST/ruleset.pb ($(stat -c %s "$DIST/ruleset.pb") bytes), version $(cat "$DIST/version.txt")"
 echo "OK   $DIST/ruleset-extra.pb ($(stat -c %s "$DIST/ruleset-extra.pb") bytes), version $(cat "$DIST/version-extra.txt")"
-echo "Next: ~/Documents/iris/patches/apply-adblock.sh and apply-adblock-extra.sh"
+echo "OK   $DIST/ruleset-max.pb ($(stat -c %s "$DIST/ruleset-max.pb") bytes), version $(cat "$DIST/version-max.txt")"
+echo "Next: ~/Documents/iris/patches/apply-adblock.sh, apply-adblock-extra.sh and apply-adblock-max.sh"
