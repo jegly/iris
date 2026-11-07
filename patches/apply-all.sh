@@ -86,6 +86,7 @@ PATCHES=(
   apply-android-exit            # Android: app menu Exit; clears data now when clear-on-exit is on, then quits - issue #1 item 5
   apply-android-no-help         # Android: no Help & feedback item in the app menu (feedback collector / outside site); Help shortcut does nothing
   apply-android-about-page      # Android About Iris: copyright jegly, no Google terms/privacy links, OS version without model/build
+  apply-android-target-sdk-37   # Android: targetSdkVersion 37 (Android 17) instead of Chromium's default 36
   apply-android-per-site        # Android: per-site WebGL/sign-in/identity/canvas in the site's settings
   apply-android-no-xr-module    # Android: no XR/ARCore feature module in the APK (~20 MB of unused Google libs)
   apply-orb-logo                # product vector icons -> orb
