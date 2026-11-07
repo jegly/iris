@@ -405,16 +405,19 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 ### Android only
 
 ```diff
-+ No location or nearby-device access
++ No camera, microphone, location or nearby-device access: Iris doesn't have these permissions, so Android refuses them for every site
++ Targets Android 17: Android's newest app protections apply to Iris, and Android itself keeps Iris off your local network
 + Every protection built into the app itself, because Android ignores launch flags
 + Installs alongside Chrome as its own app (io.jegly.iris)
-+ App lock with fingerprint, and screenshots blocked
++ App lock with fingerprint, and screenshots blocked. The lock screen shows no text, only the app icon
 + Exit in the menu: closes Iris completely, deleting your data first if it's set to clear on exit
 - Trust in user-installed CA certificates (blocks TLS interception)
 - Google Play services, Firebase, Play Core and ML Kit code, left out of the app
 - Android and Google cloud backups of browser data
 - The first-run setup flow and DRM preprovisioning at startup
 - Google services pages, Safety check, Developer options, and Settings search
+- Help & feedback in the menu (it took a screenshot and device details for a feedback report)
+- Phone model, build number and Google's terms on the About page
 - The home-screen feed, tips card and loading spinner
 - The account button on the new tab page
 + Fewer permissions and open doors: no Gemini trigger or NFC tag handling, and your bookmarks and history aren't shared with other apps
@@ -424,7 +427,8 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 
 Hardening has a cost. These are the ones you are most likely to notice.
 
-- **Video calls, camera and microphone.** WebRTC and camera and microphone access are gone, so video and voice calls, voice messages and QR-code scanners in the browser won't work. Use their desktop or mobile apps.
+- **Video calls, camera and microphone.** WebRTC and camera and microphone access are gone, so video and voice calls, voice messages and QR-code scanners in the browser won't work. Use their desktop or mobile apps. Uploading photos and videos you already have still works; taking a photo or video from a website doesn't.
+- **Local devices (Android).** Iris can't open your router's page, a NAS, printers or other devices on your Wi-Fi, and Wi-Fi sign-in pages hosted on the local network won't load.
 - **Location.** Websites can't ask for your location. Maps and store finders fall back to a place you type in.
 - **Heavy web apps.** Without JIT, WebAssembly and WebGL, some apps (maps, design tools, games, in-browser editors) are slower or need to be allowed per site. Browser video editors that need WebCodecs won't work.
 - **Streaming DRM video.** Widevine isn't included, so Netflix, Disney+ and Spotify's web player won't play protected content.
