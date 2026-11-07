@@ -77,6 +77,7 @@ PATCHES=(
   apply-android-fonts-off       # Android: no CSS local() font lookups through Play services (kAndroidDownloadableFontsMatching off; issue #1 item 4)
   apply-android-manifest-harden # Android: no location/all-apps/Google push+accounts/Cast/ads/BT/NFC/HID permissions
   apply-android-manifest-harden2 # Android: no Gemini trigger/NFC tag filter, WebAPK+TWA unexported, no debug filter, browser provider unexported, 4 leftover permissions
+  apply-android-no-camera-mic   # Android: no CAMERA / RECORD_AUDIO (+ their foreground-service types); OS-enforced like location
   apply-android-webauthn-credman # Android: passkeys + security keys via Credential Manager, no Play services
   apply-android-screenshot-protection # Android: FLAG_SECURE (default on) + switch
   apply-android-iris-privacy-settings # Android: 'Iris' section in Privacy (screenshots, auto-delete, WebGL, sign-in)
