@@ -77,4 +77,4 @@ cc_wrapper = "ccache"
 # ===================================================================
 
 # Release 0.0.0.6 (2026-10-09, jegly "bump the version"): versionCode above 0.0.0.4/0.0.0.5 (807801104) so phones treat it as an update.
-android_override_version_code = "807801119"
+android_override_version_code = "807801120"  # 0.0.0.12 = 157.0.8103.38-2 (2026-11-06)
