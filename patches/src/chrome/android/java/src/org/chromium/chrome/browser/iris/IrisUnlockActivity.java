@@ -5,22 +5,24 @@ package org.chromium.chrome.browser.iris;
 import android.app.Activity;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
-import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.window.OnBackInvokedDispatcher;
 
 import org.chromium.build.annotations.NullMarked;
@@ -33,7 +35,7 @@ import org.chromium.chrome.browser.night_mode.ThemeType;
 import javax.crypto.Cipher;
 
 /**
- * The lock screen ("Iris" in DotGothic16): shown over Iris when it starts and after time in the
+ * The lock screen (app icon, passphrase box, fingerprint button; no text): shown over Iris when it starts and after time in the
  * background (IrisAppLock).
  * Unlocks with the passphrase (checked by the native app lock, scrypt) or, if set up, a fingerprint.
  * Back sends Iris to the background instead of closing the lock.
@@ -41,15 +43,19 @@ import javax.crypto.Cipher;
 @NullMarked
 public class IrisUnlockActivity extends Activity {
     private @Nullable EditText mPassphrase;
-    private @Nullable Button mUnlock;
-    private @Nullable Button mFingerprint;
-    private @Nullable TextView mMessage;
+    private @Nullable ImageButton mFingerprint;
+    private int mError;
+    private int mFieldColor;
+    private float mDp;
     private boolean mUnlocked;
     private boolean mBrowserReady;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // No open/close animation: the lock appears and goes at once (jegly 2026-11-07, "no latency").
+        noTransition();
+        getWindow().setWindowAnimations(0);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
 
         // Same colours as the rest of Iris: the chosen palette (Settings > Appearance), light or dark.
@@ -58,65 +64,84 @@ public class IrisUnlockActivity extends Activity {
         if (overlay != 0) getTheme().applyStyle(overlay, true);
         int surface = themeColor(R.attr.colorSurface, night ? 0xFF1E1E2E : 0xFFFFFFFF);
         int onSurface = themeColor(R.attr.colorOnSurface, night ? 0xFFCDD6F4 : 0xFF1B1B1F);
-        int primary = themeColor(R.attr.colorPrimary, 0xFF6750A4);
-        int onPrimary = themeColor(R.attr.colorOnPrimary, 0xFFFFFFFF);
         getWindow().getDecorView().setBackgroundColor(surface);
 
-        int pad = (int) (24 * getResources().getDisplayMetrics().density);
+        // No text (jegly 2026-11-07): app icon, passphrase box, fingerprint button; Material 3
+        // style in the palette's colours. Enter on the keyboard unlocks.
+        float dp = getResources().getDisplayMetrics().density;
+        int surfaceContainer =
+                themeColor(R.attr.colorSurfaceContainerHighest, night ? 0xFF313244 : 0xFFE6E0E9);
+        int secondaryContainer =
+                themeColor(R.attr.colorSecondaryContainer, night ? 0xFF45475A : 0xFFE8DEF8);
+        int onSecondaryContainer = themeColor(R.attr.colorOnSecondaryContainer, onSurface);
+        mError = themeColor(R.attr.colorError, night ? 0xFFF38BA8 : 0xFFB3261E);
+        mFieldColor = surfaceContainer;
+        mDp = dp;
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
+        int pad = (int) (32 * dp);
         layout.setPadding(pad, pad, pad, pad);
         layout.setBackgroundColor(surface);
 
-        // Just the name, big and bold, in the Iris header font (apply-android-lock-wordmark.sh).
-        TextView title = new TextView(this);
-        title.setText("Iris");
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 72);
-        title.setTypeface(getResources().getFont(R.font.iris_dotgothic16), Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        title.setTextColor(onSurface);
-        title.setPadding(0, 0, 0, pad);
-        layout.addView(title);
+        ImageView icon = new ImageView(this);
+        icon.setImageDrawable(getApplicationInfo().loadIcon(getPackageManager()));
+        icon.setContentDescription("Iris"); // screen readers only, nothing is shown
+        LinearLayout.LayoutParams iconParams =
+                new LinearLayout.LayoutParams((int) (96 * dp), (int) (96 * dp));
+        iconParams.bottomMargin = (int) (40 * dp);
+        layout.addView(icon, iconParams);
 
         EditText passphrase = new EditText(this);
-        passphrase.setHint("Passphrase");
         passphrase.setTextColor(onSurface);
-        passphrase.setHintTextColor((onSurface & 0x00FFFFFF) | 0x80000000);
-        passphrase.setBackgroundTintList(ColorStateList.valueOf(primary));
+        passphrase.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        passphrase.setGravity(Gravity.CENTER);
+        passphrase.setSingleLine(true);
+        passphrase.setContentDescription("Passphrase"); // screen readers only
         passphrase.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         passphrase.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        passphrase.setPadding((int) (16 * dp), 0, (int) (16 * dp), 0);
+        passphrase.setBackground(fieldBackground(false));
         passphrase.setOnEditorActionListener(
                 (v, actionId, event) -> {
                     if (actionId != EditorInfo.IME_ACTION_DONE) return false;
                     unlockWithPassphrase();
                     return true;
                 });
-        layout.addView(passphrase);
+        passphrase.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence t, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence t, int start, int before, int count) {
+                        showError(false);
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable e) {}
+                });
+        layout.addView(
+                passphrase, new LinearLayout.LayoutParams((int) (280 * dp), (int) (56 * dp)));
         mPassphrase = passphrase;
 
-        Button unlock = new Button(this);
-        unlock.setText("Unlock");
-        unlock.setEnabled(false);
-        styleButton(unlock, primary, onPrimary);
-        unlock.setOnClickListener(v -> unlockWithPassphrase());
-        layout.addView(unlock);
-        mUnlock = unlock;
-
-        Button fingerprint = new Button(this);
-        fingerprint.setText("Use fingerprint");
+        ImageButton fingerprint = new ImageButton(this);
+        fingerprint.setImageResource(R.drawable.iris_fingerprint_24dp);
+        fingerprint.setImageTintList(ColorStateList.valueOf(onSecondaryContainer));
+        fingerprint.setContentDescription("Unlock with fingerprint"); // screen readers only
+        GradientDrawable circle = new GradientDrawable();
+        circle.setShape(GradientDrawable.OVAL);
+        circle.setColor(secondaryContainer);
+        fingerprint.setBackground(circle);
+        fingerprint.setScaleType(ImageView.ScaleType.CENTER);
         fingerprint.setVisibility(View.GONE);
-        styleButton(fingerprint, primary, onPrimary);
         fingerprint.setOnClickListener(v -> unlockWithFingerprint());
-        layout.addView(fingerprint);
+        LinearLayout.LayoutParams fpParams =
+                new LinearLayout.LayoutParams((int) (56 * dp), (int) (56 * dp));
+        fpParams.topMargin = (int) (32 * dp);
+        layout.addView(fingerprint, fpParams);
         mFingerprint = fingerprint;
-
-        TextView message = new TextView(this);
-        message.setGravity(Gravity.CENTER);
-        message.setTextColor(onSurface);
-        message.setText(""); // only for errors (wrong passphrase, fingerprint off)
-        layout.addView(message);
-        mMessage = message;
 
         setContentView(layout);
 
@@ -148,16 +173,17 @@ public class IrisUnlockActivity extends Activity {
         return fallback;
     }
 
-    private static void styleButton(Button button, int background, int text) {
-        int dim = (background & 0x00FFFFFF) | 0x61000000; // 38% when disabled
-        button.setBackgroundTintList(
-                new ColorStateList(
-                        new int[][] {{-android.R.attr.state_enabled}, {}},
-                        new int[] {dim, background}));
-        button.setTextColor(
-                new ColorStateList(
-                        new int[][] {{-android.R.attr.state_enabled}, {}},
-                        new int[] {(text & 0x00FFFFFF) | 0x99000000, text}));
+    /** Material 3 filled field: rounded, no underline; a 2 dp error outline after a wrong try. */
+    private GradientDrawable fieldBackground(boolean error) {
+        GradientDrawable field = new GradientDrawable();
+        field.setCornerRadius(16 * mDp);
+        field.setColor(mFieldColor);
+        if (error) field.setStroke((int) (2 * mDp), mError);
+        return field;
+    }
+
+    private void showError(boolean error) {
+        if (mPassphrase != null) mPassphrase.setBackground(fieldBackground(error));
     }
 
     private void onBrowserReady() {
@@ -168,16 +194,10 @@ public class IrisUnlockActivity extends Activity {
             finishUnlocked();
             return;
         }
-        if (mUnlock != null) mUnlock.setEnabled(true);
-        setMessage("");
         if (IrisAppLock.isBiometricSet() && mFingerprint != null) {
             mFingerprint.setVisibility(View.VISIBLE);
             unlockWithFingerprint();
         }
-    }
-
-    private void setMessage(String text) {
-        if (mMessage != null) mMessage.setText(text);
     }
 
     private void unlockWithPassphrase() {
@@ -188,7 +208,7 @@ public class IrisUnlockActivity extends Activity {
         if (IrisAppLock.unlock(passphrase)) {
             finishUnlocked();
         } else {
-            setMessage("Wrong passphrase");
+            showError(true);
         }
     }
 
@@ -196,7 +216,6 @@ public class IrisUnlockActivity extends Activity {
         Cipher cipher = IrisAppLock.decryptCipher();
         if (cipher == null) {
             if (mFingerprint != null) mFingerprint.setVisibility(View.GONE);
-            setMessage("Fingerprint unlock is off (fingerprints changed). Use your passphrase.");
             return;
         }
         BiometricPrompt.Builder builder =
@@ -225,7 +244,7 @@ public class IrisUnlockActivity extends Activity {
                                 if (passphrase != null && IrisAppLock.unlock(passphrase)) {
                                     finishUnlocked();
                                 } else {
-                                    setMessage("Fingerprint unlock failed. Use your passphrase.");
+                                    showError(true);
                                 }
                             }
                         });
@@ -235,6 +254,21 @@ public class IrisUnlockActivity extends Activity {
         mUnlocked = true;
         IrisAppLock.onUnlocked();
         finish();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) noTransitionLegacy();
+    }
+
+    private void noTransition() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0);
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0);
+        } else {
+            noTransitionLegacy();
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void noTransitionLegacy() {
+        overridePendingTransition(0, 0);
     }
 
     @Override

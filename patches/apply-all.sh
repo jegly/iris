@@ -83,7 +83,7 @@ PATCHES=(
   apply-android-iris-privacy-settings # Android: 'Iris' section in Privacy (screenshots, auto-delete, WebGL, sign-in)
   apply-android-themes          # Android: Iris palettes (Catppuccin Mocha + dark default), Appearance > Colours
   apply-android-app-lock        # Android: app lock (passphrase + fingerprint, real encryption, 5-min re-lock)
-  apply-android-lock-wordmark   # Android lock screen: just "Iris" in DotGothic16, big + bold (font resource; text in IrisUnlockActivity.java)
+  apply-android-lock-wordmark   # Android lock screen resources: fingerprint icon (lock screen has no text; layout in IrisUnlockActivity.java) + DotGothic16 font
   apply-android-exit            # Android: app menu Exit; clears data now when clear-on-exit is on, then quits - issue #1 item 5
   apply-android-no-help         # Android: no Help & feedback item in the app menu (feedback collector / outside site); Help shortcut does nothing
   apply-android-about-page      # Android About Iris: copyright jegly, no Google terms/privacy links, OS version without model/build
