@@ -6,6 +6,6 @@
 package com.google.android.play.core.splitinstall;
 
 public class SplitInstallManagerFactory {
-  public static com.google.android.play.core.splitinstall.SplitInstallManager create(android.content.Context p0) { return null; }
+  public static com.google.android.play.core.splitinstall.SplitInstallManager create(android.content.Context p0) { return new com.google.android.play.core.splitinstall.IrisSplitInstallManager(); }
   protected SplitInstallManagerFactory() {}  // Iris
 }

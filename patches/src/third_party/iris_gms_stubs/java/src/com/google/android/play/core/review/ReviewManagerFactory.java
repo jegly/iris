@@ -6,6 +6,6 @@
 package com.google.android.play.core.review;
 
 public class ReviewManagerFactory {
-  public static com.google.android.play.core.review.ReviewManager create(android.content.Context p0) { return null; }
+  public static com.google.android.play.core.review.ReviewManager create(android.content.Context p0) { return new com.google.android.play.core.review.IrisReviewManager(); }
   protected ReviewManagerFactory() {}  // Iris
 }

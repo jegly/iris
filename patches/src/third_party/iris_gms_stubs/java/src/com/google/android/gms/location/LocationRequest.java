@@ -11,7 +11,7 @@ public class LocationRequest extends com.google.android.gms.common.internal.safe
   public static final int PRIORITY_BALANCED_POWER_ACCURACY = 102;
   public static final int PRIORITY_LOW_POWER = 104;
   public static final int PRIORITY_NO_POWER = 105;
-  public static com.google.android.gms.location.LocationRequest create() { return null; }
+  public static com.google.android.gms.location.LocationRequest create() { return new LocationRequest(); }
   public LocationRequest() { }
   public com.google.android.gms.location.LocationRequest setPriority(int p0) { return null; }
   public boolean isPassive() { return false; }

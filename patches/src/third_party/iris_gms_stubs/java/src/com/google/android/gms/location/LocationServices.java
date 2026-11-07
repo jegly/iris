@@ -14,8 +14,8 @@ public class LocationServices {
   public static com.google.android.gms.location.GeofencingClient getGeofencingClient(android.content.Context p0) { return null; }
   public static com.google.android.gms.location.SettingsClient getSettingsClient(android.app.Activity p0) { return null; }
   public static com.google.android.gms.location.SettingsClient getSettingsClient(android.content.Context p0) { return null; }
-  public static com.google.android.gms.location.FusedLocationProviderClient getFusedLocationProviderClient(android.app.Activity p0) { return null; }
-  public static com.google.android.gms.location.FusedLocationProviderClient getFusedLocationProviderClient(android.content.Context p0) { return null; }
+  public static com.google.android.gms.location.FusedLocationProviderClient getFusedLocationProviderClient(android.app.Activity p0) { return new com.google.android.gms.location.IrisFusedLocationProviderClient(); }
+  public static com.google.android.gms.location.FusedLocationProviderClient getFusedLocationProviderClient(android.content.Context p0) { return new com.google.android.gms.location.IrisFusedLocationProviderClient(); }
   public static com.google.android.gms.location.FusedOrientationProviderClient getFusedOrientationProviderClient(android.app.Activity p0) { return null; }
   public static com.google.android.gms.location.FusedOrientationProviderClient getFusedOrientationProviderClient(android.content.Context p0) { return null; }
   protected LocationServices() {}  // Iris

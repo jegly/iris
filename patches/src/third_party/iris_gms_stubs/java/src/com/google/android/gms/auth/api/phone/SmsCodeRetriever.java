@@ -12,7 +12,7 @@ public class SmsCodeRetriever {
   public static final java.lang.String EXTRA_STATUS = "com.google.android.gms.auth.api.phone.EXTRA_STATUS";
   public static com.google.android.gms.auth.api.phone.SmsCodeAutofillClient getAutofillClient(android.content.Context p0) { return null; }
   public static com.google.android.gms.auth.api.phone.SmsCodeAutofillClient getAutofillClient(android.app.Activity p0) { return null; }
-  public static com.google.android.gms.auth.api.phone.SmsCodeBrowserClient getBrowserClient(android.content.Context p0) { return null; }
-  public static com.google.android.gms.auth.api.phone.SmsCodeBrowserClient getBrowserClient(android.app.Activity p0) { return null; }
+  public static com.google.android.gms.auth.api.phone.SmsCodeBrowserClient getBrowserClient(android.content.Context p0) { return new com.google.android.gms.auth.api.phone.IrisSmsCodeBrowserClient(); }
+  public static com.google.android.gms.auth.api.phone.SmsCodeBrowserClient getBrowserClient(android.app.Activity p0) { return new com.google.android.gms.auth.api.phone.IrisSmsCodeBrowserClient(); }
   protected SmsCodeRetriever() {}  // Iris
 }

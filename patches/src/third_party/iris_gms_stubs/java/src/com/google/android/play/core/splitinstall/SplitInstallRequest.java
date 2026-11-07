@@ -6,15 +6,15 @@
 package com.google.android.play.core.splitinstall;
 
 public class SplitInstallRequest {
-  public static com.google.android.play.core.splitinstall.SplitInstallRequest.Builder newBuilder() { return null; }
+  public static com.google.android.play.core.splitinstall.SplitInstallRequest.Builder newBuilder() { return new Builder(); }
   public java.lang.String toString() { return null; }
   public java.util.List<java.util.Locale> getLanguages() { return null; }
   public java.util.List<java.lang.String> getModuleNames() { return null; }
   protected SplitInstallRequest() {}  // Iris
   public static class Builder {
-    public com.google.android.play.core.splitinstall.SplitInstallRequest.Builder addLanguage(java.util.Locale p0) { return null; }
-    public com.google.android.play.core.splitinstall.SplitInstallRequest.Builder addModule(java.lang.String p0) { return null; }
-    public com.google.android.play.core.splitinstall.SplitInstallRequest build() { return null; }
+    public com.google.android.play.core.splitinstall.SplitInstallRequest.Builder addLanguage(java.util.Locale p0) { return this; }
+    public com.google.android.play.core.splitinstall.SplitInstallRequest.Builder addModule(java.lang.String p0) { return this; }
+    public com.google.android.play.core.splitinstall.SplitInstallRequest build() { return new SplitInstallRequest(); }
     protected Builder() {}  // Iris
   }
 

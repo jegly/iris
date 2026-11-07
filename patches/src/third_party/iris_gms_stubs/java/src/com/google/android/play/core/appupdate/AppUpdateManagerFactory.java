@@ -6,6 +6,6 @@
 package com.google.android.play.core.appupdate;
 
 public class AppUpdateManagerFactory {
-  public static com.google.android.play.core.appupdate.AppUpdateManager create(android.content.Context p0) { return null; }
+  public static com.google.android.play.core.appupdate.AppUpdateManager create(android.content.Context p0) { return new com.google.android.play.core.appupdate.IrisAppUpdateManager(); }
   protected AppUpdateManagerFactory() {}  // Iris
 }

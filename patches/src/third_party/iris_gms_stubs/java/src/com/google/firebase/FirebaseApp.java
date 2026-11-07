@@ -13,12 +13,12 @@ public class FirebaseApp {
   public boolean equals(java.lang.Object p0) { return false; }
   public int hashCode() { return 0; }
   public java.lang.String toString() { return null; }
-  public static java.util.List<com.google.firebase.FirebaseApp> getApps(android.content.Context p0) { return null; }
+  public static java.util.List<com.google.firebase.FirebaseApp> getApps(android.content.Context p0) { return java.util.Collections.emptyList(); }
   public static com.google.firebase.FirebaseApp getInstance() { return null; }
   public static com.google.firebase.FirebaseApp getInstance(java.lang.String p0) { return null; }
-  public static com.google.firebase.FirebaseApp initializeApp(android.content.Context p0) { return null; }
-  public static com.google.firebase.FirebaseApp initializeApp(android.content.Context p0, com.google.firebase.FirebaseOptions p1) { return null; }
-  public static com.google.firebase.FirebaseApp initializeApp(android.content.Context p0, com.google.firebase.FirebaseOptions p1, java.lang.String p2) { return null; }
+  public static com.google.firebase.FirebaseApp initializeApp(android.content.Context p0) { return new FirebaseApp(); }
+  public static com.google.firebase.FirebaseApp initializeApp(android.content.Context p0, com.google.firebase.FirebaseOptions p1) { return new FirebaseApp(); }
+  public static com.google.firebase.FirebaseApp initializeApp(android.content.Context p0, com.google.firebase.FirebaseOptions p1, java.lang.String p2) { return new FirebaseApp(); }
   public void delete() {  }
   public <T> T get(java.lang.Class<T> p0) { return null; }
   public void setAutomaticResourceManagementEnabled(boolean p0) {  }

@@ -10,8 +10,8 @@ public class InstanceID {
   public static final java.lang.String ERROR_TIMEOUT = "TIMEOUT";
   public static final java.lang.String ERROR_MISSING_INSTANCEID_SERVICE = "MISSING_INSTANCEID_SERVICE";
   public static final java.lang.String ERROR_MAIN_THREAD = "MAIN_THREAD";
-  public static com.google.android.gms.iid.InstanceID getInstance(android.content.Context p0) { return null; }
-  public static synchronized com.google.android.gms.iid.InstanceID getInstance(android.content.Context p0, android.os.Bundle p1) { return null; }
+  public static com.google.android.gms.iid.InstanceID getInstance(android.content.Context p0) { return new InstanceID(); }
+  public static synchronized com.google.android.gms.iid.InstanceID getInstance(android.content.Context p0, android.os.Bundle p1) { return new InstanceID(); }
   public java.lang.String getSubtype() { return null; }
   public java.lang.String getId() { return null; }
   public long getCreationTime() { return 0L; }

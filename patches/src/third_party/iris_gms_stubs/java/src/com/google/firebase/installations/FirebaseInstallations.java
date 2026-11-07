@@ -6,8 +6,8 @@
 package com.google.firebase.installations;
 
 public class FirebaseInstallations implements com.google.firebase.installations.FirebaseInstallationsApi {
-  public static com.google.firebase.installations.FirebaseInstallations getInstance() { return null; }
-  public static com.google.firebase.installations.FirebaseInstallations getInstance(com.google.firebase.FirebaseApp p0) { return null; }
+  public static com.google.firebase.installations.FirebaseInstallations getInstance() { return new FirebaseInstallations(); }
+  public static com.google.firebase.installations.FirebaseInstallations getInstance(com.google.firebase.FirebaseApp p0) { return new FirebaseInstallations(); }
   public com.google.android.gms.tasks.Task<java.lang.String> getId() { return com.google.android.gms.tasks.IrisTasks.failed(); }
   public com.google.android.gms.tasks.Task<com.google.firebase.installations.InstallationTokenResult> getToken(boolean p0) { return com.google.android.gms.tasks.IrisTasks.failed(); }
   public com.google.android.gms.tasks.Task<java.lang.Void> delete() { return com.google.android.gms.tasks.IrisTasks.failed(); }
