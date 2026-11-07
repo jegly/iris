@@ -9,7 +9,8 @@ public class GoogleApiAvailabilityLight {
   public static final int GOOGLE_PLAY_SERVICES_VERSION_CODE = 0;
   public static final java.lang.String GOOGLE_PLAY_SERVICES_PACKAGE = "com.google.android.gms";
   public static final java.lang.String GOOGLE_PLAY_STORE_PACKAGE = "com.android.vending";
-  public static com.google.android.gms.common.GoogleApiAvailabilityLight getInstance() { return null; }
+  public static com.google.android.gms.common.GoogleApiAvailabilityLight getInstance() { return IRIS_INSTANCE; }
+  private static final GoogleApiAvailabilityLight IRIS_INSTANCE = new GoogleApiAvailabilityLight(); // Iris: never null
   public int isGooglePlayServicesAvailable(android.content.Context p0) { return 1; /* Iris: ConnectionResult.SERVICE_MISSING */ }
   public int isGooglePlayServicesAvailable(android.content.Context p0, int p1) { return 1; /* Iris: ConnectionResult.SERVICE_MISSING */ }
   public void verifyGooglePlayServicesIsAvailable(android.content.Context p0, int p1) throws com.google.android.gms.common.GooglePlayServicesRepairableException, com.google.android.gms.common.GooglePlayServicesNotAvailableException {  }
@@ -26,6 +27,6 @@ public class GoogleApiAvailabilityLight {
   public boolean isPlayServicesPossiblyUpdating(android.content.Context p0, int p1) { return false; }
   public boolean isPlayStorePossiblyUpdating(android.content.Context p0, int p1) { return false; }
   public boolean isUninstalledAppPossiblyUpdating(android.content.Context p0, java.lang.String p1) { return false; }
-  public java.lang.String getErrorString(int p0) { return null; }
+  public java.lang.String getErrorString(int p0) { return "SERVICE_MISSING"; }
   protected GoogleApiAvailabilityLight() {}  // Iris
 }

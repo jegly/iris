@@ -8,7 +8,8 @@ package com.google.android.gms.common;
 public class GoogleApiAvailability extends com.google.android.gms.common.GoogleApiAvailabilityLight {
   public static final int GOOGLE_PLAY_SERVICES_VERSION_CODE = 0;
   public static final java.lang.String GOOGLE_PLAY_SERVICES_PACKAGE = "com.google.android.gms";
-  public static com.google.android.gms.common.GoogleApiAvailability getInstance() { return null; }
+  public static com.google.android.gms.common.GoogleApiAvailability getInstance() { return IRIS_INSTANCE; }
+  private static final GoogleApiAvailability IRIS_INSTANCE = new GoogleApiAvailability(); // Iris: never null
   public GoogleApiAvailability() { }
   public com.google.android.gms.tasks.Task<java.lang.Void> makeGooglePlayServicesAvailable(android.app.Activity p0) { return com.google.android.gms.tasks.IrisTasks.failed(); }
   public android.app.Dialog getErrorDialog(android.app.Activity p0, int p1, int p2) { return null; }
@@ -31,7 +32,7 @@ public class GoogleApiAvailability extends com.google.android.gms.common.GoogleA
   public android.app.PendingIntent getErrorResolutionPendingIntent(android.content.Context p0, int p1, int p2) { return null; }
   public android.app.PendingIntent getErrorResolutionPendingIntent(android.content.Context p0, com.google.android.gms.common.ConnectionResult p1) { return null; }
   public int getClientVersion(android.content.Context p0) { return 0; }
-  public final java.lang.String getErrorString(int p0) { return null; }
+  public final java.lang.String getErrorString(int p0) { return "SERVICE_MISSING"; }
   public final boolean zab(android.app.Activity p0, com.google.android.gms.common.api.internal.LifecycleFragment p1, int p2, int p3, android.content.DialogInterface.OnCancelListener p4) { return false; }
   public final boolean zad(android.content.Context p0, com.google.android.gms.common.ConnectionResult p1, int p2) { return false; }
   public final void zae(android.content.Context p0, com.google.android.gms.common.ConnectionResult p1, boolean p2) {  }
