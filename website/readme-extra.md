@@ -8,11 +8,11 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 157.0.8103.38-2 files:
+SHA-256 of the 157.0.8103.38-3 files (the Android app is unchanged from 157.0.8103.38-2):
 
 ```
-61cbdc7a180830fad821b980aea7238b8c0f3e4abf73afd653249b48a84f5949  iris-browser-stable_157.0.8103.38-2_amd64.deb
-4eb54f30f7fa5102129b20deb926222a195050689144d51edb6924dddfbd7793  iris-browser_157.0.8103.38-2_amd64.snap
+3f674a5296d0db25fc2991725618100171b6e9eb3fbac653b39c714b2f080c8a  iris-browser-stable_157.0.8103.38-3_amd64.deb
+6856e47ce61d8ce3b6b88b208b2073df90e5197de8604708a163e6b676c6db68  iris-browser_157.0.8103.38-3_amd64.snap
 31895a41795803b913d80bf9e45d261e31550f2f569716525a55285f6ab83b72  iris-157.0.8103.38-2-pqc-signed.apk
 ```
 
