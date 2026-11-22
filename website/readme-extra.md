@@ -8,12 +8,12 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 157.0.8103.38-3 files (the Android app is unchanged from 157.0.8103.38-2):
+SHA-256 of the 158.0.8127.43-1 files:
 
 ```
-3f674a5296d0db25fc2991725618100171b6e9eb3fbac653b39c714b2f080c8a  iris-browser-stable_157.0.8103.38-3_amd64.deb
-6856e47ce61d8ce3b6b88b208b2073df90e5197de8604708a163e6b676c6db68  iris-browser_157.0.8103.38-3_amd64.snap
-31895a41795803b913d80bf9e45d261e31550f2f569716525a55285f6ab83b72  iris-157.0.8103.38-2-pqc-signed.apk
+2bce67bcafe8561569e9d967f46c5d34c683fbec9d49b721912b8382f3ece8fd  iris-browser-stable_158.0.8127.43-1_amd64.deb
+71603c2a8d8159a6eb78be9becd3b43807db42645d912020a0f64724fac6dbdb  iris-browser_158.0.8127.43-1_amd64.snap
+8e870a37ad3361826d20b454df61e843a6f86a2be11c649a4447ca693560c19b  iris-158.0.8127.43-1-pqc-signed.apk
 ```
 
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes

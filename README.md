@@ -301,6 +301,8 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 - Cross-site scripts that a page inserts with document.write()
 - The Payment Request API and its browser-side interface
 - Screen sharing
+- Web Install (navigator.install() and the <install> element)
+- WebMCP (pages offering tools to AI agents)
 ```
 
 ### Your controls
@@ -340,7 +342,7 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 ```diff
 + TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange
 + CNSA 2.0 cipher and key-exchange preferences
-+ Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only (Settings → Privacy and security → Iris hardening; some sites won't load)
++ Strict post-quantum mode, on by default: ML-KEM-1024 key exchange and AES-256 only (Settings → Privacy and security → Iris hardening; some sites won't load)
 + Merkle Tree Certificate verification, ready for post-quantum certificates
 + Certificate Transparency enforced: certificates must be publicly logged
 + Connection details: TLS version, cipher, hash, key exchange, server signature and ECH (in the shield on Ubuntu, in the lock icon on Android)
@@ -349,7 +351,8 @@ Iris starts from upstream Chromium source and applies small, documented patches 
 + HTTPS-Only mode: a warning before any http:// page
 + Full URLs in the address bar, www. and m. included
 + Websites can't reach your router, printer or localhost (Chromium default, kept)
-+ Cache, connections and storage partitioned per site (Chromium default, kept)
++ Cache, connections and storage partitioned per site, with no shared cache for common third-party files
+- Trust in eMudhra (emSign) root certificates (private keys of eight of its intermediate certificates could be computed)
 + Cookies and saved logins encrypted with a key from your desktop keyring [Ubuntu]
 + Lookalike-domain (IDN homograph) warnings (Chromium default, kept)
 + A switch to show web addresses as punycode, so lookalike letters can't hide (off by default)
@@ -450,12 +453,12 @@ gpg --import jegly.asc && gpg --verify SHA256SUMS.asc SHA256SUMS
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-SHA-256 of the 157.0.8103.38-3 files (the Android app is unchanged from 157.0.8103.38-2):
+SHA-256 of the 158.0.8127.43-1 files:
 
 ```
-3f674a5296d0db25fc2991725618100171b6e9eb3fbac653b39c714b2f080c8a  iris-browser-stable_157.0.8103.38-3_amd64.deb
-6856e47ce61d8ce3b6b88b208b2073df90e5197de8604708a163e6b676c6db68  iris-browser_157.0.8103.38-3_amd64.snap
-31895a41795803b913d80bf9e45d261e31550f2f569716525a55285f6ab83b72  iris-157.0.8103.38-2-pqc-signed.apk
+2bce67bcafe8561569e9d967f46c5d34c683fbec9d49b721912b8382f3ece8fd  iris-browser-stable_158.0.8127.43-1_amd64.deb
+71603c2a8d8159a6eb78be9becd3b43807db42645d912020a0f64724fac6dbdb  iris-browser_158.0.8127.43-1_amd64.snap
+8e870a37ad3361826d20b454df61e843a6f86a2be11c649a4447ca693560c19b  iris-158.0.8127.43-1-pqc-signed.apk
 ```
 
 The ML-DSA-87 check needs OpenSSL 3.5 or newer. `packaging/verify/iris-verify.sh <file>` runs all three and makes

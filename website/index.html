@@ -187,7 +187,7 @@
 
     <section id="download" aria-labelledby="download-h">
       <div class="section-head">
-        <h2 id="download-h">Download <span class="pill">157.0.8103.38-3</span></h2>
+        <h2 id="download-h">Download <span class="pill">158.0.8127.43-1</span></h2>
       </div>
       <div class="downloads">
         <article class="dl" id="dl-deb">
@@ -301,6 +301,8 @@
             <li class="rm"><span class="sign">−</span><span>Cross-site scripts that a page inserts with <code>document.write()</code></span></li>
             <li class="rm"><span class="sign">−</span><span>The Payment Request API and its browser-side interface</span></li>
             <li class="rm"><span class="sign">−</span><span>Screen sharing</span></li>
+            <li class="rm"><span class="sign">−</span><span>Web Install (<code>navigator.install()</code> and the <code>&lt;install&gt;</code> element)</span></li>
+            <li class="rm"><span class="sign">−</span><span>WebMCP <span class="why">(pages offering tools to AI agents)</span></span></li>
           </ul>
         </div>
         <div class="hunk">
@@ -340,7 +342,7 @@
           <ul>
             <li class="add"><span class="sign">+</span><span>TLS 1.3 minimum, with Encrypted Client Hello and post-quantum key exchange</span></li>
             <li class="add"><span class="sign">+</span><span>CNSA 2.0 cipher and key-exchange preferences</span></li>
-            <li class="add"><span class="sign">+</span><span>Strict post-quantum mode, off by default: ML-KEM-1024 key exchange and AES-256 only <span class="why">(Settings → Privacy and security → Iris hardening; some sites won't load)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Strict post-quantum mode, on by default: ML-KEM-1024 key exchange and AES-256 only <span class="why">(Settings → Privacy and security → Iris hardening; some sites won't load)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Merkle Tree Certificate verification, ready for post-quantum certificates</span></li>
             <li class="add"><span class="sign">+</span><span>Certificate Transparency enforced: certificates must be publicly logged</span></li>
             <li class="add"><span class="sign">+</span><span>Connection details: TLS version, cipher, hash, key exchange, server signature and ECH <span class="why">(in the shield on Ubuntu, in the lock icon on Android)</span></span></li>
@@ -349,7 +351,8 @@
             <li class="add"><span class="sign">+</span><span>HTTPS-Only mode: a warning before any <code>http://</code> page</span></li>
             <li class="add"><span class="sign">+</span><span>Full URLs in the address bar, <code>www.</code> and <code>m.</code> included</span></li>
             <li class="add"><span class="sign">+</span><span>Websites can't reach your router, printer or <code>localhost</code> <span class="why">(Chromium default, kept)</span></span></li>
-            <li class="add"><span class="sign">+</span><span>Cache, connections and storage partitioned per site <span class="why">(Chromium default, kept)</span></span></li>
+            <li class="add"><span class="sign">+</span><span>Cache, connections and storage partitioned per site, with no shared cache for common third-party files</span></li>
+            <li class="rm"><span class="sign">−</span><span>Trust in eMudhra (emSign) root certificates <span class="why">(private keys of eight of its intermediate certificates could be computed)</span></span></li>
             <li class="add"><span class="sign">+</span><span>Cookies and saved logins encrypted with a key from your desktop keyring <span class="plat">Ubuntu</span></span></li>
             <li class="add"><span class="sign">+</span><span>Lookalike-domain (IDN homograph) warnings <span class="why">(Chromium default, kept)</span></span></li>
             <li class="add"><span class="sign">+</span><span>A switch to show web addresses as punycode, so lookalike letters can't hide <span class="why">(off by default)</span></span></li>
