@@ -54,7 +54,15 @@ MARKER='// Iris: compiled-in hardening switches'
 #   desktop in 157 = already off, listed as a second layer per jegly's no-AI decision).
 #   +CanvasDrawElement (HTML-in-canvas, drawElementImage: live page content drawn into a canvas; 'stable' in 157,
 #   jegly 2026-11-05 "yes turn it off"). Origin trials are off in Iris, so its HTMLInCanvas trial can't re-enable it.
-BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,AIPromptAPI,AIDecisionModelAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia,XSLT,EnableXSLTForCAPAlerts,FileSystem,GeolocationElement,CameraAndMicrophoneElements,UserMediaElement,FencedFrames,PeriodicBackgroundSync,CaptureController,CrashReportingStorageAPI,FileSystemObserver,WebSpeechRecognitionContext,RegionCapture,ElementCapture,CanvasDrawElement'
+# 2026-11-20 (rebase to 158.0.8127.43): +WebMCP, DeclarativeWebMCP and their implicants WebMCPContinuations,
+#   WebMCPDeclarativeFileInput, WebMCPFormAssociatedCustomElements (page API for AI agents: document.modelContext +
+#   declarative form tools; 'experimental' in 158 = off, but chrome://flags experimental features or an implicant
+#   would turn it on; its third-party 'WebMCP' origin trial is dead in Iris anyway). jegly: no WebMCP in Iris.
+#   +WebAppInstallation (navigator.install(), Web Install API) and +InstallElement (<install>): stable on desktop in
+#   158, let any site open a prompt to install a (cross-origin) web app (jegly 2026-11-20: "web install api should
+#   be off"). The <install> tag is runtimeEnabled: InstallElement in html_tag_names.json5, so with it off the
+#   parser makes an unknown element (HTMLInstallElement's CHECK never runs). Android: '' (off) upstream already.
+BLINK_LIST='WebUSB,WebHID,Serial,WebBluetooth,WebNFC,WebXR,DirectSockets,FileSystemAccessLocal,Presentation,DevicePosture,ComputePressure,PushMessaging,WebShare,WakeLock,SystemWakeLock,Fledge,AdInterestGroupAPI,TopicsAPI,AIPromptAPI,AIDecisionModelAPI,AISummarizationAPI,TranslationAPI,LanguageDetectionAPI,AIWriterAPI,AIRewriterAPI,MachineLearningNeuralNetwork,FontAccess,InstalledApp,EyeDropperAPI,StorageBuckets,SubApps,WebAppLaunchQueue,BackgroundFetch,RemotePlayback,ScriptedSpeechRecognition,UnprefixedSpeechRecognition,WebIdentityDigitalCredentials,WebOTP,ContactsManager,ManagedConfiguration,NavigatorContentUtils,AnimationWorklet,GetDisplayMedia,XSLT,EnableXSLTForCAPAlerts,FileSystem,GeolocationElement,CameraAndMicrophoneElements,UserMediaElement,FencedFrames,PeriodicBackgroundSync,CaptureController,CrashReportingStorageAPI,FileSystemObserver,WebSpeechRecognitionContext,RegionCapture,ElementCapture,CanvasDrawElement,WebMCP,DeclarativeWebMCP,WebMCPContinuations,WebMCPDeclarativeFileInput,WebMCPFormAssociatedCustomElements,WebAppInstallation,InstallElement'
 # Every name must be a RuntimeEnabledFeature (a wrong name is silently ignored) — checked below.
 
 # --- guards: the mechanisms this relies on must still exist upstream ---
@@ -93,8 +101,11 @@ EOF
   exit 0
 fi
 
+# M158 (2026-11-20): upstream moved `is_browser` (+ a Windows CHECK block) above the DevTools pipe comment, so the
+# 157 anchor ("#if ...\n  // The DevTools remote debugging pipe ...") is gone. Same spot, new anchor; the Iris block
+# only needs `command_line`, which BasicStartupComplete() still declares at its top.
 ANCHOR='#if !defined(BUILDING_CHROME_RENDERER)
-  // The DevTools remote debugging pipe file descriptors need to be checked'
+  const bool is_browser = !command_line.HasSwitch(switches::kProcessType);'
 n=$(ANCHOR="$ANCHOR" perl -0777 -ne 'my $a=$ENV{ANCHOR}; my $c=()=/\Q$a\E/g; print $c' "$F")
 [ "$n" -eq 1 ] || { echo "ERROR: insertion anchor found $n times (drift?)" >&2; exit 1; }
 

@@ -191,16 +191,20 @@ edit(sb, "      Clamp<int>(kDefaultBackgroundBrightnessThreshold, 0, 255);\n  re
 c = "chrome/browser/chrome_content_browser_client.cc"
 # 157: the renderer's pref switches moved into AppendExtraCommandLineSwitchesFromPrefs(command_line, prefs), which has
 # no Profile*; SwitchValue() needs the profile, so this block goes right after that call, where `profile` exists.
-edit(c, '      AppendExtraCommandLineSwitchesFromPrefs(command_line,\n'
-        '                                              profile->GetPrefs());\n',
-     '      AppendExtraCommandLineSwitchesFromPrefs(command_line,\n'
-     '                                              profile->GetPrefs());\n'
-     '      // Iris: "Recolour websites" colours (apply-web-recolor.sh).\n'
-     '      if (const std::string iris_recolor =\n'
-     '              iris::recolor::SwitchValue(profile);\n'
-     '          !iris_recolor.empty()) {\n'
-     '        command_line->AppendSwitchASCII(iris::recolor::kSwitch, iris_recolor);\n'
-     '      }\n',
+# 158 (2026-11-20): the call is nested one level deeper, inside `if (!profile->IsTopChromeWebUIProfile()) {`
+# (top-chrome WebUI processes are shared by all profiles, so no per-profile switches there). The recolour switch is
+# per-profile too, so it stays inside that block.
+edit(c, '          AppendExtraCommandLineSwitchesFromPrefs(command_line,\n'
+        '                                                  profile->GetPrefs());\n',
+     '          AppendExtraCommandLineSwitchesFromPrefs(command_line,\n'
+     '                                                  profile->GetPrefs());\n'
+     '          // Iris: "Recolour websites" colours (apply-web-recolor.sh).\n'
+     '          if (const std::string iris_recolor =\n'
+     '                  iris::recolor::SwitchValue(profile);\n'
+     '              !iris_recolor.empty()) {\n'
+     '            command_line->AppendSwitchASCII(iris::recolor::kSwitch,\n'
+     '                                            iris_recolor);\n'
+     '          }\n',
      "iris::recolor::SwitchValue(profile)", "renderer switch")
 edit(c, "  web_prefs->force_dark_mode_enabled =\n      prefs->GetBoolean(prefs::kWebKitForceDarkModeEnabled);\n",
      "  web_prefs->force_dark_mode_enabled =\n      prefs->GetBoolean(prefs::kWebKitForceDarkModeEnabled) ||\n"

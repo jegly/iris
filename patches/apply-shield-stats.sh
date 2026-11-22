@@ -30,14 +30,17 @@ edit("chrome/browser/BUILD.gn", "    \"iris/iris_tls_info.cc\",  # Iris\n",
      "    \"iris/iris_shield_stats.cc\",  # Iris\n    \"iris/iris_shield_stats.h\",  # Iris\n"
      "    \"iris/iris_tls_info.cc\",  # Iris\n",
      "iris/iris_shield_stats.cc", "BUILD: sources")
-t = "chrome/browser/ui/tab_helpers.cc"
-edit(t, "#include \"chrome/browser/iris/iris_tls_info.h\"  // nogncheck  Iris (TLS details)\n",
-     "#include \"chrome/browser/iris/iris_shield_stats.h\"  // nogncheck  Iris (shield counter)\n"
-     "#include \"chrome/browser/iris/iris_tls_info.h\"  // nogncheck  Iris (TLS details)\n",
-     "iris_shield_stats.h", "include")
-edit(t, "  iris::TlsInfoTabHelper::CreateForWebContents(web_contents);  // Iris (TLS details)\n",
-     "  iris::TlsInfoTabHelper::CreateForWebContents(web_contents);  // Iris (TLS details)\n"
-     "  iris::ShieldStats::CreateForWebContents(web_contents);  // Iris (shield counter)\n",
-     "iris::ShieldStats::CreateForWebContents", "tab helper attached")
+# M158 (2026-11-20): tab_helpers.cc is gone -> attach in TabFeatures (desktop Init + WillDiscardContents, Android
+# constructor), right after apply-page-info-tls.sh's TlsInfoTabHelper line at each site.
+for t, wc in (("chrome/browser/ui/tabs/tab_features.cc", "tab.GetContents()"),
+              ("chrome/browser/ui/tabs/tab_features.cc", "new_contents"),
+              ("chrome/browser/android/tab_features.cc", "web_contents")):
+    tls = "  iris::TlsInfoTabHelper::CreateForWebContents(%s);  // Iris (TLS details)\n" % wc
+    line = "  iris::ShieldStats::CreateForWebContents(%s);  // Iris (shield counter)\n" % wc
+    edit(t, tls, tls + line, line, "tab helper attached (%s)" % wc)
+for t in ("chrome/browser/ui/tabs/tab_features.cc", "chrome/browser/android/tab_features.cc"):
+    inc = "#include \"chrome/browser/iris/iris_tls_info.h\"  // nogncheck  Iris (TLS details)\n"
+    edit(t, inc, "#include \"chrome/browser/iris/iris_shield_stats.h\"  // nogncheck  Iris (shield counter)\n" + inc,
+         "iris_shield_stats.h", "include")
 PY
 echo "=== shield stats complete ==="

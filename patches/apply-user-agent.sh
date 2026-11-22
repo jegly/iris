@@ -32,15 +32,24 @@ edit("chrome/browser/BUILD.gn", "    \"iris/iris_google_signin_throttle.h\",  # 
      "    \"iris/iris_user_agent.cc\",  # Iris\n    \"iris/iris_user_agent.h\",  # Iris\n",
      "iris/iris_user_agent.cc", "BUILD: sources")
 
-t = "chrome/browser/ui/tab_helpers.cc"
-edit(t, "  zoom::ZoomController::CreateForWebContents(web_contents);\n",
-     "  zoom::ZoomController::CreateForWebContents(web_contents);\n"
-     "  iris::UserAgentTabHelper::CreateForWebContents(web_contents);  // Iris (B2)\n",
-     "iris::UserAgentTabHelper::CreateForWebContents", "tab helper attached")
-edit(t, "#include \"chrome/browser/ui/tab_helpers.h\"\n",
-     "#include \"chrome/browser/ui/tab_helpers.h\"\n"
-     "#include \"chrome/browser/iris/iris_user_agent.h\"  // nogncheck  Iris (B2)\n",
-     "chrome/browser/iris/iris_user_agent.h", "include")
+# M158 (2026-11-20): chrome/browser/ui/tab_helpers.cc (AttachTabHelpers) is GONE; tab helpers are attached by
+# TabFeatures: desktop TabFeatures::Init() + WillDiscardContents() (a discarded tab gets a new WebContents and the
+# old AttachTabHelpers covered that), Android TabFeatures' constructor. Attach after ZoomController at all three.
+TAB_SITES = [
+    ("chrome/browser/ui/tabs/tab_features.cc", "  zoom::ZoomController::CreateForWebContents(tab.GetContents());\n", "tab.GetContents()"),
+    ("chrome/browser/ui/tabs/tab_features.cc", "  zoom::ZoomController::CreateForWebContents(new_contents);\n", "new_contents"),
+    ("chrome/browser/android/tab_features.cc", "  zoom::ZoomController::CreateForWebContents(web_contents);\n", "web_contents"),
+]
+TAB_INCLUDES = [
+    ("chrome/browser/ui/tabs/tab_features.cc", "#include \"chrome/browser/ui/tabs/public/tab_features.h\"\n"),
+    ("chrome/browser/android/tab_features.cc", "#include \"chrome/browser/android/tab_features.h\"\n"),
+]
+for t, anchor, wc in TAB_SITES:
+    line = "  iris::UserAgentTabHelper::CreateForWebContents(%s);  // Iris (B2)\n" % wc
+    edit(t, anchor, anchor + line, line, "tab helper attached (%s)" % wc)
+for t, inc in TAB_INCLUDES:
+    edit(t, inc, inc + "#include \"chrome/browser/iris/iris_user_agent.h\"  // nogncheck  Iris (B2)\n",
+         "chrome/browser/iris/iris_user_agent.h", "include")
 
 hh = "chrome/browser/ui/webui/settings/site_settings_handler.h"
 edit(hh, "  void HandleGetOriginPermissions(const base::ListValue& args);\n",
@@ -121,8 +130,15 @@ ts = "chrome/browser/resources/settings/site_settings/site_details.ts"
 edit(ts, "import {assert} from 'chrome://resources/js/assert.js';\n",
      "import {assert} from 'chrome://resources/js/assert.js';\n"
      "import {sendWithPromise} from 'chrome://resources/js/cr.js';  // Iris (B2)\n"
-     "import 'chrome://resources/cr_elements/md_select.css.js';  // Iris (B2)\n",
+     "import '/shared/settings/md_select.css.js';  // Iris (B2)\n",
      "sendWithPromise} from 'chrome://resources/js/cr.js';  // Iris", "imports")
+# 158: the md-select style module moved from cr_elements to /shared/settings (cr_elements keeps only the Lit one).
+# Migrate a tree patched by the pre-158 version of this script.
+_s = open(ts).read()
+_old = "import 'chrome://resources/cr_elements/md_select.css.js';  // Iris (B2)\n"
+if _old in _s:
+    open(ts, "w").write(_s.replace(_old, "import '/shared/settings/md_select.css.js';  // Iris (B2)\n", 1))
+    print("OK   %s : md-select import moved to /shared/settings (158)" % ts)
 edit(ts, "      origin_: String,\n",
      "      origin_: String,\n\n"
      "      // Iris (B2): the site's browser identity preset ('' = Iris default).\n"

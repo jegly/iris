@@ -171,10 +171,12 @@ edit(cw, '#include "content/public/common/url_constants.h"  // Iris\n',
      '#include "chrome/common/webui_url_constants.h"  // Iris\n'
      '#include "url/gurl.h"  // Iris\n',
      'webui_url_constants.h"  // Iris', "contents view: new tab page hosts")
+# 158 (2026-11-20): contents_web_view's deps gained "//chrome/browser/ui/views/animations" before components/tabs.
 edit("chrome/browser/ui/views/frame/BUILD.gn",
      '    "//chrome/browser/ui/color:color_headers",\n    "//chrome/browser/ui/views:status_bubble",\n'
-     '    "//components/tabs:public",\n',
+     '    "//chrome/browser/ui/views/animations",\n    "//components/tabs:public",\n',
      '    "//chrome/browser/ui/color:color_headers",\n    "//chrome/browser/ui/views:status_bubble",\n'
+     '    "//chrome/browser/ui/views/animations",\n'
      '    "//chrome/common:constants",  # Iris: apply-glass-window.sh\n    "//components/tabs:public",\n',
      '"//chrome/common:constants",  # Iris: apply-glass-window.sh', "contents view: BUILD dep")
 edit(cw, "void ContentsWebView::UpdateBackgroundColor() {\n",

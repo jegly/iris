@@ -11,14 +11,12 @@
  * patches/apply-iris-hardening-security.sh.
  */
 
-import '/shared/settings/prefs/prefs.js';
 import 'chrome://resources/cr_elements/cr_link_row/cr_link_row.js';
 import '../controls/settings_toggle_button.js';
 import '../settings_page/settings_subpage.js';
 import '../settings_shared.css.js';
 import './security/secure_dns.js';
 
-import {PrefsMixin} from '/shared/settings/prefs/prefs_mixin.js';
 import {I18nMixin} from 'chrome://resources/cr_elements/i18n_mixin.js';
 import {OpenWindowProxyImpl} from 'chrome://resources/js/open_window_proxy.js';
 import {PolymerElement} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
@@ -32,7 +30,7 @@ import {getTemplate} from './iris_hardening_page.html.js';
 import {HttpsFirstModeSetting} from './security/security_page.js';
 
 const SettingsIrisHardeningPageElementBase =
-    SettingsViewMixin(I18nMixin(PrefsMixin(PolymerElement)));
+    SettingsViewMixin(I18nMixin(PolymerElement));  // 158: no PrefsMixin (toggles use pref-key)
 
 export class SettingsIrisHardeningPageElement extends
     SettingsIrisHardeningPageElementBase {

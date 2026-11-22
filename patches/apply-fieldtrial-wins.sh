@@ -34,7 +34,10 @@ def enable(path, ident):
 p = "content/public/common/content_features.cc"; s = open(p).read()
 e_old = "BASE_FEATURE(kIsolateSubframeErrorPages,\n#if BUILDFLAG(IS_ANDROID)\n             base::FEATURE_DISABLED_BY_DEFAULT\n"
 e_new = "BASE_FEATURE(kIsolateSubframeErrorPages,\n#if BUILDFLAG(IS_ANDROID)\n             base::FEATURE_ENABLED_BY_DEFAULT  // Iris\n"
+# M158 (2026-11-20): upstream enabled it on ALL platforms (the Android #if is gone) -> nothing to do.
+e_upstream = "BASE_FEATURE(kIsolateSubframeErrorPages, base::FEATURE_ENABLED_BY_DEFAULT);"
 if e_new in s: print("SKIP already enabled: kIsolateSubframeErrorPages (Android)")
+elif s.count(e_upstream) == 1: print("SKIP upstream enables kIsolateSubframeErrorPages on all platforms (158+)")
 elif s.count(e_old) == 1: open(p,"w").write(s.replace(e_old, e_new)); print("OK   kIsolateSubframeErrorPages (Android branch) -> ENABLED")
 else: die("kIsolateSubframeErrorPages Android branch not found (drift?)")
 enable("components/permissions/features.cc", "kPermissionsGestureGatedPrompts")

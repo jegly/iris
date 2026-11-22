@@ -30,15 +30,23 @@ edit("chrome/browser/BUILD.gn", "    \"iris/iris_google_signin_throttle.h\",  # 
      "    \"iris/iris_tls_info.cc\",  # Iris\n    \"iris/iris_tls_info.h\",  # Iris\n",
      "iris/iris_tls_info.cc", "BUILD: sources")
 
-t = "chrome/browser/ui/tab_helpers.cc"
-edit(t, "  zoom::ZoomController::CreateForWebContents(web_contents);\n",
-     "  zoom::ZoomController::CreateForWebContents(web_contents);\n"
-     "  iris::TlsInfoTabHelper::CreateForWebContents(web_contents);  // Iris (TLS details)\n",
-     "iris::TlsInfoTabHelper::CreateForWebContents", "tab helper attached")
-edit(t, "#include \"chrome/browser/ui/tab_helpers.h\"\n",
-     "#include \"chrome/browser/ui/tab_helpers.h\"\n"
-     "#include \"chrome/browser/iris/iris_tls_info.h\"  // nogncheck  Iris (TLS details)\n",
-     "chrome/browser/iris/iris_tls_info.h", "include")
+# M158 (2026-11-20): tab_helpers.cc is gone -> attach in TabFeatures (desktop Init + WillDiscardContents, Android
+# constructor), same three sites as apply-user-agent.sh.
+TAB_SITES = [
+    ("chrome/browser/ui/tabs/tab_features.cc", "  zoom::ZoomController::CreateForWebContents(tab.GetContents());\n", "tab.GetContents()"),
+    ("chrome/browser/ui/tabs/tab_features.cc", "  zoom::ZoomController::CreateForWebContents(new_contents);\n", "new_contents"),
+    ("chrome/browser/android/tab_features.cc", "  zoom::ZoomController::CreateForWebContents(web_contents);\n", "web_contents"),
+]
+TAB_INCLUDES = [
+    ("chrome/browser/ui/tabs/tab_features.cc", "#include \"chrome/browser/ui/tabs/public/tab_features.h\"\n"),
+    ("chrome/browser/android/tab_features.cc", "#include \"chrome/browser/android/tab_features.h\"\n"),
+]
+for t, anchor, wc in TAB_SITES:
+    line = "  iris::TlsInfoTabHelper::CreateForWebContents(%s);  // Iris (TLS details)\n" % wc
+    edit(t, anchor, anchor + line, line, "tab helper attached (%s)" % wc)
+for t, inc in TAB_INCLUDES:
+    edit(t, inc, inc + "#include \"chrome/browser/iris/iris_tls_info.h\"  // nogncheck  Iris (TLS details)\n",
+         "chrome/browser/iris/iris_tls_info.h", "include")
 
 h = "chrome/browser/ui/views/page_info/page_info_security_content_view.h"
 edit(h, "  raw_ptr<RichHoverButton> certificate_button_ = nullptr;\n",

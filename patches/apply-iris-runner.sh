@@ -70,10 +70,11 @@ edit(c, "bool NetErrorPageController::UpdateEasterEggHighScore(int high_score) {
      "}\n\n"
      "bool NetErrorPageController::UpdateEasterEggHighScore(int high_score) {\n",
      "NetErrorPageController::IrisRunnerSource() {", "game source")
-edit(c, '      .SetMethod("trackEasterEgg", &NetErrorPageController::TrackEasterEgg)\n',
-     '      .SetMethod("trackEasterEgg", &NetErrorPageController::TrackEasterEgg)\n'
-     '      .SetMethod("irisRunnerSource",  // Iris\n'
-     '                 &NetErrorPageController::IrisRunnerSource)\n',
+# 158 (2026-11-20): gin's ObjectTemplateBuilder binds members with the template form SetMethod<&Fn>("name").
+edit(c, '      .SetMethod<&NetErrorPageController::TrackEasterEgg>("trackEasterEgg")\n',
+     '      .SetMethod<&NetErrorPageController::TrackEasterEgg>("trackEasterEgg")\n'
+     '      .SetMethod<&NetErrorPageController::IrisRunnerSource>(  // Iris\n'
+     '          "irisRunnerSource")\n',
      '"irisRunnerSource"', "JS binding")
 
 # --- neterror: types + start hook ---

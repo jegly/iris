@@ -336,7 +336,7 @@ android_library("iris_gms_stubs_java") {
     "//third_party/androidx:androidx_fragment_fragment_java",
     "//third_party/androidx:androidx_media_media_java",
     "//third_party/androidx:androidx_mediarouter_mediarouter_java",
-    "//third_party/kotlin_stdlib:kotlin_stdlib_java",
+    "//third_party/android_deps:kotlin_stdlib_java",  # 158: moved from //third_party/kotlin_stdlib
   ]
 }
 

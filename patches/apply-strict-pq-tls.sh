@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Iris — "Strict post-quantum encryption" setting, default OFF (jegly 2026-10-03; verified against the
+# Iris — "Strict post-quantum encryption" setting, default ON since 2026-11-20 (jegly; was OFF from 2026-10-03; verified against the
 # 156.0.8073.0 sources + BoringSSL 5fbad228 / quiche 535a2730 from DEPS).
 # Before: the CNSA preset (apply-tls-hardening.sh step 3) OFFERS ML-KEM-1024 first but sends key shares only for
 # X25519MLKEM768 + X25519 (services/network/ssl_config_type_converter.cc), so servers that support both pick
@@ -151,10 +151,18 @@ edit(p,
      "  registry->RegisterStringPref(prefs::kPreferSlowCiphers, std::string());\n"
      "}\n",
      "  registry->RegisterStringPref(prefs::kPreferSlowCiphers, std::string());\n"
-     "  // Iris: off by default.\n"
-     "  registry->RegisterBooleanPref(kIrisStrictPqTlsPref, false);\n"
+     "  // Iris: ON by default (jegly 2026-11-20; was off since 2026-10-03).\n"
+     "  registry->RegisterBooleanPref(kIrisStrictPqTlsPref, true);\n"
      "}\n",
-     "RegisterBooleanPref(kIrisStrictPqTlsPref", "register pref (Local State, default false)")
+     "RegisterBooleanPref(kIrisStrictPqTlsPref", "register pref (Local State, default true)")
+# Upgrade a tree patched with the old default (off) to the new one (on).
+_s = open(p).read()
+_old = ("  // Iris: off by default.\n"
+        "  registry->RegisterBooleanPref(kIrisStrictPqTlsPref, false);\n")
+if _old in _s:
+    open(p, "w").write(_s.replace(_old, "  // Iris: ON by default (jegly 2026-11-20; was off since 2026-10-03).\n"
+                                        "  registry->RegisterBooleanPref(kIrisStrictPqTlsPref, true);\n", 1))
+    print("OK   %s : strict PQ default switched to ON" % p)
 edit(p,
      "  ConfigureSSLComplianceSettings(key_exchange_compliance_,\n"
      "                                 tls13_cipher_compliance_, config.get());\n",

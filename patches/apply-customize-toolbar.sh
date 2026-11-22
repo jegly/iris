@@ -57,9 +57,11 @@ def edit(p, old, new, marker, label):
 
 D = "chrome/browser/ui/webui/side_panel/customize_chrome/customize_toolbar/"
 M = D + "customize_toolbar.mojom"
-# 157: kShowTabsFromOtherDevices is gone; the enum ends with kContextualTasks.
-edit(M, "  kContextualTasks,\n};\n",
-     "  kContextualTasks,\n"
+# 157: kShowTabsFromOtherDevices was gone; the enum ended with kContextualTasks.
+# 158 (2026-11-20): the enum gained kTtc (new AI agent "TTC", off in Iris: kTtc + kGlicActor disabled) and
+# kShowTabsFromOtherDevices is back; it ends with kShowTabsFromOtherDevices. Both are hidden below.
+edit(M, "  kShowTabsFromOtherDevices,\n};\n",
+     "  kShowTabsFromOtherDevices,\n"
      "  // Iris's own toolbar buttons (apply-customize-toolbar.sh).\n"
      "  kIrisShield,\n  kIrisJavaScript,\n  kIrisNewIdentity,\n  kIrisLock,\n};\n",
      "kIrisShield,", "mojom: Iris actions")
@@ -107,6 +109,8 @@ edit(C, "namespace {\n",
      "    case kActionSidePanelShowSearchCompanion:\n"
      "    case kActionShowTranslate:\n"
      "    case kActionSidePanelShowContextualTasks:       // AI\n"
+     "    case kActionTtcToolbar:                         // AI agent (158)\n"
+     "    case kActionSidePanelShowTabsFromOtherDevices:  // needs sync (back in 158)\n"
      "      return true;\n"
      "    default:\n"
      "      return false;\n"

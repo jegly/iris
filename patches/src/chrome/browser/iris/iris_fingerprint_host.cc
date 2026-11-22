@@ -3,6 +3,7 @@
 #include "chrome/browser/iris/iris_fingerprint_host.h"
 
 #include "base/containers/span.h"
+#include "base/memory/self_deleting.h"
 #include "base/no_destructor.h"
 #include "base/numerics/byte_conversions.h"
 #include "base/rand_util.h"
@@ -45,10 +46,13 @@ uint64_t SeedFor(content::BrowserContext* context, const GURL& top) {
 class FingerprintHost final
     : public content::DocumentService<blink::mojom::IrisFingerprintHost> {
  public:
+  // 158: DocumentService takes a SelfDeletingPassKey; create with
+  // base::MakeSelfDeleting<FingerprintHost>(...) (it supplies the key).
   FingerprintHost(
       content::RenderFrameHost& render_frame_host,
-      mojo::PendingReceiver<blink::mojom::IrisFingerprintHost> receiver)
-      : DocumentService(render_frame_host, std::move(receiver)) {}
+      mojo::PendingReceiver<blink::mojom::IrisFingerprintHost> receiver,
+      base::SelfDeletingPassKey key)
+      : DocumentService(render_frame_host, std::move(receiver), key) {}
 
   // blink::mojom::IrisFingerprintHost:
   void GetMode(GetModeCallback callback) override {
@@ -87,6 +91,11 @@ class FingerprintHost final
     }
     std::move(callback).Run(block);
   }
+
+ private:
+  // Self-deleting (DocumentService): MakeSelfDeleting requires a non-public
+  // destructor.
+  ~FingerprintHost() override = default;
 };
 
 }  // namespace
@@ -95,7 +104,8 @@ void BindFingerprintHost(
     content::RenderFrameHost* render_frame_host,
     mojo::PendingReceiver<blink::mojom::IrisFingerprintHost> receiver) {
   // Owned by the document (DocumentService deletes itself).
-  new FingerprintHost(*render_frame_host, std::move(receiver));
+  base::MakeSelfDeleting<FingerprintHost>(*render_frame_host,
+                                          std::move(receiver));
 }
 
 namespace {

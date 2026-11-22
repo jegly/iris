@@ -100,7 +100,9 @@ DESKTOP_FLIPS = [
     ("chrome/browser/ui/webui/new_tab_page/composebox/variations/composebox_fieldtrial.cc", "kNtpComposebox"),
     ("chrome/common/chrome_features.cc", "kGoogleSearchAiModeWorkspace"),
     ("chrome/browser/ai/ai_manager.cc", "kBuiltInAIEagerInit"),
-    ("chrome/browser/ui/webui/settings/on_device_ai_settings_handler.cc", "kShowOnDeviceAiSettings"),
+    # kShowOnDeviceAiSettings: REMOVED upstream in 158 (the "On-device AI" toggle launched, no flag any more).
+    # The toggle only lives on the Settings AI page (settings/ai_page/), which apply-remove-ai-page.sh hides
+    # (showAiPage = false); the guard below fails if 158+ shows it anywhere else. (2026-11-20, M158 rebase)
     ("components/permissions/features.cc", "kPermissionsAIP92"),
     ("components/optimization_guide/core/optimization_guide_features.cc", "kModelQualityLogging"),
 ]
@@ -114,6 +116,19 @@ for fp, name in DESKTOP_FLIPS:
     s = on.sub(lambda mm: "BASE_FEATURE(%s,%s base::FEATURE_DISABLED_BY_DEFAULT);  // Iris: no AI"
                % (name, (mm.group(1) or "")), s, count=1)
     open(fp, "w").write(s); print("OK   %s : %s off" % (fp, name))
+# Guard (M158): the on-device AI toggle must stay confined to the hidden AI page (see the note in DESKTOP_FLIPS).
+import os
+outside = []
+for root, _, files in os.walk("chrome/browser/resources/settings"):
+    if root.startswith("chrome/browser/resources/settings/ai_page"): continue
+    for f in files:
+        fp2 = os.path.join(root, f)
+        if fp2 == "chrome/browser/resources/settings/lazy_load.ts": continue  # type/proxy re-exports only
+        try: txt = open(fp2, errors="replace").read()
+        except OSError: continue
+        if "onDeviceAi" in txt or "OnDeviceAi" in txt: outside.append(fp2)
+if outside: die("on-device AI settings now referenced outside settings/ai_page: %s (hide it there too)" % ", ".join(outside))
+print("GUARD ok: on-device AI toggle only on the hidden Settings AI page")
 fp = "components/lens/lens_features.cc"
 s = open(fp).read()
 new = "BASE_FEATURE(kLensOverlay, base::FEATURE_DISABLED_BY_DEFAULT);  // Iris: no Google Lens (desktop too)\n"

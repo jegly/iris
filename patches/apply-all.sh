@@ -56,6 +56,7 @@ PATCHES=(
   apply-emudhra-distrust        # emSign Root CA - G1 + emSign ECC Root CA - G3 out of the root store and SPKI-blocked (eMudhra weak-key incident 2026-10-17)
   apply-ct-enforce              # Certificate Transparency enforced; SCT auditing (hashdance/reports to Google) always off (issue #1 items 1+2)
   apply-privacy-batch1          # window.name, FedCM, compression dicts, preloading, text fragments, SXG, translate, autofill server, feed
+  apply-pervasive-cache-off     # no shared single-keyed cache for Google's list of 'pervasive' third-party files + dictionaries (jegly 2026-11-20)
   apply-fingerprint-apis        # speechSynthesis, fetchLater, getBattery, getGamepads, sendBeacon, userAgentData off
   apply-compiler-hardening      # strong protector, stack-clash, Android SCS+strong (FULL REBUILD)
   apply-vanadium-parity         # local NTP, no logo/popular-sites/Google favicons, contextual search off, SB surveys/deep-scan off, DRM preprovisioning off, Android FRE skip, full hostnames/URLs
